@@ -18,5 +18,7 @@ cabal.sandbox.config
 .stack-work/
 cabal.project.local
 cabal.project.local~
+safe-backup.cabal
+*~
 .HTF/
 .ghc.environment.*
