@@ -27,6 +27,7 @@ dependencies:
 - containers
 - directory
 - bytestring
+- directory-tree
 
 library:
   source-dirs: src
