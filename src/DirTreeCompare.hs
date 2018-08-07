@@ -1,11 +1,15 @@
 module DirTreeCompare
-    (q
+    (
+    DirTree2(LeftFile, RightFile, BothFile, Dir2),
+    mergeTrees,
+    leftCount,
+    rightCount,
+    fileName,
     ) where
 
 import           DirTree
 import           Lib
-import           System.Directory
-import           System.Directory.Tree
+import           System.Directory.Tree (DirTree (Dir, Failed, File), FileName)
 import           Text.Printf           (printf)
 
 import           Crypto.Hash.SHA1      (hashlazy)
@@ -16,6 +20,18 @@ import           Data.List             (sortBy)
 data Dvoj a = Levy (DirTree a) | Pravy (DirTree a) | Oboje (DirTree a) (DirTree a) deriving (Show, Eq, Ord)
 
 data DirTree2 a = LeftFile FileName a | RightFile FileName a | BothFile FileName a a | Dir2 FileName [DirTree2 a] deriving (Show, Eq, Ord)
+
+leftCount :: DirTree2 a -> Integer
+leftCount LeftFile {}      = 1
+leftCount BothFile {}      = 1
+leftCount RightFile {}     = 0
+leftCount (Dir2 _ content) = sum $ map leftCount content
+
+rightCount :: DirTree2 a -> Integer
+rightCount LeftFile {}      = 0
+rightCount BothFile {}      = 1
+rightCount RightFile {}     = 1
+rightCount (Dir2 _ content) = sum $ map rightCount content
 
 class  HasFileName a  where
   fileName :: a -> FileName
@@ -63,19 +79,3 @@ mergeTrees q1@(Dir name1 content1) q2@(Dir name2 content2) =
     let sez = mergeDirLists content1 content2
         sez2 = map (dolu . snd) sez
     in Dir2 (jmenovac name1 name2) (sortBy (compare `on` fileName) sez2)
-
-zastringuj :: Show a => (a -> String) -> DirTree2 a -> [String]
-zastringuj f (LeftFile name a) = ["+ " ++ name ++ " " ++ f a]
-zastringuj f (RightFile name a) = ["- " ++ name ++ " " ++ f a]
-zastringuj f (BothFile name a b) = ["= " ++ name ++ " " ++ f a ++ "  |  " ++ f b]
-zastringuj f (Dir2 name contents) = ("/ " ++ name) : map ("   "++) (concat (zastringuj f <$> contents))
-
-q :: IO ()
-q = do
-  (base1 :/ d1) <- readSourceDir "./test/case1/left"
-  (base2 :/ d2) <- readSourceDir "./test/case1/right"
-  let sloz = mergeTrees d1 d2
-  putStrLn base1
-  putStrLn base2
-  putStrLn "///"
-  putStrLn $ unlines $ zastringuj (show) sloz
