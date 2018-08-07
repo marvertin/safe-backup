@@ -10,6 +10,8 @@ import           Lib
 import           System.Directory.Tree
 import           System.FilePath.Find
 import           Text.Printf           (printf)
+import           Data.Maybe
+
 
 hashFile :: FilePath -> IO Strict.ByteString
 hashFile = fmap hashlazy . Lazy.readFile
@@ -50,7 +52,7 @@ q :: IO ()
 q = do
   (base1 :/ d1) <- readSourceDir "./test/case1/left"
   (base2 :/ d2) <- readSourceDir "./test/case1/right"
-  let sloz = mergeTrees sameFiles d1 d2
+  let (Just sloz) = mergeTrees sameFiles d1 d2
   putStrLn base1
   putStrLn base2
   putStrLn "///"
