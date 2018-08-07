@@ -3,7 +3,8 @@ module DirTree
     readSourceDir,
     Hash,
     FileSize,
-    FileInfo
+    FileInfo,
+    sameFiles
     ) where
 
 import           Lib
@@ -36,6 +37,9 @@ zastringuj (Failed name exc) = [name ++ "EXCE " ++ show exc]
 
 readSourceDir :: FilePath -> IO (AnchoredDirTree FileInfo)
 readSourceDir f = sortDirShape </$> readDirectoryWith getFileInfo f
+
+sameFiles :: FileInfo -> FileInfo -> Bool
+sameFiles (_, _, hash1) (_, _, hash2) = hash1 == hash2
 
 p :: IO ()
 p = do

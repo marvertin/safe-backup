@@ -36,9 +36,9 @@ mainovec = do
 
 
 zastringuj :: Show a => (a -> String) -> DirTree2 a -> [String]
-zastringuj f (LeftFile name a) = ["+ " ++ name ++ " " ++ f a]
-zastringuj f (RightFile name a) = ["- " ++ name ++ " " ++ f a]
-zastringuj f (BothFile name a b) = ["= " ++ name ++ " " ++ f a ++ "  |  " ++ f b]
+zastringuj f (AddFord dt) = ["+ " ++ fileNamex dt ++ " "]
+zastringuj f (DeleteFord dt) = ["- " ++ fileNamex dt ++ " " ]
+zastringuj f (Nic2 name a) = ["= " ++ name ++ " " ++ f a ]
 zastringuj f this@(Dir2 name contents) = ("/ " ++ name
   ++ " #" ++ show (leftCount this) ++ "|" ++ show (rightCount this))
   : map ("   "++) (concat (zastringuj f <$> contents))
@@ -50,7 +50,7 @@ q :: IO ()
 q = do
   (base1 :/ d1) <- readSourceDir "./test/case1/left"
   (base2 :/ d2) <- readSourceDir "./test/case1/right"
-  let sloz = mergeTrees d1 d2
+  let sloz = mergeTrees sameFiles d1 d2
   putStrLn base1
   putStrLn base2
   putStrLn "///"
