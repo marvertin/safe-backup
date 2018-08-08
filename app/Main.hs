@@ -12,6 +12,7 @@ import           GHC.IO.Encoding
 import           System.Directory.Tree
 import           System.FilePath.Find
 import           Text.Printf           (printf)
+import           YabtDirTree
 
 hashFile :: FilePath -> IO Strict.ByteString
 hashFile = fmap hashlazy . Lazy.readFile
