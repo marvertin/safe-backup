@@ -7,11 +7,11 @@ import           DirTree
 import           DirTreeCompare
 import           Lib
 -- import           Filesystem.Path
+import           Data.Maybe
+import           GHC.IO.Encoding
 import           System.Directory.Tree
 import           System.FilePath.Find
 import           Text.Printf           (printf)
-import           Data.Maybe
-
 
 hashFile :: FilePath -> IO Strict.ByteString
 hashFile = fmap hashlazy . Lazy.readFile
@@ -46,7 +46,11 @@ zastringuj f this@(Dir2 name contents) = ("/ " ++ name
   : map ("   "++) (concat (zastringuj f <$> contents))
 
 main :: IO ()
-main = mainovec
+main = do
+  setLocaleEncoding utf8
+  getLocaleEncoding >>= print
+  putStrLn "→"
+  p2
 
 q :: IO ()
 q = do
