@@ -27,20 +27,20 @@ data DirTree2 a = AddFord (DirTree a)
               deriving (Show, Eq, Ord)
 
 count :: DirTree a -> Int
-count File {} = 1
-count Failed {} = 1
+count File {}         = 1
+count Failed {}       = 1
 count (Dir _ content) = length content
 
 leftCount :: DirTree2 a -> Int
-leftCount (AddFord x) = count x
-leftCount (DeleteFord x) = 0
-leftCount Nic2 {}      = 1
+leftCount (AddFord x)      = count x
+leftCount (DeleteFord x)   = 0
+leftCount Nic2 {}          = 1
 leftCount (Dir2 _ content) = sum $ map leftCount content
 
 rightCount :: DirTree2 a -> Int
-rightCount (AddFord x) = 0
-rightCount (DeleteFord x) = count x
-rightCount Nic2 {}      = 1
+rightCount (AddFord x)      = 0
+rightCount (DeleteFord x)   = count x
+rightCount Nic2 {}          = 1
 rightCount (Dir2 _ content) = sum $ map rightCount content
 
 {-
@@ -49,19 +49,12 @@ rightCount BothFile {}      = 1
 rightCount RightFile {}     = 1
 rightCount (Dir2 _ content) = sum $ map rightCount content
 -}
-class  HasFileName a  where
-  fileNamex :: a -> FileName
 
 instance HasFileName (DirTree2 a) where
-  fileNamex (AddFord dt)   = fileNamex dt
-  fileNamex (DeleteFord dt)   = fileNamex dt
-  fileNamex (Dir2 name _)       = name
-  fileNamex (Nic2 name _)       = name
-
-instance HasFileName (DirTree a) where
-  fileNamex (Dir name _)    = name
-  fileNamex (File name _)   = name
-  fileNamex (Failed name _) = name
+  fileNamex (AddFord dt)    = fileNamex dt
+  fileNamex (DeleteFord dt) = fileNamex dt
+  fileNamex (Dir2 name _)   = name
+  fileNamex (Nic2 name _)   = name
 
 
 mergeDirLists :: [DirTree a] -> [DirTree a] -> [(FileName, Dvoj a)]
@@ -83,8 +76,8 @@ jmenovac x y
 
 dolu :: Eq a => (a -> a -> Bool) -> Dvoj a -> Maybe (DirTree2 a)
 dolu (=^=) (Oboje dt1 dt2) = mergeTrees (=^=) dt1 dt2
-dolu _ (Levy dt)       = Just (AddFord dt)
-dolu _ (Pravy dt)      = Just (DeleteFord dt)
+dolu _ (Levy dt)           = Just (AddFord dt)
+dolu _ (Pravy dt)          = Just (DeleteFord dt)
 
 
 mergeTrees :: Eq a => (a -> a -> Bool) -> DirTree a -> DirTree a -> Maybe (DirTree2 a)
