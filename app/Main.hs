@@ -3,7 +3,7 @@ module Main where
 import           Crypto.Hash.SHA1      (hashlazy)
 import qualified Data.ByteString       as Strict
 import qualified Data.ByteString.Lazy  as Lazy
-import           DirTree
+import qualified DirTree as OldDirTree
 import           DirTreeCompare
 import           Lib
 -- import           Filesystem.Path
@@ -12,7 +12,8 @@ import           GHC.IO.Encoding
 import           System.Directory.Tree
 import           System.FilePath.Find
 import           Text.Printf           (printf)
-import           YabtDirTree
+import           YabaDirTree hiding (RegularFile)
+import           LogicalDirTree
 
 hashFile :: FilePath -> IO Strict.ByteString
 hashFile = fmap hashlazy . Lazy.readFile
@@ -50,14 +51,14 @@ main :: IO ()
 main = do
   setLocaleEncoding utf8
   getLocaleEncoding >>= print
-  putStrLn "→"
-  p2
+  -- putStrLn "→"
+  q
 
 q :: IO ()
 q = do
-  (base1 :/ d1) <- readSourceDir "./test/case1/left"
-  (base2 :/ d2) <- readSourceDir "./test/case1/right"
-  let (Just sloz) = mergeTrees sameFiles d1 d2
+  (base1 :/ d1) <- OldDirTree.readSourceDir "./test/case1/left"
+  (base2 :/ d2) <- OldDirTree.readSourceDir "./test/case1/right"
+  let (Just sloz) = mergeTrees OldDirTree.sameFiles d1 d2
   putStrLn base1
   putStrLn base2
   putStrLn "///"
