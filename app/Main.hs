@@ -3,17 +3,19 @@ module Main where
 import           Crypto.Hash.SHA1      (hashlazy)
 import qualified Data.ByteString       as Strict
 import qualified Data.ByteString.Lazy  as Lazy
+import           Data.Maybe
 import qualified DirTree               as OldDirTree
 import           DirTreeCompare
-import           Lib
--- import           Filesystem.Path
-import           Data.Maybe
+--import           Filesystem.Path
 import           GHC.IO.Encoding
+import           Lib
 import           LogicalDirTree
 import           System.Directory.Tree
 import           System.FilePath.Find
 import           Text.Printf           (printf)
 import           YabaDirTree           hiding (RegularFile)
+import           YabaFileContent
+
 
 hashFile :: FilePath -> IO Strict.ByteString
 hashFile = fmap hashlazy . Lazy.readFile

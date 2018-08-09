@@ -6,7 +6,6 @@ module LogicalDirTree (
   gen,
   lodreeToStringList,
   extractPureFordName,
-  w
 ) where
 
 import           Data.Function
@@ -17,6 +16,7 @@ import           System.Directory.Tree (DirTree (Dir, File), FileName)
 import           System.FilePath
 import           Types
 import           YabaDirTree
+import           YabaFileContent
 
 data Ree = Ree { physPathx :: FilePath, size :: FileSize, hash :: Hash } deriving (Show)
 data Lodree = LFile ()
@@ -77,10 +77,10 @@ cnvt :: FordInfo -> Ree
 cnvt (RegularFile a b c) = Ree { physPathx = a, size = b, hash = c }
 
 isDelete :: JabaContent -> Bool
-isDelete _  = True
+isDelete = isYabaRemove . parseYabaFile
 
 isLink :: JabaContent -> Bool
-isLink _  = False
+isLink = isYabaLink . parseYabaFile
 
 findTarget :: JabaContent -> Maybe Lodree
 findTarget _ = Nothing
@@ -104,5 +104,5 @@ prependToFirst x []      = [x]
 prependToFirst x (y: ys) = (x ++ y) : ys
 
 
-w = do
-  putStrLn $ unlines $ lodreeToStringList (gen "abcd")
+--w = do
+--  putStrLn $ unlines $ lodreeToStringList (gen "abcd")
