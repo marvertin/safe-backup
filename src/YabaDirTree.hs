@@ -8,17 +8,20 @@ module YabaDirTree
 
     readSourceDir,
     JabaContent,
-
+    yabaDirTreeToStringList,
+    removeYabaExtension
     ) where
 
 import           Data.List
-import           Lib
+import           Data.Maybe
 import           Dump
-import           Types
+import           GHC.IO.Encoding
+import           Lib
 import           System.Directory
 import           System.Directory.Tree
-import           GHC.IO.Encoding
+import           System.FilePath
 import           Text.Printf           (printf)
+import           Types
 
 import qualified Crypto.Hash.SHA1      as Cr
 import qualified Data.ByteString       as Strict
@@ -29,14 +32,7 @@ data FordInfo = RegularFile { physPath :: FilePath, fordSize :: FileSize, fileHa
               | YabaFile JabaContent  -- file content
               deriving (Show)
 
-class  HasFileName a  where
-  fileNamex :: a -> FileName
 
-
-instance HasFileName (DirTree a) where
-  fileNamex (Dir name _)    = name
-  fileNamex (File name _)   = name
-  fileNamex (Failed name _) = name
 
 hashFile :: FilePath -> IO Strict.ByteString
 hashFile = fmap Cr.hashlazy . Lazy.readFile
@@ -49,7 +45,7 @@ printFordInfo (YabaFile content) = Just$ show $ "{" ++ content ++ "}"
 
 printFordInfo2 :: FordInfo -> Maybe String
 printFordInfo2 RegularFile {physPath} = Just physPath
-printFordInfo2 (YabaFile _) = Nothing
+printFordInfo2 (YabaFile _)           = Nothing
 
 getFileInfo :: FilePath -> IO FordInfo
 getFileInfo f = do
@@ -58,10 +54,13 @@ getFileInfo f = do
   if not $ yabaSuffix `isSuffixOf` f then return (RegularFile f size hash)
           else YabaFile <$> readFile f
 
+removeYabaExtension :: FileName -> FileName
+removeYabaExtension name = fromMaybe name (stripExtension yabaSuffix name)
 
 readSourceDir :: FilePath -> IO (AnchoredDirTree FordInfo)
 readSourceDir f = sortDirShape </$> readDirectoryWith getFileInfo f
 
+yabaDirTreeToStringList = dirTreeToStringList printFordInfo2
 
 proved :: String -> IO ()
 proved s = do

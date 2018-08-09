@@ -4,7 +4,6 @@ module DirTree
     Hash,
     FileSize,
     FileInfo,
-    HasFileName(fileNamex),
     sameFiles
     ) where
 
@@ -22,15 +21,6 @@ type FileSize = Integer
 
 type Hash = Strict.ByteString
 type FileInfo = (FilePath, FileSize, Hash)
-
-class  HasFileName a  where
-  fileNamex :: a -> FileName
-
-
-instance HasFileName (DirTree a) where
-  fileNamex (Dir name _)    = name
-  fileNamex (File name _)   = name
-  fileNamex (Failed name _) = name
 
 hashFile :: FilePath -> IO Strict.ByteString
 hashFile = fmap Cr.hashlazy . Lazy.readFile

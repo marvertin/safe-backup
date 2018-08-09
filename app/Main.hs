@@ -3,17 +3,17 @@ module Main where
 import           Crypto.Hash.SHA1      (hashlazy)
 import qualified Data.ByteString       as Strict
 import qualified Data.ByteString.Lazy  as Lazy
-import qualified DirTree as OldDirTree
+import qualified DirTree               as OldDirTree
 import           DirTreeCompare
 import           Lib
 -- import           Filesystem.Path
 import           Data.Maybe
 import           GHC.IO.Encoding
+import           LogicalDirTree
 import           System.Directory.Tree
 import           System.FilePath.Find
 import           Text.Printf           (printf)
-import           YabaDirTree hiding (RegularFile)
-import           LogicalDirTree
+import           YabaDirTree           hiding (RegularFile)
 
 hashFile :: FilePath -> IO Strict.ByteString
 hashFile = fmap hashlazy . Lazy.readFile
@@ -62,4 +62,20 @@ q = do
   putStrLn base1
   putStrLn base2
   putStrLn "///"
-  putStrLn $ unlines $ zastringuj (show) sloz
+  putStrLn $ unlines $ zastringuj show sloz
+
+ww = do
+  (base :/ d) <- readSourceDir "./test/data/backupdisk1/2018-02-03T00-00-00.yaba"
+  putStrLn $ " ============ " ++ base
+  putStrLn $ unlines $ yabaDirTreeToStringList d
+  putStrLn " ============ "
+  let lodree1 = merge Nothing (Just d)
+  putStrLn $ unlines $ lodreeToStringList $ fromJust lodree1
+
+
+  (base :/ d) <- readSourceDir "./test/data/backupdisk1/2018-02-04T00-00-00.yaba"
+  putStrLn $ " ============ " ++ base
+  putStrLn $ unlines $ yabaDirTreeToStringList d
+  putStrLn " ============ "
+  let lodree2 = merge lodree1 (Just d)
+  putStrLn $ unlines $ lodreeToStringList $ fromJust lodree2
