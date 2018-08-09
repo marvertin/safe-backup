@@ -5,21 +5,24 @@ module LogicalDirTree (
   merge,
   gen,
   lodreeToStringList,
+  extractPureFordName,
   w
 ) where
 
+import           Data.Function
+import           Data.List
 import           Data.Maybe
 import           Lib
 import           System.Directory.Tree (DirTree (Dir, File), FileName)
+import           System.FilePath
 import           Types
 import           YabaDirTree
-import           System.FilePath
-
 
 data Ree = Ree { physPathx :: FilePath, size :: FileSize, hash :: Hash } deriving (Show)
 data Lodree = LFile ()
             | LDir () [(FileName, Lodree)]
             deriving (Show)
+
 
 merge :: Maybe Lodree -> Maybe (DirTree FordInfo) -> Maybe Lodree
 merge Nothing Nothing = Nothing
@@ -30,7 +33,7 @@ merge _ (Just (File _ (YabaFile content)))
   | isDelete content = Nothing
   | isLink   content = findTarget content
 merge (Just (LDir ree subdirs)) (Just (Dir name dirtrees)) =
-   let pa = pairDirs subdirs dirtrees
+   let pa = pairDirs subdirs (filterYaba dirtrees)
        qa = map (\(name, lodree, dirtree) ->  (name, merge lodree dirtree)) pa
        ra = mapMaybe tupleMaybeUpSnd qa
    in if null ra then Nothing
@@ -39,12 +42,17 @@ merge (Just (LDir ree subdirs)) (Just (Dir name dirtrees)) =
 pairDirs :: [(FileName, Lodree)] -> [DirTree FordInfo]
              -> [(FileName, Maybe Lodree, Maybe (DirTree FordInfo))]
 pairDirs lodree2 dirtree =
-    let preZiped = zipMaybe fst (removeYabaExtension . fileNamex) lodree2 dirtree
+    let preZiped = zipMaybe fst pickPureFordName lodree2 dirtree
     in map (\(name, lodree, dirtree) -> (name, snd <$> lodree, dirtree)) preZiped
 
---extractPureFordName :: DirTree FordInfo -> String
---extractPureFordName (File name (YabaFile content)) = "S"
---extractPureFordName x = fileNamex x
+filterYaba :: [DirTree FordInfo] -> [DirTree FordInfo]
+filterYaba fulllist = let list = filter (isJust . extractPureFordName . fileNamex ) fulllist -- jen správně udělaná yaba fajly
+                          (yabaall, regular) = partition isYabaFile list
+                          regularFordNames = fileNamex <$> regular
+                          yaba = filter (not . (`elem` regularFordNames) . pickPureFordName) yabaall -- regular must file hide yabas
+                          yabax = nubBy ((==) `on` pickPureFordName) yaba
+     in yabax ++ regular
+
 {- |
   extract pure filename from yaba files
     "ahoj.txt" -> "ahoj.txt"
@@ -53,17 +61,17 @@ pairDirs lodree2 dirtree =
     "anyother patter.yaba" -> Nothing
 -}
 extractPureFordName :: FileName -> Maybe FileName
-extractPureFordName fullName =
+extractPureFordName [] = Nothing
+extractPureFordName fullName
   | not $ isExtensionOf yabaSuffix fullName = Just fullName
-  otherwise let baseName = takeBaseName fullName
-               case baseName of
+extractPureFordName ('~' : zbytek) =
+   let pureName = dropWhile ('~' ==) . dropWhile ('~' /=) $ takeBaseName zbytek
+   in if null pureName then Nothing
+                       else Just pureName
+extractPureFordName _ = Nothing
 
-
-extractPureFordName puvodni@('~': zbytek) =
-   let xx =  dropWhile ('~' /=) (removeYabaExtension zbytek)
-   in if null xx then puvodni
-                 else tail xx -- strip '~'
-extractPureFordName x = x
+pickPureFordName :: DirTree a -> FileName
+pickPureFordName = fromJust . extractPureFordName . fileNamex  -- function returning name in yaba and no yaba files
 
 cnvt :: FordInfo -> Ree
 cnvt (RegularFile a b c) = Ree { physPathx = a, size = b, hash = c }

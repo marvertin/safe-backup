@@ -8,6 +8,7 @@ module YabaDirTree
 
     readSourceDir,
     JabaContent,
+    isYabaFile,
     yabaDirTreeToStringList,
     removeYabaExtension
     ) where
@@ -32,7 +33,9 @@ data FordInfo = RegularFile { physPath :: FilePath, fordSize :: FileSize, fileHa
               | YabaFile JabaContent  -- file content
               deriving (Show)
 
-
+isYabaFile :: DirTree FordInfo -> Bool
+isYabaFile (File _ (YabaFile _)) = True
+isYabaFile _                     = False
 
 hashFile :: FilePath -> IO Strict.ByteString
 hashFile = fmap Cr.hashlazy . Lazy.readFile

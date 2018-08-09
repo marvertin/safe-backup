@@ -64,18 +64,21 @@ q = do
   putStrLn "///"
   putStrLn $ unlines $ zastringuj show sloz
 
+backup = "backupdisk1"
+
 ww = do
-  (base :/ d) <- readSourceDir "./test/data/backupdisk1/2018-02-03T00-00-00.yaba"
+  (base :/ d) <- readSourceDir  $ "./test/data/" ++ backup ++ "/2018-02-03T00-00-00.yaba"
   putStrLn $ " ============ " ++ base
   putStrLn $ unlines $ yabaDirTreeToStringList d
   putStrLn " ============ "
   let lodree1 = merge Nothing (Just d)
-  putStrLn $ unlines $ lodreeToStringList $ fromJust lodree1
+  putStrLn  $ maybe "NOTHING" (unlines . lodreeToStringList) lodree1
 
 
-  (base :/ d) <- readSourceDir "./test/data/backupdisk1/2018-02-04T00-00-00.yaba"
+
+  (base :/ d) <- readSourceDir $ "./test/data/" ++ backup ++ "/2018-02-04T00-00-00.yaba"
   putStrLn $ " ============ " ++ base
   putStrLn $ unlines $ yabaDirTreeToStringList d
   putStrLn " ============ "
   let lodree2 = merge lodree1 (Just d)
-  putStrLn $ unlines $ lodreeToStringList $ fromJust lodree2
+  putStrLn $ maybe "NOTHING" (unlines . lodreeToStringList) lodree2
