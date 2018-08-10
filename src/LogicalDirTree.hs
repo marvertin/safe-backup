@@ -1,5 +1,5 @@
-{-# LANGUAGE NamedFieldPuns #-}
--- {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE NamedFieldPuns  #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module LogicalDirTree (
   Lodree,
@@ -15,6 +15,7 @@ module LogicalDirTree (
 
 ) where
 
+import qualified Data.ByteString       as Strict
 import           Data.Function
 import           Data.List
 import           Data.Maybe
@@ -25,8 +26,10 @@ import           Types
 import           YabaDirTree
 import           YabaFileContent
 
+
+-- data LfInfo = LfInfo { physPath :: FilePath}
 data Ree = Ree { physPathx :: FilePath, size :: FileSize, hash :: Hash } deriving (Show)
-data Lodree = LFile ()
+data Lodree = LFile Ree
             | LDir () [(FileName, Lodree)]
             deriving (Show)
 
@@ -39,7 +42,7 @@ merge rootLodree rootDirTree = fromMaybe emptyLodree (merge' (Just rootLodree) (
     merge' Nothing Nothing = Nothing
     merge' Nothing dirtree = merge' (Just emptyLodree) dirtree -- nemámeli složku, stvoříme ji
     merge' lodree Nothing = lodree
-    merge' _ (Just (File _ regfile@ RegularFile{}))= Just $ LFile () -- (cnvt regfile)
+    merge' _ (Just (File _ regfile@ RegularFile{}))= Just $ LFile (fordInfo2Ree regfile)
     merge' _ (Just (File _ (YabaFile content)))
       | isDelete content = Nothing
       | isLink   content = findTarget content rootLodree
@@ -84,8 +87,8 @@ extractPureFordName _ = Nothing
 pickPureFordName :: DirTree a -> FileName
 pickPureFordName = fromJust . extractPureFordName . fileNamex  -- function returning name in yaba and no yaba files
 
-cnvt :: FordInfo -> Ree
-cnvt (RegularFile a b c) = Ree { physPathx = a, size = b, hash = c }
+fordInfo2Ree :: FordInfo -> Ree
+fordInfo2Ree (RegularFile a b c) = Ree { physPathx = a, size = b, hash = c }
 
 isDelete :: JabaContent -> Bool
 isDelete = isYabaRemove . parseYabaFile
@@ -104,7 +107,7 @@ dropStartSlash path        = path
 findNode :: FilePath -> Lodree -> Maybe Lodree
 findNode [] lodree = Just lodree
 findNode "/" lodree = Just lodree
-findNode path (LFile ()) = error $ "Uz mame soubor, ale v ceste jeste je: " ++ path
+findNode path (LFile _) = error $ "Uz mame soubor, ale v ceste jeste je: " ++ path
 findNode path (LDir () list) = let
   (name, rest) = break ('/'==) (dropStartSlash path)
   lodree2 = snd <$> find ((name==) . fst) list
@@ -113,7 +116,7 @@ findNode path (LDir () list) = let
 
 
 lodreeToStringList :: Lodree -> [String]
-lodreeToStringList (LFile ()) = ["<file>"]
+lodreeToStringList (LFile ree) = [printRee ree]
 lodreeToStringList (LDir () items) = ("    " ++) <$> (items >>= todump)
    where
       todump :: (FileName, Lodree) -> [String]
@@ -121,14 +124,17 @@ lodreeToStringList (LDir () items) = ("    " ++) <$> (items >>= todump)
       todump (filename, q@(LDir _ _)) =   ("/" ++ filename) : lodreeToStringList q
 
 gen :: String -> Lodree
-gen ""         = LFile ()
-gen [_]        = LFile ()
+gen ""         = LFile (Ree "" 0 Strict.empty)
+gen [_]        = LFile (Ree "" 0 Strict.empty)
 gen zz@(_: zs) = LDir () [(zz ++ "1", gen zs), (zz ++ "2", gen zs), (zz ++ "9", gen (tail zs))]
 
 prependToFirst :: [a] -> [[a]] -> [[a]]
 prependToFirst [] []     = []
 prependToFirst x []      = [x]
 prependToFirst x (y: ys) = (x ++ y) : ys
+
+printRee :: Ree ->  String
+printRee Ree {..} = "  #" ++ show size ++ " " ++ toHexStr hash ++ " \"" ++ physPathx ++ "\""
 
 
 --w = do
