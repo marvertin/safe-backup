@@ -72,6 +72,20 @@ backup = "backupdisk1"
 printLodree :: Lodree -> IO()
 printLodree lodree = putStrLn $ (unlines . lodreeToStringList) lodree
 
+ee = do
+ (base1 :/ d1) <- readYabaDir "./test/data/compare1/left"
+ (base2 :/ d2) <- readYabaDir "./test/data/compare1/right"
+ -- putStrLn $ " ============ " ++ base1 ++ " | " ++ base2
+ putStrLn $ " ============ LEFT"
+ let lodree1 = merge emptyLodree d1
+ printLodree lodree1
+ putStrLn $ " ============ RIGHT"
+ let lodree2 = merge emptyLodree d2
+ printLodree lodree2
+ putStrLn $ " ============ COMPARE"
+ let diff = compareTrees lodree2 lodree1
+ putStrLn $ unlines $ dirCompareToStringList (fromJust diff)
+
 ww = do
   (base :/ d) <- readYabaDir  $ "./test/data/" ++ backup ++ "/2018-02-03T00-00-00.yaba"
   putStrLn $ " ============ " ++ base

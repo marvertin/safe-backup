@@ -2,7 +2,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module LogicalDirTree (
-  Lodree,
+  Lodree(LFile, LDir),
   emptyLodree,
   merge,
 
@@ -13,6 +13,7 @@ module LogicalDirTree (
   findNode,
   gen,
   FileName,
+  hashLodree
 
 ) where
 
@@ -91,6 +92,8 @@ pickSize (LDir dree _) = dsize dree
 pickHash :: Lodree -> Hash
 pickHash (LFile ree)   = hash ree
 pickHash (LDir dree _) = dhash dree
+
+hashLodree = pickHash
 
 pickCount :: Lodree -> Int
 pickCount (LFile _)     = 1
