@@ -6,11 +6,11 @@ module YabaDirTree
     ( p3,
     FordInfo(RegularFile,YabaFile),
 
-    readSourceDir,
+    readYabaDir,
     JabaContent,
     isYabaFile,
     yabaDirTreeToStringList,
-    removeYabaExtension
+    removeYabaExtension,
     ) where
 
 import           Data.List
@@ -43,8 +43,8 @@ hashFile = fmap Cr.hashlazy . Lazy.readFile
 
 
 printFordInfo :: FordInfo ->  Maybe String
-printFordInfo RegularFile {..} = Just$ "#" ++ show fordSize ++ " " ++ toHexStr fileHash
-printFordInfo (YabaFile content) = Just$ show $ "{" ++ content ++ "}"
+printFordInfo RegularFile {..} = Just$ "  #" ++ show fordSize ++ " " ++ toHexStr fileHash ++ " \"" ++ physPath ++ "\""
+printFordInfo (YabaFile content) = Just$  "{ " ++ intercalate " | " (lines content) ++ " }"
 
 printFordInfo2 :: FordInfo -> Maybe String
 printFordInfo2 RegularFile {physPath} = Just physPath
@@ -60,16 +60,23 @@ getFileInfo f = do
 removeYabaExtension :: FileName -> FileName
 removeYabaExtension name = fromMaybe name (stripExtension yabaSuffix name)
 
-readSourceDir :: FilePath -> IO (AnchoredDirTree FordInfo)
-readSourceDir f = sortDirShape </$> readDirectoryWith getFileInfo f
+readYabaDir :: FilePath -> IO (AnchoredDirTree FordInfo)
+readYabaDir f = do
+    tree@(base :/ d) <- sortDirShape </$> readDirectoryWith getFileInfo f
+    return $ fmap (truncate (length base)) tree
+  where
+    truncate :: Int -> FordInfo -> FordInfo
+    truncate n this@ RegularFile {} = this { physPath = drop n (physPath this)}
+    truncate _ x                    = x
 
-yabaDirTreeToStringList = dirTreeToStringList printFordInfo2
+
+yabaDirTreeToStringList = dirTreeToStringList printFordInfo
 
 proved :: String -> IO ()
 proved s = do
-  (base :/ tree) <- readSourceDir s
+  (base :/ tree) <- readYabaDir s
   putStrLn $ "************** <" ++ s ++ "> | <" ++ base ++ ">"
-  putStrLn $ unlines $ dirTreeToStringList printFordInfo2 tree
+  putStrLn $ unlines $ dirTreeToStringList printFordInfo tree
 
 
 p3 :: IO ()

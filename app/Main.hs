@@ -72,7 +72,7 @@ printLodree :: Lodree -> IO()
 printLodree lodree = putStrLn $ (unlines . lodreeToStringList) lodree
 
 ww = do
-  (base :/ d) <- readSourceDir  $ "./test/data/" ++ backup ++ "/2018-02-03T00-00-00.yaba"
+  (base :/ d) <- readYabaDir  $ "./test/data/" ++ backup ++ "/2018-02-03T00-00-00.yaba"
   putStrLn $ " ============ " ++ base
   putStrLn $ unlines $ yabaDirTreeToStringList d
   putStrLn " ============ "
@@ -81,7 +81,7 @@ ww = do
 
 
 
-  (base :/ d) <- readSourceDir $ "./test/data/" ++ backup ++ "/2018-02-04T00-00-00.yaba"
+  (base :/ d) <- readYabaDir $ "./test/data/" ++ backup ++ "/2018-02-04T00-00-00.yaba"
   putStrLn $ " ============ " ++ base
   putStrLn $ unlines $ yabaDirTreeToStringList d
   putStrLn " ============ "
