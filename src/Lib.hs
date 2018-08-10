@@ -3,6 +3,7 @@ module Lib
       yabaSuffix,
       tupleMaybeUpFst,
       tupleMaybeUpSnd,
+      replaceBacklashesToSlashes,
       zipMaybe,
       HasFileName(fileNamex),
 
@@ -47,6 +48,11 @@ tupleMaybeUpSnd :: (a, Maybe b) -> Maybe (a, b)
 tupleMaybeUpSnd (_, Nothing) = Nothing
 tupleMaybeUpSnd (a, Just b)  = Just (a, b)
 
+replaceBacklashesToSlashes :: String -> String
+replaceBacklashesToSlashes = let
+      repl '\\' = '/'
+      repl x    = x
+  in map repl
 
 zipMaybe :: Ord k => (a -> k) -> (b -> k) -> [a] -> [b] -> [(k, Maybe a, Maybe b)]
 zipMaybe af bf al bl = merge (sortBy (compare `on` af) al)

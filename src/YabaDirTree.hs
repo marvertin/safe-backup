@@ -51,7 +51,8 @@ printFordInfo2 RegularFile {physPath} = Just physPath
 printFordInfo2 (YabaFile _)           = Nothing
 
 getFileInfo :: FilePath -> IO FordInfo
-getFileInfo f = do
+getFileInfo ff = do
+  let f = replaceBacklashesToSlashes ff
   size <- getFileSize f
   hash <- hashFile f
   if not $ yabaSuffix `isSuffixOf` f then return (RegularFile f size hash)
