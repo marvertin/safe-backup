@@ -4,8 +4,6 @@ import           Crypto.Hash.SHA1      (hashlazy)
 import qualified Data.ByteString       as Strict
 import qualified Data.ByteString.Lazy  as Lazy
 import           Data.Maybe
-import qualified DirTree               as OldDirTree
-import           DirTreeCompare
 --import           Filesystem.Path
 import           GHC.IO.Encoding
 import           Lib
@@ -22,8 +20,6 @@ hashFile :: FilePath -> IO Strict.ByteString
 hashFile = fmap hashlazy . Lazy.readFile
 
 
-src1 = "../test/data/cd532/install"
-src2 = "i:/zoje/compare-builds/test/data/cd536/install"
 src3 = "c:/!work"
 
 hashniFile :: FilePath -> IO (FilePath, String)
@@ -42,30 +38,13 @@ mainovec = do
    -- src3 >>= putStrLn . unlines
 
 
-zastringuj :: Show a => (a -> String) -> DirTree2 a -> [String]
-zastringuj f (AddFord dt) = ["+ " ++ fileNamex dt ++ " "]
-zastringuj f (DeleteFord dt) = ["- " ++ fileNamex dt ++ " " ]
-zastringuj f (Nic2 name a) = ["= " ++ name ++ " " ++ f a ]
-zastringuj f this@(Dir2 name contents) = ("/ " ++ name
-  ++ " #" ++ show (leftCount this) ++ "|" ++ show (rightCount this))
-  : map ("   "++) (concat (zastringuj f <$> contents))
 
 main :: IO ()
 main = do
   setLocaleEncoding utf8
   getLocaleEncoding >>= print
   -- putStrLn "→"
-  q
 
-q :: IO ()
-q = do
-  (base1 :/ d1) <- OldDirTree.readSourceDir "./test/case1/left"
-  (base2 :/ d2) <- OldDirTree.readSourceDir "./test/case1/right"
-  let (Just sloz) = mergeTrees OldDirTree.sameFiles d1 d2
-  putStrLn base1
-  putStrLn base2
-  putStrLn "///"
-  putStrLn $ unlines $ zastringuj show sloz
 
 backup = "backupdisk1"
 
@@ -76,13 +55,13 @@ ee = do
  (base1 :/ d1) <- readYabaDir "./test/data/compare1/left"
  (base2 :/ d2) <- readYabaDir "./test/data/compare1/right"
  -- putStrLn $ " ============ " ++ base1 ++ " | " ++ base2
- putStrLn $ " ============ LEFT"
+ putStrLn  " ============ LEFT"
  let lodree1 = merge emptyLodree d1
  printLodree lodree1
- putStrLn $ " ============ RIGHT"
+ putStrLn  " ============ RIGHT"
  let lodree2 = merge emptyLodree d2
  printLodree lodree2
- putStrLn $ " ============ COMPARE"
+ putStrLn  " ============ COMPARE"
  let diff = compareTrees lodree2 lodree1
  putStrLn $ unlines $ dirCompareToStringList (fromJust diff)
 
@@ -97,7 +76,7 @@ ww = do
 
 
   (base :/ d) <- readYabaDir $ "./test/data/" ++ backup ++ "/2018-02-04T00-00-00.yaba"
-  putStrLn $ " ============ " ++ base
+  putStrLn $ " ============= " ++ base
   putStrLn $ unlines $ yabaDirTreeToStringList d
   putStrLn " ============ "
   let lodree2 = merge lodree1 d
