@@ -12,6 +12,7 @@ module LogicalDirTree (
   extractPureFordName,
   findNode,
   gen,
+  FileName,
 
 ) where
 
@@ -150,7 +151,7 @@ lodreeToStringList (LDir _ items) = ("    " ++) <$> (items >>= todump)
    where
       todump :: (FileName, Lodree) -> [String]
       todump (filename, q@(LFile _)) = prependToFirst (filename ++ ": ") (lodreeToStringList q)
-      todump (filename, q@(LDir dree _)) =   ("/" ++ filename ++ " " ++ (printDRee dree)) : lodreeToStringList q
+      todump (filename, q@(LDir dree _)) =   ("/" ++ filename ++ " " ++ printDRee dree) : lodreeToStringList q
 
 gen :: String -> Lodree
 gen ""         = LFile (Ree "" 0 Strict.empty)

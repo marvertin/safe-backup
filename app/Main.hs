@@ -13,6 +13,7 @@ import           LogicalDirTree
 import           System.Directory.Tree
 import           System.FilePath.Find
 import           Text.Printf           (printf)
+import           TreeComparator
 import           YabaDirTree           hiding (RegularFile)
 import           YabaFileContent
 
