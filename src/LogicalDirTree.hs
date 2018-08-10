@@ -2,12 +2,17 @@
 -- {-# LANGUAGE RecordWildCards #-}
 
 module LogicalDirTree (
+  Lodree,
+  emptyLodree,
   merge,
-  gen,
+
   lodreeToStringList,
+
+  -- dočasné kvůli ladění
   extractPureFordName,
   findNode,
-  Lodree
+  gen,
+
 ) where
 
 import           Data.Function
@@ -25,17 +30,19 @@ data Lodree = LFile ()
             | LDir () [(FileName, Lodree)]
             deriving (Show)
 
-merge :: Maybe Lodree -> Maybe (DirTree FordInfo) -> Maybe Lodree
-merge rootLodree rootDirTree = merge' rootLodree rootDirTree
+emptyLodree = LDir () []
+
+merge :: Lodree -> DirTree FordInfo -> Lodree
+merge rootLodree rootDirTree = fromMaybe emptyLodree (merge' (Just rootLodree) (Just rootDirTree))
   where
     merge' :: Maybe Lodree -> Maybe (DirTree FordInfo) -> Maybe Lodree
     merge' Nothing Nothing = Nothing
-    merge' Nothing dirtree = merge' (Just (LDir () [])) dirtree -- nemámeli složku, stvoříme ji
+    merge' Nothing dirtree = merge' (Just emptyLodree) dirtree -- nemámeli složku, stvoříme ji
     merge' lodree Nothing = lodree
     merge' _ (Just (File _ regfile@ RegularFile{}))= Just $ LFile () -- (cnvt regfile)
     merge' _ (Just (File _ (YabaFile content)))
       | isDelete content = Nothing
-      | isLink   content = findTarget content (fromJust rootLodree)
+      | isLink   content = findTarget content rootLodree
     merge' (Just (LDir ree subdirs)) (Just (Dir name dirtrees)) =
        let pa = pairDirs subdirs (filterYaba dirtrees)
            qa = map (\(name, lodree, dirtree) ->  (name, merge' lodree dirtree)) pa

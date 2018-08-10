@@ -68,15 +68,15 @@ q = do
 
 backup = "backupdisk1"
 
-printLodree :: Maybe Lodree -> IO()
-printLodree lodree = putStrLn $ maybe "NOTHING" (unlines . lodreeToStringList) lodree
+printLodree :: Lodree -> IO()
+printLodree lodree = putStrLn $ (unlines . lodreeToStringList) lodree
 
 ww = do
   (base :/ d) <- readSourceDir  $ "./test/data/" ++ backup ++ "/2018-02-03T00-00-00.yaba"
   putStrLn $ " ============ " ++ base
   putStrLn $ unlines $ yabaDirTreeToStringList d
   putStrLn " ============ "
-  let lodree1 = merge Nothing (Just d)
+  let lodree1 = merge emptyLodree d
   printLodree lodree1
 
 
@@ -85,10 +85,10 @@ ww = do
   putStrLn $ " ============ " ++ base
   putStrLn $ unlines $ yabaDirTreeToStringList d
   putStrLn " ============ "
-  let lodree2 = merge lodree1 (Just d)
+  let lodree2 = merge lodree1 d
   printLodree lodree2
 
   let co = "maintree/M/OO/"
   -- let co = "/"
   putStrLn $ " ============ VYBER " ++ co
-  printLodree $ findNode co (fromJust lodree2)
+  printLodree $ fromJust $ findNode co lodree2
