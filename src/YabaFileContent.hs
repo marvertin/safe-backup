@@ -22,7 +22,7 @@ data YabaFileKind
   | JfcCopyFrom FilePath
   deriving (Show, Read)
 
-xx = show $ YabaFileContent (JfcRenameFrom "aaa/bbb/ccc") "xxx/yyy/zzzz"
+xx = show $ YabaFileContent (JfcMoveFrom "/maintree/A/M/OO") "xxx/yyy/zzzz"
 
 yy :: YabaFileContent
 yy = read "YabaFileContent (JfcRenameFrom \"aaa/bbb/ccc\") \"xxx/yyy/zzzz\""

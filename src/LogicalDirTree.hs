@@ -6,6 +6,8 @@ module LogicalDirTree (
   gen,
   lodreeToStringList,
   extractPureFordName,
+  findNode,
+  Lodree
 ) where
 
 import           Data.Function
@@ -23,21 +25,23 @@ data Lodree = LFile ()
             | LDir () [(FileName, Lodree)]
             deriving (Show)
 
-
 merge :: Maybe Lodree -> Maybe (DirTree FordInfo) -> Maybe Lodree
-merge Nothing Nothing = Nothing
-merge Nothing dirtree = merge (Just (LDir () [])) dirtree -- nemámeli složku, stvoříme ji
-merge lodree Nothing = lodree
-merge _ (Just (File _ regfile@ RegularFile{}))= Just $ LFile () -- (cnvt regfile)
-merge _ (Just (File _ (YabaFile content)))
-  | isDelete content = Nothing
-  | isLink   content = findTarget content
-merge (Just (LDir ree subdirs)) (Just (Dir name dirtrees)) =
-   let pa = pairDirs subdirs (filterYaba dirtrees)
-       qa = map (\(name, lodree, dirtree) ->  (name, merge lodree dirtree)) pa
-       ra = mapMaybe tupleMaybeUpSnd qa
-   in if null ra then Nothing
-                 else Just (LDir () ra) -- we dotnt want empty dirs
+merge rootLodree rootDirTree = merge' rootLodree rootDirTree
+  where
+    merge' :: Maybe Lodree -> Maybe (DirTree FordInfo) -> Maybe Lodree
+    merge' Nothing Nothing = Nothing
+    merge' Nothing dirtree = merge' (Just (LDir () [])) dirtree -- nemámeli složku, stvoříme ji
+    merge' lodree Nothing = lodree
+    merge' _ (Just (File _ regfile@ RegularFile{}))= Just $ LFile () -- (cnvt regfile)
+    merge' _ (Just (File _ (YabaFile content)))
+      | isDelete content = Nothing
+      | isLink   content = findTarget content (fromJust rootLodree)
+    merge' (Just (LDir ree subdirs)) (Just (Dir name dirtrees)) =
+       let pa = pairDirs subdirs (filterYaba dirtrees)
+           qa = map (\(name, lodree, dirtree) ->  (name, merge' lodree dirtree)) pa
+           ra = mapMaybe tupleMaybeUpSnd qa
+       in if null ra then Nothing
+                     else Just (LDir () ra) -- we dotnt want empty dirs
 
 pairDirs :: [(FileName, Lodree)] -> [DirTree FordInfo]
              -> [(FileName, Maybe Lodree, Maybe (DirTree FordInfo))]
@@ -82,8 +86,24 @@ isDelete = isYabaRemove . parseYabaFile
 isLink :: JabaContent -> Bool
 isLink = isYabaLink . parseYabaFile
 
-findTarget :: JabaContent -> Maybe Lodree
-findTarget _ = Nothing
+findTarget :: JabaContent -> Lodree -> Maybe Lodree
+findTarget content = findNode $ (getLinkTarget . parseYabaFile) content
+
+dropStartSlash :: FilePath -> FilePath
+dropStartSlash []          = []
+dropStartSlash ('/': rest) = rest
+dropStartSlash path        = path
+
+findNode :: FilePath -> Lodree -> Maybe Lodree
+findNode [] lodree = Just lodree
+findNode "/" lodree = Just lodree
+findNode path (LFile ()) = error $ "Uz mame soubor, ale v ceste jeste je: " ++ path
+findNode path (LDir () list) = let
+  (name, rest) = break ('/'==) (dropStartSlash path)
+  lodree2 = snd <$> find ((name==) . fst) list
+  in lodree2 >>= findNode rest
+
+
 
 lodreeToStringList :: Lodree -> [String]
 lodreeToStringList (LFile ()) = ["<file>"]
