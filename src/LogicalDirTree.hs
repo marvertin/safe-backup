@@ -57,7 +57,8 @@ merge rootLodree rootDirTree = let
     merge' _ (Just (File _ regfile@ RegularFile{}))= Just $ LFile (fordInfo2Ree regfile)
     merge' _ (Just (File _ (YabaFile content)))
       | isDelete content = Nothing
-      | isLink   content = findTarget content (currentLodree rootLodree)
+      | isLogicalLink   content = findTarget content (currentLodree rootLodree)
+      | isPhysicalLink  content = findTarget content rootLodree
     merge' (Just (LDir ree subdirs)) (Just (Dir name dirtrees)) =
        let pa = pairDirs subdirs (filterOutYaba dirtrees)
            qa = map (\(name, lodree, dirtree) ->  (name, merge' lodree dirtree)) pa
@@ -138,6 +139,12 @@ isDelete = isYabaRemove . parseYabaFile
 
 isLink :: JabaContent -> Bool
 isLink = isYabaLink . parseYabaFile;
+
+isLogicalLink :: JabaContent -> Bool
+isLogicalLink = isYabaLogicalLink . parseYabaFile;
+
+isPhysicalLink :: JabaContent -> Bool
+isPhysicalLink = isYabaPhysicalLink . parseYabaFile;
 
 findTarget :: JabaContent -> Lodree -> Maybe Lodree
 findTarget content = findNode $ (getLinkTarget . parseYabaFile) content
