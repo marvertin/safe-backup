@@ -1,24 +1,16 @@
 module YabaFileContent (
   YabaFileContent,
-  YabaFileKind,
   parseYabaFile,
   getLinkTarget,
   isYabaRemove,
   isYabaLink,
+  isYabaLogicalLink,
+  isYabaPhysicalLink,
 ) where
 
 import           System.FilePath
 
-data YabaFileContent = YabaFileContent YabaFileKind FilePath
-  deriving (Show, Read)
-
-data YabaFileKind
-  = JfcDelete
-  | JfcRenameFrom FilePath
-  | JfcRenameTo FilePath
-  | JfcMoveFrom FilePath
-  | JfcMoveTo FilePath
-  | JfcCopyFrom FilePath
+data YabaFileContent = Delete | LogicalLink FilePath | PhysicalLink FilePath
   deriving (Show, Read)
 
 parseYabaFile :: String -> YabaFileContent
@@ -30,18 +22,19 @@ parseYabaFile fileContent = (parse . lines) fileContent
     parse _ = error $ "Bad version of Yaba file, probably old version of yaba tool: " ++ fileContent
 
 isYabaRemove :: YabaFileContent -> Bool
-isYabaRemove (YabaFileContent JfcDelete _)       = True
-isYabaRemove (YabaFileContent (JfcRenameTo _) _) = True
-isYabaRemove (YabaFileContent (JfcMoveTo _) _)   = True
-isYabaRemove _                                   = False
+isYabaRemove Delete = True
+isYabaRemove _      = False
 
-isYabaLink :: YabaFileContent -> Bool
-isYabaLink (YabaFileContent (JfcCopyFrom _) _)   = True
-isYabaLink (YabaFileContent (JfcRenameFrom _) _) = True
-isYabaLink (YabaFileContent (JfcMoveFrom _) _)   = True
-isYabaLink _                                     = False
+isYabaLogicalLink :: YabaFileContent -> Bool
+isYabaLogicalLink (LogicalLink _) = True
+isYabaLogicalLink _               = False
+
+isYabaPhysicalLink :: YabaFileContent -> Bool
+isYabaPhysicalLink (PhysicalLink _) = True
+isYabaPhysicalLink _                = False
+
+isYabaLink x = isYabaPhysicalLink x || isYabaLogicalLink x
 
 getLinkTarget :: YabaFileContent -> FilePath
-getLinkTarget (YabaFileContent (JfcCopyFrom target) _)   = target
-getLinkTarget (YabaFileContent (JfcRenameFrom target) _) = target
-getLinkTarget (YabaFileContent (JfcMoveFrom target) _)   = target
+getLinkTarget (LogicalLink target)  = target
+getLinkTarget (PhysicalLink target) = target
