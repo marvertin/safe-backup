@@ -93,5 +93,5 @@ w = do
    let lodree2 = mergeToLodree emptyLodree d2
    dump lodree2
    putStrLn  " ============ COMPARE"
-   let diff = compareTrees lodree2 lodree1
+   let diff = compareTrees (currentLodree lodree2) (currentLodree lodree1)
    dump (fromJust diff)
