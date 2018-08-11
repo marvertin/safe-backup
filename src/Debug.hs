@@ -80,7 +80,7 @@ q = do
   let co = "maintree/M/OO/"
   -- let co = "/"
   putStrLn $ " ============ VYBER " ++ co
-  dump $ fromJust $ findLodreeNode co lodree2
+  dump $ fromJust $ findLodreeNode co (currentLodree lodree2)
 
 w = do
    (base1 :/ d1) <- readYabaDir "./test/data/compare1/left"

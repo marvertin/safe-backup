@@ -9,6 +9,7 @@ module LogicalDirTree (
   findLodreeNode,
 
   mergeToLodree,
+  currentLodree,
 ) where
 
 import qualified Crypto.Hash.SHA1      as Cr
@@ -42,7 +43,12 @@ findLodreeNode = findNode
 mergeToLodree = merge
 
 merge :: Lodree -> DirTree FordInfo -> Lodree
-merge rootLodree rootDirTree = fromMaybe emptyLodree (merge' (Just rootLodree) (Just rootDirTree))
+merge rootLodree rootDirTree = let
+--     x = 0
+       rootList (LDir _ list) =  list
+       newLodree = fromMaybe emptyLodree (merge' (Just $ currentLodree rootLodree) (Just rootDirTree))
+    in  LDir (DRee 0 0 Strict.empty)  ((fileNamex rootDirTree, newLodree) : rootList rootLodree)
+    --in  LDir (DRee 0 0 Strict.empty) [ (rootList rootLodree)
   where
     merge' :: Maybe Lodree -> Maybe (DirTree FordInfo) -> Maybe Lodree
     merge' Nothing Nothing = Nothing
@@ -51,7 +57,7 @@ merge rootLodree rootDirTree = fromMaybe emptyLodree (merge' (Just rootLodree) (
     merge' _ (Just (File _ regfile@ RegularFile{}))= Just $ LFile (fordInfo2Ree regfile)
     merge' _ (Just (File _ (YabaFile content)))
       | isDelete content = Nothing
-      | isLink   content = findTarget content rootLodree
+      | isLink   content = findTarget content (currentLodree rootLodree)
     merge' (Just (LDir ree subdirs)) (Just (Dir name dirtrees)) =
        let pa = pairDirs subdirs (filterOutYaba dirtrees)
            qa = map (\(name, lodree, dirtree) ->  (name, merge' lodree dirtree)) pa
@@ -60,6 +66,9 @@ merge rootLodree rootDirTree = fromMaybe emptyLodree (merge' (Just rootLodree) (
        in if null ra then Nothing -- we dotnt want empty dirs
                      else Just (LDir (foldToDree ra) ra)
 
+currentLodree :: Lodree -> Lodree
+currentLodree (LDir _ [])                 = emptyLodree
+currentLodree (LDir _ ((_, current) : _)) = current
 ------------------------------------ private -------------------------
 pairDirs :: [(FileName, Lodree)] -> [DirTree FordInfo]
              -> [(FileName, Maybe Lodree, Maybe (DirTree FordInfo))]
