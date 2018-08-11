@@ -1,10 +1,8 @@
--- {-# LANGUAGE TupleSeRecordWildCards #-}
+{-# LANGUAGE InstanceSigs #-}
 
 module TreeComparator (
-  yy,
   compareTrees,
-  dirCompareToStringList,
-
+  toDump,
 ) where
 
 
@@ -33,23 +31,23 @@ compareTrees (LDir _ ls) (LDir _ rs) = let
      compareDirs (Just l) (Just r) = compareTrees l r
 compareTrees l r = Just $ QBoth l r
 
+instance Dumpable DirCompare where
+  toDump :: DirCompare -> [String]
 
-dirCompareToStringList :: DirCompare -> [String]
+  toDump (QLeft (LFile _)) = ["- . "]
+  toDump (QLeft (LDir _ _)) = ["- / "]
+  toDump (QRight (LFile _)) = ["+ . "]
+  toDump (QRight (LDir _ _)) = ["+ / "]
+  toDump (QBoth LFile {} LFile {}) = ["~ .."]
+  toDump (QBoth LFile {} LDir {}) = ["~ ./"]
+  toDump (QBoth LDir {} LFile {}) = ["~ /."]
+  toDump (QBoth LDir {} LDir {}) = ["~ //"]
+  toDump (QDir items) = ("       " ++) <$> (items >>= todump)
 
-dirCompareToStringList (QLeft (LFile _)) = ["- . "]
-dirCompareToStringList (QLeft (LDir _ _)) = ["- / "]
-dirCompareToStringList (QRight (LFile _)) = ["+ . "]
-dirCompareToStringList (QRight (LDir _ _)) = ["+ / "]
-dirCompareToStringList (QBoth LFile {} LFile {}) = ["~ .."]
-dirCompareToStringList (QBoth LFile {} LDir {}) = ["~ ./"]
-dirCompareToStringList (QBoth LDir {} LFile {}) = ["~ /."]
-dirCompareToStringList (QBoth LDir {} LDir {}) = ["~ //"]
-dirCompareToStringList (QDir items) = ("       " ++) <$> (items >>= todump)
-
-   where
-      todump :: (FileName, DirCompare) -> [String]
-      todump (filename, dc@(QDir dir)) = ("/    " ++ filename) : dirCompareToStringList dc
-      todump (filename, dc) = appendToFirst (" " ++ filename) (dirCompareToStringList dc)
+     where
+        todump :: (FileName, DirCompare) -> [String]
+        todump (filename, dc@(QDir dir)) = ("/    " ++ filename) : toDump dc
+        todump (filename, dc) = appendToFirst (" " ++ filename) (toDump dc)
 
 
 prependToFirst :: [a] -> [[a]] -> [[a]]
@@ -61,14 +59,3 @@ appendToFirst :: [a] -> [[a]] -> [[a]]
 appendToFirst [] []     = []
 appendToFirst x []      = [x]
 appendToFirst x (y: ys) = (y ++ x) : ys
-
-
-l x = (x, QLeft emptyLodree)
-r x = (x, QRight emptyLodree)
-o x = (x, QBoth emptyLodree emptyLodree)
-d x y = (x, QDir y)
-
-x = QDir [l "a", r "z", o "n", d "A" [ l "aa", l "bb"], d "N" [o "nn", d "NN" [d "NNN" [d "NNNN" [r "yyyy"]]]] ]
-
-yy = do
-  putStrLn $ unlines $ dirCompareToStringList x

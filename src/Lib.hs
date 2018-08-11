@@ -6,6 +6,7 @@ module Lib
       replaceBacklashesToSlashes,
       zipMaybe,
       HasFileName(fileNamex),
+      Dumpable(..)
 
     ) where
 
@@ -18,6 +19,17 @@ import           Text.Printf           (printf)
 
 
 yabaSuffix = ".yaba"
+
+{- | Dump to lines for debug purpures.
+-}
+class Dumpable a where
+  toDump :: a -> [String]
+
+  toDumpS :: a -> String
+  toDumpS = unlines . toDump
+
+  dump :: a -> IO ()
+  dump = putStrLn . toDumpS
 
 class  Hex a  where
   toHexStr :: a -> String

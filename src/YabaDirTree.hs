@@ -1,4 +1,5 @@
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE RecordWildCards       #-}
 
@@ -9,7 +10,6 @@ module YabaDirTree
     readYabaDir,
     JabaContent,
     isYabaFile,
-    yabaDirTreeToStringList,
     removeYabaExtension,
     ) where
 
@@ -71,7 +71,8 @@ readYabaDir f = do
     truncate _ x                    = x
 
 
-yabaDirTreeToStringList = dirTreeToStringList printFordInfo
+instance Dumpable (DirTree FordInfo) where
+  toDump = dirTreeToStringList printFordInfo
 
 proved :: String -> IO ()
 proved s = do

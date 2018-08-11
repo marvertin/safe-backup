@@ -1,3 +1,4 @@
+{-# LANGUAGE InstanceSigs    #-}
 {-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -5,8 +6,6 @@ module LogicalDirTree (
   Lodree(LFile, LDir),
   emptyLodree,
   merge,
-
-  lodreeToStringList,
 
   -- dočasné kvůli ladění
   extractPureFordName,
@@ -147,14 +146,16 @@ findNode path (LDir _ list) = let
   in lodree2 >>= findNode rest
 
 
+instance Dumpable Lodree where
+  -- toDump :: DirCompare -> [String]
 
-lodreeToStringList :: Lodree -> [String]
-lodreeToStringList (LFile ree) = [printRee ree]
-lodreeToStringList (LDir _ items) = ("    " ++) <$> (items >>= todump)
-   where
-      todump :: (FileName, Lodree) -> [String]
-      todump (filename, q@(LFile _)) = prependToFirst (filename ++ ": ") (lodreeToStringList q)
-      todump (filename, q@(LDir dree _)) =   ("/" ++ filename ++ " " ++ printDRee dree) : lodreeToStringList q
+  toDump :: Lodree -> [String]
+  toDump (LFile ree) = [printRee ree]
+  toDump (LDir _ items) = ("    " ++) <$> (items >>= todump)
+     where
+        todump :: (FileName, Lodree) -> [String]
+        todump (filename, q@(LFile _)) = prependToFirst (filename ++ ": ") (toDump q)
+        todump (filename, q@(LDir dree _)) =   ("/" ++ filename ++ " " ++ printDRee dree) : toDump q
 
 gen :: String -> Lodree
 gen ""         = LFile (Ree "" 0 Strict.empty)
