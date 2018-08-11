@@ -26,10 +26,10 @@ import           Data.Maybe
 import           Lib
 import           System.Directory.Tree (DirTree (Dir, File), FileName)
 import           System.FilePath
+import           TurboWare
 import           Types
 import           YabaDirTree
 import           YabaFileContent
-
 
 -- data LfInfo = LfInfo { physPath :: FilePath}
 data Ree = Ree { physPathx :: FilePath, size :: FileSize, hash :: Hash } deriving (Show)
@@ -161,11 +161,6 @@ gen :: String -> Lodree
 gen ""         = LFile (Ree "" 0 Strict.empty)
 gen [_]        = LFile (Ree "" 0 Strict.empty)
 gen zz@(_: zs) = LDir (DRee 0 0 Strict.empty) [(zz ++ "1", gen zs), (zz ++ "2", gen zs), (zz ++ "9", gen (tail zs))]
-
-prependToFirst :: [a] -> [[a]] -> [[a]]
-prependToFirst [] []     = []
-prependToFirst x []      = [x]
-prependToFirst x (y: ys) = (x ++ y) : ys
 
 printRee :: Ree ->  String
 printRee Ree {..} = "  #" ++ show size ++ " " ++ toHexStr hash ++ " \"" ++ physPathx ++ "\""

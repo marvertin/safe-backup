@@ -9,6 +9,7 @@ module TreeComparator (
 import           Data.Maybe
 import           Lib
 import           LogicalDirTree
+import           TurboWare
 
 data DirCompare = QDir [(FileName, DirCompare)]
  | QLeft Lodree
@@ -48,14 +49,3 @@ instance Dumpable DirCompare where
         todump :: (FileName, DirCompare) -> [String]
         todump (filename, dc@(QDir dir)) = ("/    " ++ filename) : toDump dc
         todump (filename, dc) = appendToFirst (" " ++ filename) (toDump dc)
-
-
-prependToFirst :: [a] -> [[a]] -> [[a]]
-prependToFirst [] []     = []
-prependToFirst x []      = [x]
-prependToFirst x (y: ys) = (x ++ y) : ys
-
-appendToFirst :: [a] -> [[a]] -> [[a]]
-appendToFirst [] []     = []
-appendToFirst x []      = [x]
-appendToFirst x (y: ys) = (y ++ x) : ys
