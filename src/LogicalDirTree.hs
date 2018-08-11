@@ -3,17 +3,12 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module LogicalDirTree (
-  Lodree(LFile, LDir),
+  Lodree(..),
   emptyLodree,
-  merge,
+  hashLodree,
+  findLodreeNode,
 
-  -- dočasné kvůli ladění
-  extractPureFordName,
-  findNode,
-  gen,
-  FileName,
-  hashLodree
-
+  mergeToLodree,
 ) where
 
 import qualified Crypto.Hash.SHA1      as Cr
@@ -39,7 +34,12 @@ data Lodree = LFile Ree
             | LDir DRee [(FileName, Lodree)]
             deriving (Show)
 
+emptyLodree :: Lodree
 emptyLodree = LDir (DRee 0 0 Strict.empty) []
+
+findLodreeNode = findNode
+
+mergeToLodree = merge
 
 merge :: Lodree -> DirTree FordInfo -> Lodree
 merge rootLodree rootDirTree = fromMaybe emptyLodree (merge' (Just rootLodree) (Just rootDirTree))
@@ -53,26 +53,28 @@ merge rootLodree rootDirTree = fromMaybe emptyLodree (merge' (Just rootLodree) (
       | isDelete content = Nothing
       | isLink   content = findTarget content rootLodree
     merge' (Just (LDir ree subdirs)) (Just (Dir name dirtrees)) =
-       let pa = pairDirs subdirs (filterYaba dirtrees)
+       let pa = pairDirs subdirs (filterOutYaba dirtrees)
            qa = map (\(name, lodree, dirtree) ->  (name, merge' lodree dirtree)) pa
            ra :: [(FileName, Lodree)]
            ra = mapMaybe tupleMaybeUpSnd qa
        in if null ra then Nothing -- we dotnt want empty dirs
                      else Just (LDir (foldToDree ra) ra)
 
+------------------------------------ private -------------------------
 pairDirs :: [(FileName, Lodree)] -> [DirTree FordInfo]
              -> [(FileName, Maybe Lodree, Maybe (DirTree FordInfo))]
 pairDirs lodree2 dirtree =
     let preZiped = zipMaybe fst pickPureFordName lodree2 dirtree
     in map (\(name, lodree, dirtree) -> (name, snd <$> lodree, dirtree)) preZiped
 
-filterYaba :: [DirTree FordInfo] -> [DirTree FordInfo]
-filterYaba fulllist = let list = filter (isJust . extractPureFordName . fileNamex ) fulllist -- jen správně udělaná yaba fajly
-                          (yabaall, regular) = partition isYabaFile list
-                          regularFordNames = fileNamex <$> regular
-                          yaba = filter (not . (`elem` regularFordNames) . pickPureFordName) yabaall -- regular must file hide yabas
-                          yabax = nubBy ((==) `on` pickPureFordName) yaba
-     in yabax ++ regular
+filterOutYaba :: [DirTree FordInfo] -> [DirTree FordInfo]
+filterOutYaba fulllist = let
+    list = filter (isJust . extractPureFordName . fileNamex ) fulllist -- jen správně udělaná yaba fajly
+    (yabaall, regular) = partition isYabaFile list
+    regularFordNames = fileNamex <$> regular
+    yabaNoHiden = filter (not . (`elem` regularFordNames) . pickPureFordName) yabaall -- regular file must hide yabas
+    yabas = nubBy ((==) `on` pickPureFordName) yabaNoHiden
+  in yabas ++ regular
 
 foldToDree :: [(FileName, Lodree)] -> DRee
 foldToDree list = let
@@ -126,26 +128,23 @@ isDelete :: JabaContent -> Bool
 isDelete = isYabaRemove . parseYabaFile
 
 isLink :: JabaContent -> Bool
-isLink = isYabaLink . parseYabaFile
+isLink = isYabaLink . parseYabaFile;
 
 findTarget :: JabaContent -> Lodree -> Maybe Lodree
 findTarget content = findNode $ (getLinkTarget . parseYabaFile) content
-
-dropStartSlash :: FilePath -> FilePath
-dropStartSlash []          = []
-dropStartSlash ('/': rest) = rest
-dropStartSlash path        = path
 
 findNode :: FilePath -> Lodree -> Maybe Lodree
 findNode [] lodree = Just lodree
 findNode "/" lodree = Just lodree
 findNode path (LFile _) = error $ "Uz mame soubor, ale v ceste jeste je: " ++ path
 findNode path (LDir _ list) = let
-  (name, rest) = break ('/'==) (dropStartSlash path)
+  (name, rest) = break ('/'==) (dropPrefixSlashes path)
   lodree2 = snd <$> find ((name==) . fst) list
   in lodree2 >>= findNode rest
 
-
+--------------------------------------------------------
+-- The rest of this modul is for DEBUGING purpose only - it is dump
+--
 instance Dumpable Lodree where
   -- toDump :: DirCompare -> [String]
 
@@ -156,11 +155,6 @@ instance Dumpable Lodree where
         todump :: (FileName, Lodree) -> [String]
         todump (filename, q@(LFile _)) = prependToFirst (filename ++ ": ") (toDump q)
         todump (filename, q@(LDir dree _)) =   ("/" ++ filename ++ " " ++ printDRee dree) : toDump q
-
-gen :: String -> Lodree
-gen ""         = LFile (Ree "" 0 Strict.empty)
-gen [_]        = LFile (Ree "" 0 Strict.empty)
-gen zz@(_: zs) = LDir (DRee 0 0 Strict.empty) [(zz ++ "1", gen zs), (zz ++ "2", gen zs), (zz ++ "9", gen (tail zs))]
 
 printRee :: Ree ->  String
 printRee Ree {..} = "  #" ++ show size ++ " " ++ toHexStr hash ++ " \"" ++ physPathx ++ "\""

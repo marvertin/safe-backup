@@ -2,7 +2,6 @@
 
 module TreeComparator (
   compareTrees,
-  toDump,
 ) where
 
 
@@ -10,6 +9,7 @@ import           Data.Maybe
 import           Lib
 import           LogicalDirTree
 import           TurboWare
+import           Types
 
 data DirCompare = QDir [(FileName, DirCompare)]
  | QLeft Lodree
@@ -26,12 +26,16 @@ compareTrees (LDir _ ls) (LDir _ rs) = let
   in Just $ QDir (mapMaybe compareDirs2 list)
   where
      compareDirs :: Maybe Lodree -> Maybe Lodree -> Maybe DirCompare
-     compareDirs Nothing Nothing   = error "Imposible has happend! No dir no file"
+     compareDirs Nothing Nothing   = error "Imposible has happend! No dir, no file"
      compareDirs (Just l) Nothing  = Just$ QLeft l
      compareDirs Nothing (Just r)  = Just$ QRight r
      compareDirs (Just l) (Just r) = compareTrees l r
 compareTrees l r = Just $ QBoth l r
 
+
+-------------------------------------------------------------------
+-- The rest of this modul is for DEBUGING purpose only - it is dump
+--
 instance Dumpable DirCompare where
   toDump :: DirCompare -> [String]
 
@@ -43,8 +47,8 @@ instance Dumpable DirCompare where
   toDump (QBoth LFile {} LDir {}) = ["~ ./"]
   toDump (QBoth LDir {} LFile {}) = ["~ /."]
   toDump (QBoth LDir {} LDir {}) = ["~ //"]
-  toDump (QDir items) = ("       " ++) <$> (items >>= todump)
 
+  toDump (QDir items) = ("       " ++) <$> (items >>= todump)
      where
         todump :: (FileName, DirCompare) -> [String]
         todump (filename, dc@(QDir dir)) = ("/    " ++ filename) : toDump dc

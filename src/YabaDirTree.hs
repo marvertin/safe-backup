@@ -4,13 +4,12 @@
 {-# LANGUAGE RecordWildCards       #-}
 
 module YabaDirTree
-    ( p3,
-    FordInfo(RegularFile,YabaFile),
+    (
+    FordInfo(..),
 
     readYabaDir,
     JabaContent,
     isYabaFile,
-    removeYabaExtension,
     ) where
 
 import           Data.List
@@ -59,8 +58,8 @@ getFileInfo ff = do
   if not $ yabaSuffix `isSuffixOf` f then return (RegularFile f size hash)
           else YabaFile <$> readFile f
 
-removeYabaExtension :: FileName -> FileName
-removeYabaExtension name = fromMaybe name (stripExtension yabaSuffix name)
+--removeYabaExtension :: FileName -> FileName
+--removeYabaExtension name = fromMaybe name (stripExtension yabaSuffix name)
 
 readYabaDir :: FilePath -> IO (AnchoredDirTree FordInfo)
 readYabaDir f = do
@@ -74,29 +73,3 @@ readYabaDir f = do
 
 instance Dumpable (DirTree FordInfo) where
   toDump = dirTreeToStringList printFordInfo
-
-proved :: String -> IO ()
-proved s = do
-  (base :/ tree) <- readYabaDir s
-  putStrLn $ "************** <" ++ s ++ "> | <" ++ base ++ ">"
-  putStrLn $ unlines $ dirTreeToStringList printFordInfo tree
-
-
-p3 :: IO ()
-p3 = do
-    setLocaleEncoding utf8
-    getLocaleEncoding >>= print
-
-
-    --proved  "./test/data/yaba-dir-tree-1"
-    --putStrLn $ "------- " ++ base
-    --putStrLn $ unlines $ dirTreeToStringList printFordInfo tree
-    --putStrLn $ "------- " ++ base
-
-    proved  "S:/"
-    proved  "S:\\"
-    proved  "S:"
-    proved  "./test/data/yaba-dir-tree-1"
-    proved  "./test/data/yaba-dir-tree-1\\"
-    proved  ".\\test\\data\\yaba-dir-tree-1"
-    proved  ".\\test\\data\\yaba-dir-tree-1\\"

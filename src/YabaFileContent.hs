@@ -5,7 +5,6 @@ module YabaFileContent (
   getLinkTarget,
   isYabaRemove,
   isYabaLink,
-  jj
 ) where
 
 import           System.FilePath
@@ -21,11 +20,6 @@ data YabaFileKind
   | JfcMoveTo FilePath
   | JfcCopyFrom FilePath
   deriving (Show, Read)
-
-xx = show $ YabaFileContent (JfcMoveFrom "/maintree/A/M/OO") "xxx/yyy/zzzz"
-
-yy :: YabaFileContent
-yy = read "YabaFileContent (JfcRenameFrom \"aaa/bbb/ccc\") \"xxx/yyy/zzzz\""
 
 parseYabaFile :: String -> YabaFileContent
 parseYabaFile fileContent = (parse . lines) fileContent
@@ -51,9 +45,3 @@ getLinkTarget :: YabaFileContent -> FilePath
 getLinkTarget (YabaFileContent (JfcCopyFrom target) _)   = target
 getLinkTarget (YabaFileContent (JfcRenameFrom target) _) = target
 getLinkTarget (YabaFileContent (JfcMoveFrom target) _)   = target
-
-
-
-jj = do
-  putStrLn xx
-  print yy

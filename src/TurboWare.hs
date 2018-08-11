@@ -6,6 +6,7 @@ module TurboWare
       zipMaybe,
       prependToFirst,
       appendToFirst,
+      dropPrefixSlashes,
       Dumpable(..),
       Hexable(..)
     ) where
@@ -32,10 +33,11 @@ class  Hexable a  where
 instance Hexable Strict.ByteString where
   toHexStr bytes = Strict.unpack bytes >>= printf "%02x"
 
-dropPrefixSlash :: FilePath -> FilePath
-dropPrefixSlash ('/' : x)  = x
-dropPrefixSlash ('\\' : x) = x
-dropPrefixSlash x          = x
+dropPrefixSlashes :: FilePath -> FilePath
+dropPrefixSlashes []         = []
+dropPrefixSlashes ('/' : x)  = dropPrefixSlashes x
+dropPrefixSlashes ('\\' : x) = dropPrefixSlashes x
+dropPrefixSlashes x          = x
 
 tupleMaybeUpFst :: (Maybe a, b) -> Maybe (a, b)
 tupleMaybeUpFst (Nothing, _) = Nothing
