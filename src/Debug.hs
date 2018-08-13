@@ -126,8 +126,5 @@ e = do
   putStrLn  " ============ HASHPAIRS - logical - lodreeBackupAll"
   dump $ createLogicalHashMap lodreeBackupAll
 
-  putStrLn $ unlines $ dirTreeToStringList (Just . show) $ buildFromLodree "koren" lodreeSourceAllNodes
-  putStrLn $ unlines $ dirTreeToStringList (Just . show) $ buildFromDirCompare "DIFF-KOREN" (fromJust diff)
-
   putStrLn $ unlines $ dirTreeToStringList (Just . show) $
     buildBackup lodreeBackupAll lodreeSourceAllNodes
