@@ -84,10 +84,10 @@ q = do
   dump $ fromJust $ findLodreeNode co (currentLodree lodree2)
 
   putStrLn  " ============ HASHPAIRS - phys"
-  print $ createFhysicalHashMap lodree2
+  dump $ createFhysicalHashMap lodree2
 
-  putStrLn  " ============ HASHPAIRS - log"
-  print $ createLogicalHashMap lodree2
+  putStrLn  " ============ HASHPAIRS - logical"
+  dump $ createLogicalHashMap lodree2
 
 w = do
    (base1 :/ d1) <- readYabaDir "./test/data/compare1/left"
