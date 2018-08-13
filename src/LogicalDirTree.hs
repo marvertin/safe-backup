@@ -4,6 +4,8 @@
 
 module LogicalDirTree (
   Lodree(..),
+  Ree(..),
+  DRee(..),
   emptyLodree,
   hashLodree,
   findLodreeNode,

@@ -8,6 +8,7 @@ import qualified Data.ByteString.Lazy  as Lazy
 import           Data.Maybe
 --import           Filesystem.Path
 import           GHC.IO.Encoding
+import           Hashpairing
 import           Lib
 import           LogicalDirTree
 import           System.Directory.Tree
@@ -81,6 +82,12 @@ q = do
   -- let co = "/"
   putStrLn $ " ============ VYBER " ++ co
   dump $ fromJust $ findLodreeNode co (currentLodree lodree2)
+
+  putStrLn  " ============ HASHPAIRS - phys"
+  print $ createFhysicalHashMap lodree2
+
+  putStrLn  " ============ HASHPAIRS - log"
+  print $ createLogicalHashMap lodree2
 
 w = do
    (base1 :/ d1) <- readYabaDir "./test/data/compare1/left"
