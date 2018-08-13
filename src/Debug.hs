@@ -1,5 +1,5 @@
 module Debug (
-  q, w, p3, mainovec
+  q, w, p3, mainovec, e
 ) where
 
 import           Crypto.Hash.SHA1      (hashlazy)
@@ -11,6 +11,7 @@ import           GHC.IO.Encoding
 import           Hashpairing
 import           Lib
 import           LogicalDirTree
+import           SourceTree
 import           System.Directory.Tree
 import           System.FilePath.Find
 import           Text.Printf           (printf)
@@ -100,5 +101,25 @@ w = do
    let lodree2 = mergeToLodree emptyLodree d2
    dump lodree2
    putStrLn  " ============ COMPARE"
-   let diff = compareTrees (currentLodree lodree2) (currentLodree lodree1)
+   let diff = compareTrees (currentLodree lodree1) (currentLodree lodree2)
    dump (fromJust diff)
+
+e = do
+  (base1 :/ d1) <- readYabaDir  $ "./test/data/case3/backup/2018-02-03T00-00-00.yaba"
+  putStrLn  " ============ LBACKUP lodreeBackupCurrent"
+  let lodreeBackupAll = mergeToLodree emptyLodree d1
+  let lodreeBackupCurrent = currentLodree lodreeBackupAll
+  dump lodreeBackupCurrent
+  putStrLn  " ============ SOURCE lodreeSourceAllNodes"
+  lodreeSourceOneNode <- readSourceTree "./test/data/case3/source-of-maintree"
+  let lodreeSourceAllNodes = LDir (DRee 0 0 Strict.empty) [("maintree", lodreeSourceOneNode)]
+  dump lodreeSourceAllNodes
+  putStrLn  " ============ COMPARE"
+  let diff = compareTrees lodreeBackupCurrent lodreeSourceAllNodes
+  dump (fromJust diff)
+
+  putStrLn  " ============ HASHPAIRS - physical - lodreeBackupAll"
+  dump $ createFhysicalHashMap lodreeBackupAll
+
+  putStrLn  " ============ HASHPAIRS - logical - lodreeBackupAll"
+  dump $ createLogicalHashMap lodreeBackupAll

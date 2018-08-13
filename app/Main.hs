@@ -12,10 +12,13 @@ import           TreeComparator
 import           TurboWare
 import           YabaDirTree           hiding (RegularFile)
 
-
+--import           Data.Time.Calendar
+import           Data.Time.Clock
 
 main :: IO ()
 main = do
   setLocaleEncoding utf8
   getLocaleEncoding >>= print
+  now <- getCurrentTime
+  print now
   -- putStrLn "→"
