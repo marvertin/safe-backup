@@ -7,6 +7,8 @@ import qualified Data.ByteString       as Strict
 import qualified Data.ByteString.Lazy  as Lazy
 import           Data.Maybe
 --import           Filesystem.Path
+import           BackupTreeBuilder
+import           Dump
 import           GHC.IO.Encoding
 import           Hashpairing
 import           Lib
@@ -123,3 +125,6 @@ e = do
 
   putStrLn  " ============ HASHPAIRS - logical - lodreeBackupAll"
   dump $ createLogicalHashMap lodreeBackupAll
+
+  putStrLn $ unlines $ dirTreeToStringList (Just . show) $ buildFromLodree "koren" lodreeSourceAllNodes
+  putStrLn $ unlines $ dirTreeToStringList (Just . show) $ buildFromDirCompare "DIFF-KOREN" (fromJust diff)

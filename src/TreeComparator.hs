@@ -2,6 +2,7 @@
 
 module TreeComparator (
   compareTrees,
+  DirCompare(..)
 ) where
 
 
