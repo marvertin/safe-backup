@@ -44,9 +44,10 @@ writeBackup x sourceOfMainTreeDir = do
   where
     writeFileToBackup :: FilePath -> FilePath -> Cmd -> IO ()
     writeFileToBackup odkudRoot path (Insert _) =
-       let odkud = drop (length odkudRoot) path
+       let odkud = sourceOfMainTreeDir ++ drop (26 + 9 +length odkudRoot) path
        in do
-        putStrLn $  path ++ " <- " ++ odkud
+        putStrLn $  "kopy file: " ++ odkud ++ " --> " ++ path
+        copyFile odkud path
     writeFileToBackup _ path _ = do
         putStrLn $ "budeme resit: " ++ path
 
