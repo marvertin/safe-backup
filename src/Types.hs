@@ -1,7 +1,7 @@
 module Types (
   FileSize,
   Hash,
-  JabaContent,
+  JabaContent(..),
   FileName,
   FilePath,
   yabaSuffix
@@ -12,7 +12,7 @@ import           System.Directory.Tree (DirTree (..), FileName)
 import           System.FilePath
 
 type FileSize = Integer
-type JabaContent = String
+newtype JabaContent = JabaContent { unJabaContent :: String } deriving (Show)
 
 type Hash = Strict.ByteString
 

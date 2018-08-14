@@ -44,7 +44,7 @@ hashFile = fmap Cr.hashlazy . Lazy.readFile
 
 printFordInfo :: FordInfo ->  Maybe String
 printFordInfo RegularFile {..} = Just$ "  #" ++ show fordSize ++ " " ++ toHexStr fileHash ++ " \"" ++ physPath ++ "\""
-printFordInfo (YabaFile content) = Just$  "{ " ++ intercalate " | " (lines content) ++ " }"
+printFordInfo (YabaFile content) = Just$  "{ " ++ intercalate " | " (lines $ unJabaContent content) ++ " }"
 
 printFordInfo2 :: FordInfo -> Maybe String
 printFordInfo2 RegularFile {physPath} = Just physPath
@@ -56,7 +56,7 @@ getFileInfo ff = do
   size <- getFileSize f
   hash <- hashFile f
   if not $ yabaSuffix `isSuffixOf` f then return (RegularFile f size hash)
-          else YabaFile <$> readFile f
+          else (YabaFile . JabaContent) <$> readFile f
 
 --removeYabaExtension :: FileName -> FileName
 --removeYabaExtension name = fromMaybe name (stripExtension yabaSuffix name)

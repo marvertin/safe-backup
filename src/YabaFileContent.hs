@@ -9,17 +9,18 @@ module YabaFileContent (
 ) where
 
 import           System.FilePath
+import           Types
 
 data YabaFileContent = Delete | LogicalLink FilePath | PhysicalLink FilePath
   deriving (Show, Read)
 
-parseYabaFile :: String -> YabaFileContent
-parseYabaFile fileContent = (parse . lines) fileContent
+parseYabaFile :: JabaContent -> YabaFileContent
+parseYabaFile fileContent = (parse . lines . unJabaContent) fileContent
   where
     parse :: [String] -> YabaFileContent
     parse []                   = error "yaba file is empty"
     parse ("#yaba1" : line : _) = read line
-    parse _ = error $ "Bad version of Yaba file, probably old version of yaba tool: " ++ fileContent
+    parse _ = error $ "Bad version of Yaba file, probably old version of yaba tool: " ++ show fileContent
 
 isYabaRemove :: YabaFileContent -> Bool
 isYabaRemove Delete = True
