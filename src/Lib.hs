@@ -3,11 +3,12 @@ module Lib
       HasFileName(..),
       mapTree,
       namesToPath,
+      deAnchore,
     ) where
 
 import           Data.Function
 import           Data.List             (intercalate, sortBy)
-import           System.Directory.Tree (DirTree (Dir, Failed, File), FileName)
+import           System.Directory.Tree
 import           Text.Printf           (printf)
 
 
@@ -30,3 +31,6 @@ mapTree  =
 
 namesToPath :: [FileName] -> FilePath
 namesToPath list = intercalate "/" (reverse list)
+
+deAnchore :: AnchoredDirTree a -> DirTree a
+deAnchore (_ :/ dirtree) = dirtree

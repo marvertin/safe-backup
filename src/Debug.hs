@@ -1,5 +1,5 @@
 module Debug (
-  q, w, p3, mainovec, e
+  q, w, p3, mainovec, e, r
 ) where
 
 import           Crypto.Hash.SHA1      (hashlazy)
@@ -7,6 +7,7 @@ import qualified Data.ByteString       as Strict
 import qualified Data.ByteString.Lazy  as Lazy
 import           Data.Maybe
 --import           Filesystem.Path
+import           Backup
 import           BackupTreeBuilder
 import           Dump
 import           GHC.IO.Encoding
@@ -49,7 +50,7 @@ printYabaDir s = do
  putStrLn $ "************** <" ++ s ++ "> | <" ++ base ++ ">"
  dump tree
 
-backup = "backupdisk1"
+backupname = "backupdisk1"
 
 p3 :: IO ()
 p3 = do
@@ -67,14 +68,14 @@ p3 = do
 
 
 q = do
-  (base :/ d) <- readYabaDir  $ "./test/data/" ++ backup ++ "/2018-02-03T00-00-00.yaba"
+  (base :/ d) <- readYabaDir  $ "./test/data/" ++ backupname ++ "/2018-02-03T00-00-00.yaba"
   putStrLn $ " ============ " ++ base
   dump d
   putStrLn " ============ "
   let lodree1 = mergeToLodree emptyLodree d
   dump lodree1
 
-  (base :/ d) <- readYabaDir $ "./test/data/" ++ backup ++ "/2018-02-04T00-00-00.yaba"
+  (base :/ d) <- readYabaDir $ "./test/data/" ++ backupname ++ "/2018-02-04T00-00-00.yaba"
   putStrLn $ " ============= " ++ base
   dump d
   putStrLn " ============ "
@@ -107,9 +108,8 @@ w = do
    dump (fromJust diff)
 
 e = do
-  (base1 :/ d1) <- readYabaDir  $ "./test/data/case3/backup/2018-02-03T00-00-00.yaba"
-  putStrLn  " ============ LBACKUP lodreeBackupCurrent"
-  let lodreeBackupAll = mergeToLodree emptyLodree d1
+  putStrLn  " ============ LBACKUP lodreeBackupCurrent 22"
+  lodreeBackupAll <- readBackupDir "./test/data/case3/backup"
   let lodreeBackupCurrent = currentLodree lodreeBackupAll
   dump lodreeBackupCurrent
   putStrLn  " ============ SOURCE lodreeSourceAllNodes"
@@ -127,4 +127,13 @@ e = do
   dump $ createLogicalHashMap lodreeBackupAll
 
   putStrLn $ unlines $ dirTreeToStringList (Just . show) $
-    buildBackup lodreeBackupAll lodreeSourceAllNodes
+    buildBackup lodreeBackupAll lodreeSourceAllNodes "POKUSNYBEKUP"
+
+r = do
+    let backupDir = "./test/data/case3/backup"
+    let sourceOfMainTree = "./test/data/case3/source-of-maintree"
+    backup backupDir sourceOfMainTree
+    return ()
+
+--  lodree <- readBackupDir "./test/data/backupdisk1"
+--  dump lodree

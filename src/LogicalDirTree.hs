@@ -6,11 +6,13 @@ module LogicalDirTree (
   Lodree(..),
   Ree(..),
   DRee(..),
+  emptyDRee,
   emptyLodree,
   hashLodree,
   findLodreeNode,
 
   mergeToLodree,
+  mergesToLodree,
   currentLodree,
 ) where
 
@@ -38,13 +40,18 @@ data Lodree = LFile Ree
             deriving (Show)
 
 emptyLodree :: Lodree
-emptyLodree = LDir (DRee 0 0 Strict.empty) []
+emptyLodree = LDir emptyDRee []
+
+emptyDRee = DRee 0 0 Strict.empty
 
 findLodreeNode = findNode
 
+mergesToLodree :: Lodree -> [YabaDirTree] -> Lodree
+mergesToLodree lodree = foldl merge lodree
+
 mergeToLodree = merge
 
-merge :: Lodree -> DirTree FordInfo -> Lodree
+merge :: Lodree -> YabaDirTree -> Lodree
 merge rootLodree rootDirTree = let
 --     x = 0
        rootList (LDir _ list) =  list
@@ -52,7 +59,7 @@ merge rootLodree rootDirTree = let
     in  LDir (DRee 0 0 Strict.empty)  ((fileNamex rootDirTree, newLodree) : rootList rootLodree)
     --in  LDir (DRee 0 0 Strict.empty) [ (rootList rootLodree)
   where
-    merge' :: Maybe Lodree -> Maybe (DirTree FordInfo) -> Maybe Lodree
+    merge' :: Maybe Lodree -> Maybe YabaDirTree -> Maybe Lodree
     merge' Nothing Nothing = Nothing
     merge' Nothing dirtree = merge' (Just emptyLodree) dirtree -- nemámeli složku, stvoříme ji
     merge' lodree Nothing = lodree

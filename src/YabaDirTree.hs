@@ -5,6 +5,7 @@
 
 module YabaDirTree
     (
+    YabaDirTree,
     FordInfo(..),
 
     readYabaDir,
@@ -28,6 +29,8 @@ import qualified Crypto.Hash.SHA1      as Cr
 import qualified Data.ByteString       as Strict
 import qualified Data.ByteString.Lazy  as Lazy
 import qualified Data.ByteString.UTF8  as BSU
+
+type YabaDirTree = DirTree FordInfo
 
 data FordInfo = RegularFile { physPath :: FilePath, fordSize :: FileSize, fileHash :: Hash }
               | YabaFile JabaContent  -- file content

@@ -1,9 +1,10 @@
 module BackupTreeBuilder (
   buildBackup,
+  AnchoredBackupTree,
 ) where
 
 
-import           Data.List             (intercalate, mapAccumL)
+import           Data.List             (mapAccumL)
 import qualified Data.Map              as M
 import           Data.Maybe
 import           Hashpairing
@@ -17,10 +18,11 @@ import           Types
 data Cmd = Insert Hash | Delete | LogicalLink FilePath | PhysicalLink FilePath | NewLink FilePath deriving (Show)
 
 type BackupTree = DirTree Cmd
+type AnchoredBackupTree = AnchoredDirTree Cmd
 
 
-buildBackup :: Lodree -> Lodree-> BackupTree
-buildBackup blodree slodree =
+buildBackup :: Lodree -> Lodree ->  FileName -> BackupTree
+buildBackup blodree slodree outputDir =
   let fileHashes = createFhysicalHashMap blodree
       dirHashes = createLogicalHashMap blodree
 
@@ -45,7 +47,7 @@ buildBackup blodree slodree =
 
       diff = compareTrees (currentLodree blodree) slodree
 
-  in  replaceRedundantNewFiles (bFromDirCompare "KOREN-BEKAPU" (fromJust diff))
+  in  replaceRedundantNewFiles (bFromDirCompare outputDir (fromJust diff))
 
 type MapByHash = M.Map Hash [FileName]
 
