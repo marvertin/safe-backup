@@ -67,7 +67,7 @@ replaceRedundantNewFiles =
             Just path -> (hm, File name (NewLink (namesToPath path)))
     -- mapAccumL :: Traversable t => (a -> b -> (a, c)) -> a -> t b -> (a, t c)
       repla path hm (Dir name list) = let
-         (hm2 , list2) = mapAccumL (repla path) hm list
+         (hm2 , list2) = mapAccumL (repla (name:path)) hm list
          in (hm2, Dir name list2)
       repla _ hm x = (hm, x)
     in snd . (repla [] M.empty)

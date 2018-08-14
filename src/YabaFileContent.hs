@@ -1,6 +1,7 @@
 module YabaFileContent (
-  YabaFileContent,
+  YabaFileContent(..),
   parseYabaFile,
+  formatYabaFile,
   getLinkTarget,
   isYabaRemove,
   isYabaLink,
@@ -21,6 +22,9 @@ parseYabaFile fileContent = (parse . lines . unJabaContent) fileContent
     parse []                   = error "yaba file is empty"
     parse ("#yaba1" : line : _) = read line
     parse _ = error $ "Bad version of Yaba file, probably old version of yaba tool: " ++ show fileContent
+
+formatYabaFile :: YabaFileContent -> JabaContent
+formatYabaFile x = JabaContent $ unlines ["#yaba1", show x]
 
 isYabaRemove :: YabaFileContent -> Bool
 isYabaRemove Delete = True

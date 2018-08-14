@@ -11,6 +11,7 @@ import           LogicalDirTree
 import           SourceTree
 import           System.Directory
 import           System.Directory.Tree
+import           System.FilePath
 import           TurboWare
 import           Types
 import           YabaDirTree
@@ -19,6 +20,8 @@ import           YabaFileContent
 import           Data.Time.Calendar
 import           Data.Time.Clock
 import           Data.Time.Format
+import           YabaFileContent
+
 
 
 readBackupDir :: FilePath -> IO Lodree
@@ -29,27 +32,33 @@ readBackupDir backupRoot = do
   let rootLodree = mergesToLodree emptyLodree yabaDirs
   return rootLodree
 
+maintree = "maintree"
 
-writeBackup :: AnchoredBackupTree -> FileName -> IO AnchoredBackupTree
+writeBackup :: AnchoredBackupTree -> FilePath -> IO AnchoredBackupTree
 writeBackup x sourceOfMainTreeDir = do
-    let (base :/ d) = x
+    let (base :/ d@(Dir yabadir _)) = x
     putStrLn $ "Budeme backupvat do3: " ++ base ++ " z " ++ sourceOfMainTreeDir
-    putStrLn $ unlines $ dirTreeToStringList (Just . show) $
-      d
-
+    putStrLn $ unlines $ dirTreeToStringList (Just . show) $ d
     -- (_ :/ resfaile) <- writeJustDirs x
     -- print $ failures resfaile
-    writeDirectoryWith (writeFileToBackup base) x
+    print yabadir
+    -- musíme umazat adresář yaba a také adresář kořene, zatím podporujeme jediný kořen
+    let kolikSmazat = 1 + length yabadir + 1 + length maintree + length base
+    writeDirectoryWith (writeFileToBackup kolikSmazat) x
     return  x
   where
-    writeFileToBackup :: FilePath -> FilePath -> Cmd -> IO ()
-    writeFileToBackup odkudRoot path (Insert _) =
-       let odkud = sourceOfMainTreeDir ++ drop (26 + 9 +length odkudRoot) path
+    writeFileToBackup :: Int -> FilePath -> Cmd -> IO ()
+    writeFileToBackup kolikSmazat path (Insert _) =
+       let odkud = sourceOfMainTreeDir ++ drop (kolikSmazat) path
        in do
         putStrLn $  "kopy file: " ++ odkud ++ " --> " ++ path
         copyFile odkud path
-    writeFileToBackup _ path _ = do
-        putStrLn $ "budeme resit: " ++ path
+    writeFileToBackup _ path cmd = do
+        let (dir, file) = splitFileName path
+        let cesta = dir </> ("~TOD~" ++ file) ++ ".yaba"
+        putStrLn $ "budeme resit: " ++ cesta
+            -- ++ unJabaContent (convertToJabaContent cmd)
+        writeFile cesta (unJabaContent (convertToJabaContent cmd))
 
 
 backup :: FilePath -> FilePath ->  IO AnchoredBackupTree
@@ -58,7 +67,7 @@ backup backupDir sourceOfMainTreeDir = do
   lodreeBackupAll <- readBackupDir backupDir
   let lodreeBackupCurrent = currentLodree lodreeBackupAll
   lodreeSourceOneNode <- readSourceTree sourceOfMainTreeDir
-  let lodreeSourceAllNodes = LDir emptyDRee [("maintree", lodreeSourceOneNode)]
+  let lodreeSourceAllNodes = LDir emptyDRee [(maintree, lodreeSourceOneNode)]
   let backupDirTree = buildBackup lodreeBackupAll lodreeSourceAllNodes newYabaDir
   writeBackup (backupDir :/ backupDirTree) sourceOfMainTreeDir
   -- return ()
@@ -68,6 +77,16 @@ nextBackupDir = do
   now <- getCurrentTime
   return $ formatTime defaultTimeLocale (iso8601DateFormat (Just "%H-%M-%SZ")) now
     ++ yabaSuffix
+
+convertToYaba :: Cmd -> YabaFileContent
+convertToYaba (BackupTreeBuilder.LogicalLink x) = YabaFileContent.LogicalLink x
+convertToYaba (BackupTreeBuilder.PhysicalLink x) = YabaFileContent.PhysicalLink x
+convertToYaba (BackupTreeBuilder.NewLink x) = YabaFileContent.PhysicalLink x
+convertToYaba (BackupTreeBuilder.Delete) = YabaFileContent.Delete
+
+convertToJabaContent :: Cmd -> JabaContent
+convertToJabaContent = formatYabaFile . convertToYaba
+
 
 ba :: IO AnchoredBackupTree
 ba = do

@@ -30,7 +30,7 @@ mapTree  =
   in mapa []
 
 namesToPath :: [FileName] -> FilePath
-namesToPath list = intercalate "/" (reverse list)
+namesToPath list = "/" ++ intercalate "/" (reverse list)
 
 deAnchore :: AnchoredDirTree a -> DirTree a
 deAnchore (_ :/ dirtree) = dirtree
