@@ -109,11 +109,11 @@ w = do
 
 e = do
   putStrLn  " ============ LBACKUP lodreeBackupCurrent 22"
-  lodreeBackupAll <- readBackupDir "./test/data/case3/backup"
+  lodreeBackupAll <- readBackupDir "./test/data/case4/backup"
   let lodreeBackupCurrent = currentLodree lodreeBackupAll
   dump lodreeBackupCurrent
   putStrLn  " ============ SOURCE lodreeSourceAllNodes"
-  lodreeSourceOneNode <- readSourceTree "./test/data/case3/source-of-maintree"
+  lodreeSourceOneNode <- readSourceTree "./test/data/case4/source-of-maintree"
   let lodreeSourceAllNodes = LDir (DRee 0 0 Strict.empty) [("maintree", lodreeSourceOneNode)]
   dump lodreeSourceAllNodes
   putStrLn  " ============ COMPARE"
@@ -126,7 +126,7 @@ e = do
   putStrLn  " ============ HASHPAIRS - logical - lodreeBackupAll"
   dump $ createLogicalHashMap lodreeBackupAll
 
-  putStrLn $ unlines $ dirTreeToStringList (Just . show) $
+  putStrLn $ unlines $ dirTreeToStringList (Just . toDumpS) $
     buildBackup lodreeBackupAll lodreeSourceAllNodes "POKUSNYBEKUP"
 
 r = do

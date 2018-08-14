@@ -29,24 +29,37 @@ readBackupDir backupRoot = do
   let rootLodree = mergesToLodree emptyLodree yabaDirs
   return rootLodree
 
-writeBackup :: AnchoredBackupTree ->  IO AnchoredBackupTree
-writeBackup x = do
-  let (base :/ d) = x
-  putStrLn $ "Budeme backupvat do: " ++ base
-  putStrLn $ unlines $ dirTreeToStringList (Just . show) $
-    d
 
-  return  x
+writeBackup :: AnchoredBackupTree -> FileName -> IO AnchoredBackupTree
+writeBackup x sourceOfMainTreeDir = do
+    let (base :/ d) = x
+    putStrLn $ "Budeme backupvat do3: " ++ base ++ " z " ++ sourceOfMainTreeDir
+    putStrLn $ unlines $ dirTreeToStringList (Just . show) $
+      d
+
+    -- (_ :/ resfaile) <- writeJustDirs x
+    -- print $ failures resfaile
+    writeDirectoryWith (writeFileToBackup base) x
+    return  x
+  where
+    writeFileToBackup :: FilePath -> FilePath -> Cmd -> IO ()
+    writeFileToBackup odkudRoot path (Insert _) =
+       let odkud = drop (length odkudRoot) path
+       in do
+        putStrLn $  path ++ " <- " ++ odkud
+    writeFileToBackup _ path _ = do
+        putStrLn $ "budeme resit: " ++ path
+
 
 backup :: FilePath -> FilePath ->  IO AnchoredBackupTree
 backup backupDir sourceOfMainTreeDir = do
   newYabaDir <- nextBackupDir
   lodreeBackupAll <- readBackupDir backupDir
   let lodreeBackupCurrent = currentLodree lodreeBackupAll
-  lodreeSourceOneNode <- readSourceTree "./test/data/case3/source-of-maintree"
+  lodreeSourceOneNode <- readSourceTree sourceOfMainTreeDir
   let lodreeSourceAllNodes = LDir emptyDRee [("maintree", lodreeSourceOneNode)]
   let backupDirTree = buildBackup lodreeBackupAll lodreeSourceAllNodes newYabaDir
-  writeBackup (backupDir :/ backupDirTree)
+  writeBackup (backupDir :/ backupDirTree) sourceOfMainTreeDir
   -- return ()
 
 nextBackupDir :: IO FilePath

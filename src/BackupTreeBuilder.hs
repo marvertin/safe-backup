@@ -1,6 +1,7 @@
 module BackupTreeBuilder (
   buildBackup,
   AnchoredBackupTree,
+  Cmd(..),
 ) where
 
 
@@ -36,8 +37,11 @@ buildBackup blodree slodree outputDir =
 
 
       bFromLodree :: FileName -> Lodree  -> BackupTree
-      bFromLodree fileName lodree@(LFile _) = File fileName (Insert (hashLodree lodree))
-      bFromLodree fileName (LDir _ list) = Dir fileName (map (uncurry bFromLodree) list)
+      --bFromLodree name lodree@(LFile _) = File name (Insert (hashLodree lodree))
+      --bFromLodree name (LDir _ list) = Dir name (map (uncurry bFromLodree) list)
+      -- TODO Také vyřešit hašování
+      bFromLodree name lodree@(LFile _) = File name (Insert (hashLodree lodree))
+      bFromLodree name (LDir _ list) = Dir name (map (uncurry bFromLodree) list)
 
       bFromDirCompare :: FileName -> DirCompare -> BackupTree
       bFromDirCompare name (QLeft lodree)   = File name Delete
@@ -67,3 +71,20 @@ replaceRedundantNewFiles =
          in (hm2, Dir name list2)
       repla _ hm x = (hm, x)
     in snd . (repla [] M.empty)
+
+
+instance Dumpable Cmd where
+    toDump x = [ "**" ++ show x ]
+    toDumpS = tostra
+      where
+          tostra (Insert hash) = "Insert  " ++ toHexStr hash
+          tostra x             = show x
+
+{-
+    toDump x = [tostr x]
+      where tostr (Insert hash) = "Insert  " ++ toHexStr hash
+            toStr x = show x
+    toDumpS = tostr
+      where tostr (Insert hash) = "Insert  " ++ toHexStr hash
+            toStr x = show x
+-}
