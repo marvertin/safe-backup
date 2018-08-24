@@ -32,28 +32,30 @@ readBackupDir backupRoot = do
   let rootLodree = mergesToLodree emptyLodree yabaDirs
   return rootLodree
 
-maintree = "maintree"
+--maintree = "maintree"
 
-writeBackup :: AnchoredBackupTree -> FilePath -> IO AnchoredBackupTree
-writeBackup x sourceOfMainTreeDir = do
+writeBackup :: AnchoredBackupTree -> [(FileName, FilePath)] -> IO AnchoredBackupTree
+writeBackup x sourceTrees = do
     let (base :/ d@(Dir yabadir _)) = x
-    putStrLn $ "Budeme backupvat do3: " ++ base ++ " z " ++ sourceOfMainTreeDir
-    putStrLn $ unlines $ dirTreeToStringList (Just . show) $ d
-    -- (_ :/ resfaile) <- writeJustDirs x
-    -- print $ failures resfaile
-    print yabadir
-    -- musíme umazat adresář yaba a také adresář kořene, zatím podporujeme jediný kořen
-    let kolikSmazat = 1 + length yabadir + 1 + length maintree + length base
-    writeDirectoryWith (writeFileToBackup kolikSmazat) x
+    mapM ( \(treeName, treePath) -> do
+       putStrLn $ "Budeme backupvat do3: " ++ base ++ " z " ++ treePath
+       putStrLn $ unlines $ dirTreeToStringList (Just . show) $ d
+       -- (_ :/ resfaile) <- writeJustDirs x
+       -- print $ failures resfaile
+       print yabadir
+       -- musíme umazat adresář yaba a také adresář kořene, zatím podporujeme jediný kořen
+       let kolikSmazat = 1 + length yabadir + 1 + length treeName + length base
+       writeDirectoryWith (writeFileToBackup kolikSmazat treePath) x
+      ) sourceTrees
     return  x
   where
-    writeFileToBackup :: Int -> FilePath -> Cmd -> IO ()
-    writeFileToBackup kolikSmazat path (Insert _) =
-       let odkud = sourceOfMainTreeDir ++ drop (kolikSmazat) path
+    writeFileToBackup :: Int -> FilePath -> FilePath -> Cmd -> IO ()
+    writeFileToBackup kolikSmazat sourceOfMainTreeDir path (Insert _) =
+       let odkud = sourceOfMainTreeDir ++ drop kolikSmazat path
        in do
         putStrLn $  "kopy file: " ++ odkud ++ " --> " ++ path
         copyFile odkud path
-    writeFileToBackup _ path cmd = do
+    writeFileToBackup _ _ path cmd = do
         let (dir, file) = splitFileName path
         let cesta = dir </> ("~TOD~" ++ file) ++ ".yaba"
         putStrLn $ "budeme resit: " ++ cesta
@@ -61,15 +63,21 @@ writeBackup x sourceOfMainTreeDir = do
         writeFile cesta (unJabaContent (convertToJabaContent cmd))
 
 
-backup :: FilePath -> FilePath ->  IO AnchoredBackupTree
-backup backupDir sourceOfMainTreeDir = do
+backup :: FilePath -> [(FileName, FilePath)] ->  IO AnchoredBackupTree
+backup backupDir sourceTrees = do
   newYabaDir <- nextBackupDir
   lodreeBackupAll <- readBackupDir backupDir
   let lodreeBackupCurrent = currentLodree lodreeBackupAll
-  lodreeSourceOneNode <- readSourceTree sourceOfMainTreeDir
-  let lodreeSourceAllNodes = LDir emptyDRee [(maintree, lodreeSourceOneNode)]
+
+  lodreeSourceAllNodes <- LDir emptyDRee <$> mapM ( \(treeName, treePath) -> do
+                    lodreeSourceOneNode <- readSourceTree treePath
+                    return (treeName, lodreeSourceOneNode)
+                   ) sourceTrees
+  --lodreeSourceOneNode <- readSourceTree sourceOfMainTreeDir
+  -- let lodreeSourceAllNodes = LDir emptyDRee [(maintree, lodreeSourceOneNode)]
+
   let backupDirTree = buildBackup lodreeBackupAll lodreeSourceAllNodes newYabaDir
-  writeBackup (backupDir :/ backupDirTree) sourceOfMainTreeDir
+  writeBackup (backupDir :/ backupDirTree) sourceTrees
   -- return ()
 
 nextBackupDir :: IO FilePath
@@ -92,4 +100,4 @@ ba :: IO AnchoredBackupTree
 ba = do
   let backupDir = "./test/data/case3/backup"
   let sourceOfMainTree = "./test/data/case3/source-of-maintree"
-  backup backupDir sourceOfMainTree
+  backup backupDir [("maintree", sourceOfMainTree)]

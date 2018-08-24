@@ -132,7 +132,7 @@ e = do
 r = do
     let backupDir = "./test/data/case3/backup"
     let sourceOfMainTree = "./test/data/case3/source-of-maintree"
-    backup backupDir sourceOfMainTree
+    backup backupDir [("maintree", sourceOfMainTree)]
     return ()
 
 --  lodree <- readBackupDir "./test/data/backupdisk1"
