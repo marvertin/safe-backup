@@ -7,11 +7,13 @@ module TurboWare
       prependToFirst,
       appendToFirst,
       dropPrefixSlashes,
+      trim,
       Dumpable(..),
       Hexable(..)
     ) where
 
 import qualified Data.ByteString as Strict
+import           Data.Char
 import           Data.Function
 import           Data.List       (sortBy)
 import           Text.Printf     (printf)
@@ -86,3 +88,6 @@ zipMaybe af bf al bl = merge (sortBy (compare `on` af) al)
           LT -> (ak, Just a, Nothing) : merge as bq
           GT -> (bk, Nothing, Just b) : merge aq bs
           EQ -> (ak, Just a, Just b) : merge as bs
+
+trim :: String -> String
+trim = reverse . dropWhile isSpace . reverse . dropWhile isSpace

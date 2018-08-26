@@ -1,5 +1,7 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 module Debug (
-  q, w, p3, mainovec, e, r
+  q, w, p3, mainovec, e, rr, t
 ) where
 
 import           Crypto.Hash.SHA1      (hashlazy)
@@ -18,6 +20,7 @@ import           SourceTree
 import           System.Directory.Tree
 import           System.FilePath.Find
 import           Text.Printf           (printf)
+import           Text.RawString.QQ
 import           TreeComparator
 import           TurboWare
 import           YabaDirTree           hiding (RegularFile)
@@ -129,11 +132,19 @@ e = do
   putStrLn $ unlines $ dirTreeToStringList (Just . toDumpS) $
     buildBackup lodreeBackupAll lodreeSourceAllNodes "POKUSNYBEKUP"
 
-r = do
+rr = do
     let backupDir = "./test/data/case3/backup"
     let sourceOfMainTree = "./test/data/case3/source-of-maintree"
     backup backupDir [("maintree", sourceOfMainTree)]
     return ()
+
+t = print $ parseForestDef [r|
+      ahoj = tati
+      martin = helena
+      martina = vojta
+      |]
+
+
 
 --  lodree <- readBackupDir "./test/data/backupdisk1"
 --  dump lodree

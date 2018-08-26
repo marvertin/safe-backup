@@ -34,6 +34,8 @@ dependencies:
 - regex-compat
 - regex-posix
 - optparse-applicative
+- raw-strings-qq
+- Unique
 
 
 # - derive
