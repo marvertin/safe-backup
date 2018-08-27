@@ -1,7 +1,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 
 module Debug (
-  q, w, p3, mainovec, e, rr, t
+  q, w, p3, mainovec, e, rr
 ) where
 
 import           Crypto.Hash.SHA1      (hashlazy)
@@ -12,7 +12,6 @@ import           Data.Maybe
 import           Backup
 import           BackupTreeBuilder
 import           Dump
-import           Forest
 import           GHC.IO.Encoding
 import           Hashpairing
 import           Lib
@@ -139,11 +138,7 @@ rr = do
     backup backupDir [("maintree", sourceOfMainTree)]
     return ()
 
-t = print $ parseForestDef [r|
-      ahoj = tati
-      martin = helena
-      martina = vojta
-      |]
+
 
 
 

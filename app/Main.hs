@@ -14,8 +14,9 @@ import           TurboWare
 import           YabaDirTree           hiding (RegularFile)
 
 --import           Data.Time.Calendar
+import           Config
 import           Data.Time.Clock
-import           Forest
+import           System.Directory
 
 --main :: IO ()
 --main = do
@@ -62,15 +63,16 @@ main = doBackup =<< execParser opts
 
 doBackup :: Cmdline -> IO ()
 doBackup (Cmdline backupDir False n) = do
-  putStrLn $ "Backing up to \"" ++ backupDir ++ "\" using definition in \"sources.yaba\""
-  forestDef <- readForestDef backupDir
+  backupDirAbs <- makeAbsolute backupDir
+  putStrLn $ "Backing up to \"" ++ backupDirAbs ++ "\" using definition in \"sources.yaba\""
+  forestDef <- readForestDef backupDirAbs
   case forestDef of
     Left msg -> do
-      print msg
-      exitWith $ ExitFailure 33
+      putStrLn msg
+      exitWith $ ExitFailure 1
     Right forest -> do
-      backup backupDir forest
-      putStrLn $ " Back up finished "
+      backup backupDirAbs forest
+      putStrLn " Back up finished "
   --let sourceOfMainTree = "./test/data/case3/source-of-maintree"
   -- backup backupDir [("maintree", sourceOfMainTree)]
   --putStrLn $ " Back up finished "
