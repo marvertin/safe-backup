@@ -6,7 +6,8 @@ module Types (
   FilePath,
   ErrMsg,
   yabaSuffix,
-  yabaSliceSuffix
+  yabaSliceSuffix,
+  configFileName,
 ) where
 
 import qualified Data.ByteString       as Strict
@@ -23,3 +24,5 @@ type ErrMsg = String
 yabaSuffix = ".yaba"
 
 yabaSliceSuffix = ".yaba-slice"
+
+configFileName = "yaba-config.yaml" :: FileName

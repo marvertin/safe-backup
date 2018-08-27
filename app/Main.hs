@@ -17,6 +17,7 @@ import           YabaDirTree           hiding (RegularFile)
 import           Config
 import           Data.Time.Clock
 import           System.Directory
+import           Types
 
 --main :: IO ()
 --main = do
@@ -52,6 +53,7 @@ cmdline = Cmdline
          <> value 1
          <> metavar "INT" )
 
+--  test directory: ./test/data/case3/backup
 main :: IO ()
 main = doBackup =<< execParser opts
  where
@@ -64,8 +66,9 @@ main = doBackup =<< execParser opts
 doBackup :: Cmdline -> IO ()
 doBackup (Cmdline backupDir False n) = do
   backupDirAbs <- makeAbsolute backupDir
-  putStrLn $ "Backing up to \"" ++ backupDirAbs ++ "\" using definition in \"sources.yaba\""
-  forestDef <- readForestDef backupDirAbs
+  putStrLn $ "Backing up to \"" ++ backupDirAbs ++ "\" using definition in \"" ++ configFileName ++ "\""
+  config <- readConfig backupDirAbs
+  let forestDef = pickForestDef <$> config
   case forestDef of
     Left msg -> do
       putStrLn msg

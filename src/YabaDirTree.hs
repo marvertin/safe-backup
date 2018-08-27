@@ -71,7 +71,8 @@ readYabaDir f = do
     if (anyFailed d) then do
       print $ "!!!!!!!!!!!!! Selhalo to: " ++ show (failures d)
       return $ fmap (truncate (length base)) tree
-    else
+    else do
+      putStrLn $ " - " ++ f
       return $ fmap (truncate (length base)) tree
   where
     truncate :: Int -> FordInfo -> FordInfo

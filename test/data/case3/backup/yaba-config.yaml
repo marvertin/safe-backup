@@ -1,4 +1,5 @@
 forest:
-  maintree: ./test/data/case3/source-of-maintree
+  maintree: 
+     path: ./test/data/case3/source-of-maintree
   
 

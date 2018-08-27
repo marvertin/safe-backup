@@ -29,7 +29,7 @@ isSliceName = isSuffixOf yabaSliceSuffix
 readBackupDir :: FilePath -> IO Lodree
 readBackupDir backupRoot = do
   yabaDirNames <-  (sort . filter isSliceName) <$> listDirectory backupRoot
-  print yabaDirNames
+  putStrLn $ "Reading " ++ show (length yabaDirNames) ++ " slices allredy backed up"
   yabaDirs <- mapM (\name -> deAnchore <$> readYabaDir (backupRoot ++ "/" ++ name)) yabaDirNames
   let rootLodree = mergesToLodree emptyLodree yabaDirs
   return rootLodree
