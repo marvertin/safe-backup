@@ -4,7 +4,7 @@ module Lib
       mapTree,
       namesToPath,
       deAnchore,
-      parseForestDef,
+      splitByChar,
 
     ) where
 
@@ -16,6 +16,7 @@ import           Data.Maybe
 import           System.Directory.Tree
 import           Text.Printf           (printf)
 import           TurboWare
+import           Types
 
 
 class  HasFileName a  where
@@ -50,19 +51,3 @@ removeFirstChar c q@(x: xs)
 splitByChar :: Char -> String -> (String, String)
 splitByChar z xs = let (s1, s2) = span (/=z) xs
                    in (trim s1, trim . removeFirstChar z $ s2)
-
-parseForestDef :: String ->  Either String [(String, String)]
-parseForestDef s =
-    (sequence $ mapMaybe check . zip [1..] . map (splitByChar '=') . lines $ s)
-      >>= checkDupl
-  where
-     check :: (Int, (String, String)) -> Maybe (Either String (String, String))
-     check (_, ([], [])) = Nothing
-     check (lineNum, ([], _)) = Just $ Left $ "Missing direcotry name (right part) at line " ++ show lineNum
-     check (lineNum, (_, [])) = Just $ Left $ "Missing tree name (let part) at line " ++ show lineNum
-     check (_, q)  = Just $ Right q
-
-     checkDupl :: [(String, String)]  -> Either String [(String, String)]
-     checkDupl forest = let dupl = repeated $ map fst forest
-                        in if null dupl then Right forest
-                                        else Left $ "duplicated tree names: " ++ show dupl

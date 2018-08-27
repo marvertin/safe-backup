@@ -44,7 +44,7 @@ library:
   source-dirs: src
 
 executables:
-  safe-backup:
+  yaba:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -55,7 +55,7 @@ executables:
     - safe-backup
 
 tests:
-  safe-backup-test:
+  yaba-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:

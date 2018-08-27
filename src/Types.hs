@@ -4,7 +4,9 @@ module Types (
   JabaContent(..),
   FileName,
   FilePath,
-  yabaSuffix
+  ErrMsg,
+  yabaSuffix,
+  yabaSliceSuffix
 ) where
 
 import qualified Data.ByteString       as Strict
@@ -16,4 +18,8 @@ newtype JabaContent = JabaContent { unJabaContent :: String } deriving (Show)
 
 type Hash = Strict.ByteString
 
+type ErrMsg = String
+
 yabaSuffix = ".yaba"
+
+yabaSliceSuffix = ".yaba-slice"

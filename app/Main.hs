@@ -15,6 +15,7 @@ import           YabaDirTree           hiding (RegularFile)
 
 --import           Data.Time.Calendar
 import           Data.Time.Clock
+import           Forest
 
 --main :: IO ()
 --main = do
@@ -26,6 +27,7 @@ import           Data.Time.Clock
 
 import           Data.Semigroup        ((<>))
 import           Options.Applicative
+import           System.Exit
 
 data Cmdline = Cmdline
   { backupDir  :: String
@@ -57,12 +59,21 @@ main = doBackup =<< execParser opts
     <> progDesc "backing up structure without change and duplicity"
     <> header "yaba - yeat another backup" )
 
+
 doBackup :: Cmdline -> IO ()
 doBackup (Cmdline backupDir False n) = do
   putStrLn $ "Backing up to \"" ++ backupDir ++ "\" using definition in \"sources.yaba\""
-  let sourceOfMainTree = "./test/data/case3/source-of-maintree"
-  backup backupDir [("maintree", sourceOfMainTree)]
-  putStrLn $ " Back up finished "
+  forestDef <- readForestDef backupDir
+  case forestDef of
+    Left msg -> do
+      print msg
+      exitWith $ ExitFailure 33
+    Right forest -> do
+      backup backupDir forest
+      putStrLn $ " Back up finished "
+  --let sourceOfMainTree = "./test/data/case3/source-of-maintree"
+  -- backup backupDir [("maintree", sourceOfMainTree)]
+  --putStrLn $ " Back up finished "
 doBackup _  = return ()
 
 -- putStrLn $ "Backup, " ++ h ++ replicate n '!'

@@ -13,6 +13,7 @@ module YabaDirTree
     isYabaFile,
     ) where
 
+import           Control.Monad
 import           Data.List
 import           Data.Maybe
 import           Dump
@@ -67,7 +68,11 @@ getFileInfo ff = do
 readYabaDir :: FilePath -> IO (AnchoredDirTree FordInfo)
 readYabaDir f = do
     tree@(base :/ d) <- sortDirShape </$> readDirectoryWith getFileInfo f
-    return $ fmap (truncate (length base)) tree
+    if (anyFailed d) then do
+      print $ "!!!!!!!!!!!!! Selhalo to: " ++ show (failures d)
+      return $ fmap (truncate (length base)) tree
+    else
+      return $ fmap (truncate (length base)) tree
   where
     truncate :: Int -> FordInfo -> FordInfo
     truncate n this@ RegularFile {} = this { physPath = drop n (physPath this)}

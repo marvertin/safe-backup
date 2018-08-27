@@ -20,13 +20,16 @@ import           YabaFileContent
 import           Data.Time.Calendar
 import           Data.Time.Clock
 import           Data.Time.Format
+import           System.Exit
 import           YabaFileContent
 
 
+isSliceName :: FileName -> Bool
+isSliceName = isSuffixOf yabaSliceSuffix
 
 readBackupDir :: FilePath -> IO Lodree
 readBackupDir backupRoot = do
-  yabaDirNames <-  sort <$> listDirectory backupRoot
+  yabaDirNames <-  (sort . filter isSliceName) <$> listDirectory backupRoot
   print yabaDirNames
   yabaDirs <- mapM (\name -> deAnchore <$> readYabaDir (backupRoot ++ "/" ++ name)) yabaDirNames
   let rootLodree = mergesToLodree emptyLodree yabaDirs
@@ -84,7 +87,7 @@ nextBackupDir :: IO FilePath
 nextBackupDir = do
   now <- getCurrentTime
   return $ formatTime defaultTimeLocale (iso8601DateFormat (Just "%H-%M-%SZ")) now
-    ++ yabaSuffix
+    ++ yabaSliceSuffix
 
 convertToYaba :: Cmd -> YabaFileContent
 convertToYaba (BackupTreeBuilder.LogicalLink x) = YabaFileContent.LogicalLink x
