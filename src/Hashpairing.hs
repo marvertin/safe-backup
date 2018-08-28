@@ -19,12 +19,12 @@ import           Types
 
 createFhysicalHashMap :: Lodree -> M.Map Hash FilePath
 createFhysicalHashMap lodree = M.fromList $
-  map (\Ree{..} -> (hash, physPathx)) $ flattenRees lodree
+  map (\Ree{..} -> (rhash, rphysPath)) $ flattenRees lodree
 
 createLogicalHashMap :: Lodree -> M.Map Hash FilePath
 createLogicalHashMap lodree = M.fromList $
   map (fmap (dropWhile (/='/') . dropWhile (=='/'))) $
-  map (\(path, LDir DRee{..} _) -> (dhash, path)) $ flattenLodrees lodree
+  map (\(path, LDir Ree{..} _) -> (rhash, path)) $ flattenLodrees lodree
 
 
 flattenRees :: Lodree -> [Ree]

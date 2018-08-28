@@ -117,7 +117,7 @@ e = do
   dump lodreeBackupCurrent
   putStrLn  " ============ SOURCE lodreeSourceAllNodes"
   lodreeSourceOneNode <- readSourceTree "./test/data/case4/source-of-maintree"
-  let lodreeSourceAllNodes = LDir (DRee 0 0 Strict.empty) [("maintree", lodreeSourceOneNode)]
+  let lodreeSourceAllNodes = makeLDir [("maintree", lodreeSourceOneNode)]
   dump lodreeSourceAllNodes
   putStrLn  " ============ COMPARE"
   let diff = compareTrees lodreeBackupCurrent lodreeSourceAllNodes
@@ -130,7 +130,7 @@ e = do
   dump $ createLogicalHashMap lodreeBackupAll
 
   putStrLn $ unlines $ dirTreeToStringList (Just . toDumpS) $
-    buildBackup lodreeBackupAll lodreeSourceAllNodes "POKUSNYBEKUP"
+    fromJust $ buildBackup lodreeBackupAll lodreeSourceAllNodes "POKUSNYBEKUP"
 
 rr = do
     let backupDir = "./test/data/case3/backup"

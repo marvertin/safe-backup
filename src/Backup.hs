@@ -74,16 +74,18 @@ backup backupDir sourceTrees = do
   lodreeBackupAll <- readBackupDir backupDir
   let lodreeBackupCurrent = currentLodree lodreeBackupAll
   putStrLn $  "Reading " ++ show (length sourceTrees) ++ " source trees"
-  lodreeSourceAllNodes <- LDir emptyDRee <$> mapM ( \(treeName, treePath) -> do
+  lodreeSourceAllNodes <- makeLDir <$> mapM ( \(treeName, treePath) -> do
                     lodreeSourceOneNode <- readSourceTree treePath
                     return (treeName, lodreeSourceOneNode)
                    ) sourceTrees
   --lodreeSourceOneNode <- readSourceTree sourceOfMainTreeDir
   -- let lodreeSourceAllNodes = LDir emptyDRee [(maintree, lodreeSourceOneNode)]
   putStrLn $ "Building new backup slice: " ++ newYabaDir
-  let backupDirTree = buildBackup lodreeBackupAll lodreeSourceAllNodes newYabaDir
-  putStrLn $ "Writing backup to: " ++ backupDir
-  writeBackup (backupDir :/ backupDirTree) sourceTrees
+  case buildBackup lodreeBackupAll lodreeSourceAllNodes newYabaDir of
+    Nothing ->  putStrLn $ "Nothing to backup: "
+    Just backupDirTree -> do
+       putStrLn $ "Writing backup to: " ++ backupDir
+       writeBackup (backupDir :/ backupDirTree) sourceTrees
   -- return ()
 
 nextBackupDir :: IO FilePath

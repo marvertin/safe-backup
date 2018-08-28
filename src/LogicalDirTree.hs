@@ -5,10 +5,9 @@
 module LogicalDirTree (
   Lodree(..),
   Ree(..),
-  DRee(..),
-  emptyDRee,
   emptyLodree,
   hashLodree,
+  makeLDir,
   findLodreeNode,
 
   mergeToLodree,
@@ -32,22 +31,33 @@ import           YabaDirTree
 import           YabaFileContent
 
 -- data LfInfo = LfInfo { physPath :: FilePath}
-data Ree = Ree { physPathx :: FilePath, size :: FileSize, hash :: Hash } deriving (Show)
-data DRee = DRee { dsize :: FileSize, dcount :: Int, dhash :: Hash } deriving (Show)
+data Ree = Ree { rphysPath :: FilePath, rcount :: Int, rsize :: FileSize, rhash :: Hash } deriving (Show)
 
 data Lodree = LFile Ree
-            | LDir DRee [(FileName, Lodree)]
+            | LDir Ree [(FileName, Lodree)]
             deriving (Show)
 
 emptyLodree :: Lodree
-emptyLodree = LDir emptyDRee []
+emptyLodree = makeLDir []
 
-emptyDRee = DRee 0 0 Strict.empty
+makeLDir :: [(FileName, Lodree)] -> Lodree
+makeLDir list = LDir (foldToDree list) list
+  where
+    foldToDree :: [(FileName, Lodree)] -> Ree
+    foldToDree list = let
+        sortedList = sortBy (compare `on` fst) list
+        names = map (BSU.fromString . fst) list
+        hashes = map (pickHash . snd) sortedList
+      in Ree { rphysPath = "",
+               rsize = sum $ (pickSize . snd) <$> list,
+               rcount = sum $ (pickCount . snd) <$> list,
+               rhash = Cr.finalize $ foldl Cr.update Cr.init (hashes ++ names)
+            }-- emptyDRee = DRee 0 0 Strict.empty
 
 findLodreeNode = findNode
 
 mergesToLodree :: Lodree -> [YabaDirTree] -> Lodree
-mergesToLodree lodree = foldl merge lodree
+mergesToLodree = foldl merge
 
 mergeToLodree = merge
 
@@ -56,7 +66,7 @@ merge rootLodree rootDirTree = let
 --     x = 0
        rootList (LDir _ list) =  list
        newLodree = fromMaybe emptyLodree (merge' (Just $ currentLodree rootLodree) (Just rootDirTree))
-    in  LDir (DRee 0 0 Strict.empty)  ((fileNamex rootDirTree, newLodree) : rootList rootLodree)
+    in  makeLDir ((fileNamex rootDirTree, newLodree) : rootList rootLodree)
     --in  LDir (DRee 0 0 Strict.empty) [ (rootList rootLodree)
   where
     merge' :: Maybe Lodree -> Maybe YabaDirTree -> Maybe Lodree
@@ -74,7 +84,7 @@ merge rootLodree rootDirTree = let
            ra :: [(FileName, Lodree)]
            ra = mapMaybe tupleMaybeUpSnd qa
        in if null ra then Nothing -- we dotnt want empty dirs
-                     else Just (LDir (foldToDree ra) ra)
+                     else Just (makeLDir ra)
 
 currentLodree :: Lodree -> Lodree
 currentLodree (LDir _ [])                 = emptyLodree
@@ -95,29 +105,21 @@ filterOutYaba fulllist = let
     yabas = nubBy ((==) `on` pickPureFordName) yabaNoHiden
   in yabas ++ regular
 
-foldToDree :: [(FileName, Lodree)] -> DRee
-foldToDree list = let
-    sortedList = sortBy (compare `on` fst) list
-    names = map (BSU.fromString . fst) list
-    hashes = map (pickHash . snd) sortedList
-  in DRee { dsize = sum $ (pickSize . snd) <$> list,
-            dcount = sum $ (pickCount . snd) <$> list,
-            dhash = Cr.finalize $ foldl Cr.update Cr.init (hashes ++ names)
-          }
+
+ree :: Lodree -> Ree
+ree (LFile ree)  = ree
+ree (LDir ree _) = ree
 
 pickSize :: Lodree -> FileSize
-pickSize (LFile ree)   = size ree
-pickSize (LDir dree _) = dsize dree
+pickSize = rsize . ree
 
 pickHash :: Lodree -> Hash
-pickHash (LFile ree)   = hash ree
-pickHash (LDir dree _) = dhash dree
+pickHash = rhash . ree
 
 hashLodree = pickHash
 
 pickCount :: Lodree -> Int
-pickCount (LFile _)     = 1
-pickCount (LDir dree _) = dcount dree
+pickCount = rcount . ree
 
 
 {- |
@@ -141,7 +143,7 @@ pickPureFordName :: DirTree a -> FileName
 pickPureFordName = fromJust . extractPureFordName . fileNamex  -- function returning name in yaba and no yaba files
 
 fordInfo2Ree :: FordInfo -> Ree
-fordInfo2Ree (RegularFile a b c) = Ree { physPathx = a, size = b, hash = c }
+fordInfo2Ree (RegularFile a b c) = Ree { rphysPath = a, rcount = 1, rsize = b, rhash = c }
 
 isDelete :: JabaContent -> Bool
 isDelete = isYabaRemove . parseYabaFile
@@ -179,13 +181,11 @@ instance Dumpable Lodree where
      where
         todump :: (FileName, Lodree) -> [String]
         todump (filename, q@(LFile _)) = prependToFirst (filename ++ ": ") (toDump q)
-        todump (filename, q@(LDir dree _)) =   ("/" ++ filename ++ " " ++ printDRee dree) : toDump q
+        todump (filename, q@(LDir ree _)) =   ("/" ++ filename ++ " " ++ printRee ree) : toDump q
 
 printRee :: Ree ->  String
-printRee Ree {..} = "  #" ++ show size ++ " " ++ toHexStr hash ++ " \"" ++ physPathx ++ "\""
+printRee Ree {..} = "  #" ++ show rsize ++ " " ++ toHexStr rhash ++ " \"" ++ rphysPath ++ "\""
 
-printDRee :: DRee ->  String
-printDRee DRee {..} = "  #" ++ show dcount  ++ "/" ++ show dsize ++ "  " ++ toHexStr dhash
 
 --w = do
 --  putStrLn $ unlines $ lodreeToStringList (gen "abcd")

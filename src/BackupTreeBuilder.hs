@@ -23,7 +23,7 @@ type BackupTree = DirTree Cmd
 type AnchoredBackupTree = AnchoredDirTree Cmd
 
 
-buildBackup :: Lodree -> Lodree ->  FileName -> BackupTree
+buildBackup :: Lodree -> Lodree ->  FileName -> Maybe BackupTree
 buildBackup blodree slodree outputDir =
   let fileHashes = createFhysicalHashMap blodree
       dirHashes = createLogicalHashMap blodree
@@ -49,10 +49,10 @@ buildBackup blodree slodree outputDir =
       bFromDirCompare name (QRight lodree)  = hashing name lodree
       bFromDirCompare name (QBoth _ lodree) = hashing name lodree
       bFromDirCompare name (QDir list) =  Dir name (map (uncurry bFromDirCompare) list)
-      diff = trace ("\n\nslodree: " ++ show slodree ++ "\n\ncurrentLodre eblodree: " ++ show (currentLodree blodree) ++ "\n\n")
-          $ compareTrees (currentLodree blodree) slodree
+      -- diff = trace ("\n\nslodree: " ++ show slodree ++ "\n\ncurrentLodre eblodree: " ++ show (currentLodree blodree) ++ "\n\n")
+      diff = compareTrees (currentLodree blodree) slodree
 
-  in  replaceRedundantNewFiles (bFromDirCompare outputDir (fromJust diff))
+  in  (replaceRedundantNewFiles . bFromDirCompare outputDir) <$> diff
 
 type MapByHash = M.Map Hash [FileName]
 
