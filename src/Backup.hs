@@ -62,11 +62,17 @@ writeBackup x sourceTrees = do
         copyFile odkud path
     writeFileToBackup _ _ path cmd = do
         let (dir, file) = splitFileName path
-        let cesta = dir </> ("~TOD~" ++ file) ++ ".yaba"
+        let cesta = dir </> (yabaFilePrefix cmd ++ file) ++ ".yaba"
         putStrLn $ "budeme resit: " ++ cesta
             -- ++ unJabaContent (convertToJabaContent cmd)
         writeFile cesta (unJabaContent (convertToJabaContent cmd))
 
+yabaFilePrefix :: Cmd -> String
+yabaFilePrefix (Insert _)                         = "~INSERT~"
+yabaFilePrefix BackupTreeBuilder.Delete           = "~DELETE-OR-MOVE~"
+yabaFilePrefix (BackupTreeBuilder.LogicalLink  _) = "~LINK~"
+yabaFilePrefix (BackupTreeBuilder.PhysicalLink _) = "~LINK~"
+yabaFilePrefix (NewLink _)                        = "~LINK~"
 
 backup :: FilePath -> [(FileName, FilePath)] ->  IO ()
 backup backupDir sourceTrees = do

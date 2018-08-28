@@ -38,6 +38,7 @@ dependencies:
 - Unique
 - yaml
 - text
+- timeit
 
 
 # - derive

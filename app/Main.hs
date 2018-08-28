@@ -17,8 +17,8 @@ import           YabaDirTree           hiding (RegularFile)
 import           Config
 import           Data.Time.Clock
 import           System.Directory
+import           System.TimeIt
 import           Types
-
 --main :: IO ()
 --main = do
 --  setLocaleEncoding utf8
@@ -54,8 +54,10 @@ cmdline = Cmdline
          <> metavar "INT" )
 
 --  test directory: ./test/data/case3/backup
-main :: IO ()
-main = doBackup =<< execParser opts
+main = timeIt  main'
+
+main' :: IO ()
+main' = doBackup =<< execParser opts
  where
    opts = info (cmdline <**> helper)
      ( fullDesc
