@@ -20,6 +20,7 @@ import           YabaFileContent
 import           Data.Time.Calendar
 import           Data.Time.Clock
 import           Data.Time.Format
+import           System.IO             (hFlush, stdout)
 import           YabaFileContent
 
 
@@ -36,20 +37,22 @@ readBackupDir backupRoot = do
 
 --maintree = "maintree"
 
-writeBackup :: AnchoredBackupTree -> [(FileName, FilePath)] -> IO AnchoredBackupTree
+writeBackup :: AnchoredBackupTree -> [(FileName, FilePath)] -> IO ()
 writeBackup x sourceTrees = do
+    putStrLn $ "jsem v writeBackup"
+    hFlush stdout
+    -- nasledujici prikaz buh vi proc dlouho trva
     let (base :/ d@(Dir yabadir _)) = x
+    putStrLn $ "Writing backu slice: " ++ yabadir
+    hFlush stdout
     mapM ( \(treeName, treePath) -> do
-       putStrLn $ "Budeme backupvat do3: " ++ base ++ " z " ++ treePath
+       putStrLn $ "Writing tree: " ++ treePath ++ " ==> " ++ (yabadir </> treeName)
        putStrLn $ unlines $ dirTreeToStringList (Just . show) $ d
-       -- (_ :/ resfaile) <- writeJustDirs x
-       -- print $ failures resfaile
-       print yabadir
-       -- musíme umazat adresář yaba a také adresář kořene, zatím podporujeme jediný kořen
+       -- musíme umazat adresář yaba a také adresář kořene
        let kolikSmazat = 1 + length yabadir + 1 + length treeName + length base
        writeDirectoryWith (writeFileToBackup kolikSmazat treePath) x
       ) sourceTrees
-    return  x
+    return ()
   where
     writeFileToBackup :: Int -> FilePath -> FilePath -> Cmd -> IO ()
     writeFileToBackup kolikSmazat sourceOfMainTreeDir path (Insert _) =
@@ -65,20 +68,21 @@ writeBackup x sourceTrees = do
         writeFile cesta (unJabaContent (convertToJabaContent cmd))
 
 
-backup :: FilePath -> [(FileName, FilePath)] ->  IO AnchoredBackupTree
+backup :: FilePath -> [(FileName, FilePath)] ->  IO ()
 backup backupDir sourceTrees = do
   newYabaDir <- nextBackupDir
   lodreeBackupAll <- readBackupDir backupDir
   let lodreeBackupCurrent = currentLodree lodreeBackupAll
-
+  putStrLn $  "Reading " ++ show (length sourceTrees) ++ " source trees"
   lodreeSourceAllNodes <- LDir emptyDRee <$> mapM ( \(treeName, treePath) -> do
                     lodreeSourceOneNode <- readSourceTree treePath
                     return (treeName, lodreeSourceOneNode)
                    ) sourceTrees
   --lodreeSourceOneNode <- readSourceTree sourceOfMainTreeDir
   -- let lodreeSourceAllNodes = LDir emptyDRee [(maintree, lodreeSourceOneNode)]
-
+  putStrLn $ "Building new backup slice: " ++ newYabaDir
   let backupDirTree = buildBackup lodreeBackupAll lodreeSourceAllNodes newYabaDir
+  putStrLn $ "Writing backup to: " ++ backupDir
   writeBackup (backupDir :/ backupDirTree) sourceTrees
   -- return ()
 
@@ -98,7 +102,7 @@ convertToJabaContent :: Cmd -> JabaContent
 convertToJabaContent = formatYabaFile . convertToYaba
 
 
-ba :: IO AnchoredBackupTree
+ba :: IO ()
 ba = do
   let backupDir = "./test/data/case3/backup"
   let sourceOfMainTree = "./test/data/case3/source-of-maintree"

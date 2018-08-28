@@ -37,6 +37,7 @@ dependencies:
 - raw-strings-qq
 - Unique
 - yaml
+- text
 
 
 # - derive
