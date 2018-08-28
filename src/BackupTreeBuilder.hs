@@ -42,7 +42,7 @@ buildBackup blodree slodree outputDir =
       --bFromLodree name (LDir _ list) = Dir name (map (uncurry bFromLodree) list)
       -- TODO Také vyřešit hašování
       bFromLodree name lodree@(LFile _) = File name (Insert (hashLodree lodree))
-      bFromLodree name (LDir _ list) = Dir name (map (uncurry bFromLodree) list)
+      bFromLodree name (LDir _ list) = Dir name (map (uncurry hashing) list)
 
       bFromDirCompare :: FileName -> DirCompare -> BackupTree
       bFromDirCompare name (QLeft lodree)   = File name Delete
