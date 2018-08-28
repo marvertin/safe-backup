@@ -1,0 +1,5 @@
+forest:
+  mytree: 
+     path: ./test/data/empty-start/source-of-mytree
+  
+

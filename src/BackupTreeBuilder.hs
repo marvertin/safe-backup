@@ -8,6 +8,7 @@ module BackupTreeBuilder (
 import           Data.List             (mapAccumL)
 import qualified Data.Map              as M
 import           Data.Maybe
+import           Debug.Trace
 import           Hashpairing
 import           Lib
 import           LogicalDirTree
@@ -48,8 +49,8 @@ buildBackup blodree slodree outputDir =
       bFromDirCompare name (QRight lodree)  = hashing name lodree
       bFromDirCompare name (QBoth _ lodree) = hashing name lodree
       bFromDirCompare name (QDir list) =  Dir name (map (uncurry bFromDirCompare) list)
-
-      diff = compareTrees (currentLodree blodree) slodree
+      diff = trace ("\n\nslodree: " ++ show slodree ++ "\n\ncurrentLodre eblodree: " ++ show (currentLodree blodree) ++ "\n\n")
+          $ compareTrees (currentLodree blodree) slodree
 
   in  replaceRedundantNewFiles (bFromDirCompare outputDir (fromJust diff))
 
