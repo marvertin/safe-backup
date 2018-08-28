@@ -1,7 +1,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 
 module Debug (
-  q, w, p3, mainovec, e, rr
+  q, w, p3, mainovec, e, rr, (>:), (<:), (?:), Test(..)
 ) where
 
 import           Crypto.Hash.SHA1      (hashlazy)
@@ -140,7 +140,20 @@ rr = do
 
 
 
+data Test = Test String deriving (Eq, Show)
 
+(>:) :: Test -> Test -> Test
+(Test a) >: (Test b) = Test $ "(" ++ a ++ " >: " ++ b ++ ")"
+
+(<:) :: Test -> Test -> Test
+(Test a) <: (Test b) = Test $ "(" ++ a ++ " <: " ++ b ++ ")"
+
+(?:) :: Test -> Test -> Test
+(Test a) ?: (Test b) = Test $ "(" ++ a ++ " ?: " ++ b ++ ")"
+
+infix 6 ?:
+infixr 6 >:
+infixl 6 <:
 
 --  lodree <- readBackupDir "./test/data/backupdisk1"
 --  dump lodree

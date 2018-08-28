@@ -54,7 +54,12 @@ cmdline = Cmdline
          <> metavar "INT" )
 
 --  test directory: ./test/data/case3/backup
-main = timeIt  main'
+main = do
+  setLocaleEncoding utf8
+  getLocaleEncoding >>= print
+  now <- getCurrentTime
+  print now
+  timeIt  main'
 
 main' :: IO ()
 main' = doBackup =<< execParser opts
