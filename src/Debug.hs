@@ -1,7 +1,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 
 module Debug (
-  q, w, p3, mainovec, e, rr, (>:), (<:), (?:), Test(..)
+  q, w, p3, mainovec, e, rr, (>:), (<:), (?:), Test(..), ww
 ) where
 
 import           Crypto.Hash.SHA1      (hashlazy)
@@ -110,6 +110,20 @@ w = do
    let diff = compareTrees (currentLodree lodree1) (currentLodree lodree2)
    dump (fromJust diff)
 
+ww  = do
+  (base1 :/ d1) <- readYabaDir "./test/data/double/backup/2018-02-03T00-00-00Z.yaba-slice"
+  (base2 :/ d2) <- readYabaDir "./test/data/double/backup/2018-08-29T07-13-19Z.yaba-slice"
+  let lodree1 = mergeToLodree emptyLodree d1
+  putStrLn  " ============ FIRST MERGE"
+  let lodree2a = mergeToLodree lodree1 d2
+  dump lodree2a
+  putStrLn  " ============ SECOND MERGE"
+  let lodree2b = mergeToLodree lodree2a d2
+  dump lodree2b
+  putStrLn  " ============ COMPARE"
+  let diff = compareTrees (currentLodree lodree2a) (currentLodree lodree2b)
+  dump (fromJust diff)
+
 e = do
   putStrLn  " ============ LBACKUP lodreeBackupCurrent 22"
   lodreeBackupAll <- readBackupDir "./test/data/case4/backup"
@@ -137,7 +151,6 @@ rr = do
     let sourceOfMainTree = "./test/data/case3/source-of-maintree"
     backup backupDir [("maintree", sourceOfMainTree)]
     return ()
-
 
 
 data Test = Test String deriving (Eq, Show)

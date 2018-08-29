@@ -17,6 +17,7 @@ module LogicalDirTree (
 
 import qualified Crypto.Hash.SHA1      as Cr
 
+import           Control.Applicative
 import qualified Data.ByteString       as Strict
 import qualified Data.ByteString.UTF8  as BSU
 import           Data.Function
@@ -57,12 +58,18 @@ makeLDir list = LDir (foldToDree list) list
 findLodreeNode = findNode
 
 mergesToLodree :: Lodree -> [YabaDirTree] -> Lodree
-mergesToLodree = foldl merge
+mergesToLodree = foldl mergeToLodree
 
-mergeToLodree = merge
+mergeToLodree :: Lodree -> YabaDirTree -> Lodree
+mergeToLodree lodree sliceTree =
+   let mergeSliceTo = flip merge1 sliceTree -- functio
+   -- must be 2 times applied due to resolve duplicities added in previews
+   -- slice where are physical links to the same slice, thand droped the last but one
+   in (dropPenuliamate . mergeSliceTo . mergeSliceTo) lodree
+ where dropPenuliamate (LDir _ (last' : _ : rest)) = makeLDir (last': rest)
 
-merge :: Lodree -> YabaDirTree -> Lodree
-merge rootLodree rootDirTree = let
+merge1 :: Lodree -> YabaDirTree -> Lodree
+merge1 rootLodree rootDirTree = let
 --     x = 0
        rootList (LDir _ list) =  list
        newLodree = fromMaybe emptyLodree (merge' (Just $ currentLodree rootLodree) (Just rootDirTree))
@@ -74,10 +81,10 @@ merge rootLodree rootDirTree = let
     merge' Nothing dirtree = merge' (Just emptyLodree) dirtree -- nemámeli složku, stvoříme ji
     merge' lodree Nothing = lodree
     merge' _ (Just (File _ regfile@ RegularFile{}))= Just $ LFile (fordInfo2Ree regfile)
-    merge' _ (Just (File _ (YabaFile content)))
+    merge' lodree (Just (File _ (YabaFile content)))
       | isDelete content = Nothing
-      | isLogicalLink   content = findTarget content (currentLodree rootLodree)
-      | isPhysicalLink  content = findTarget content rootLodree
+      | isLogicalLink   content = findTarget content (currentLodree rootLodree) <|> lodree
+      | isPhysicalLink  content = findTarget content rootLodree <|> lodree
     merge' (Just (LDir ree subdirs)) (Just (Dir name dirtrees)) =
        let pa = pairDirs subdirs (filterOutYaba dirtrees)
            qa = map (\(name, lodree, dirtree) ->  (name, merge' lodree dirtree)) pa
