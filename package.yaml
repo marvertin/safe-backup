@@ -1,5 +1,5 @@
-name:                safe-backup
-version:             0.1.0.0
+name:                yaba
+version:             0.1.0.1
 github:              "marvertin/safe-backup"
 license:             BSD3
 author:              "Martin Veverka"
@@ -55,7 +55,7 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - safe-backup
+    - yaba
 
 tests:
   yaba-test:
@@ -66,4 +66,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - safe-backup
+    - yaba

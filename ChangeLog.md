@@ -1,3 +1,3 @@
-# Changelog for safe-backup
+# Changelog for Yaba
 
 ## Unreleased changes

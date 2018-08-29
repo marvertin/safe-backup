@@ -19,17 +19,13 @@ import           YabaDirTree           hiding (RegularFile)
 import           Config
 import           Control.Monad
 import           Data.Time.Clock
+import           Data.Version          (showVersion)
+import qualified Paths_yaba            (version)
 import           System.Directory
+import           System.Environment
 import           System.TimeIt
 import           Types
 
-
---main :: IO ()
---main = do
---  setLocaleEncoding utf8
---  getLocaleEncoding >>= print
---  now <- getCurrentTime
---  print now
   -- putStrLn "→"
 
 import           Data.Semigroup        ((<>))
@@ -38,6 +34,7 @@ import           System.Exit
 
 data Cmdline = Cmdline
   { backupDir  :: String
+  , version    :: Bool
   , quiet      :: Bool
   , enthusiasm :: Int }
 
@@ -47,6 +44,9 @@ cmdline = Cmdline
           ( long "backup"
          <> metavar "BACKUP-DIR"
          <> help "Destination append only directory with backed up data, contains the \"sources.yaml\" file" )
+      <*> switch
+          ( long "version"
+         <> help "Display version" )
       <*> switch
           ( long "quiet"
          <> short 'q'
@@ -61,12 +61,17 @@ cmdline = Cmdline
 --  test directory: ./test/data/case3/backup
 main = do
   setLocaleEncoding utf8
-  getLocaleEncoding >>= print
-  now <- getCurrentTime
-  print now
-  timeIt  main'
+  putStrLn $ "yaba " ++ showVersion Paths_yaba.version ++ " - yeat another backup"
+  startTime <- getCurrentTime
+  -- getLocaleEncoding >>= print
+  -- now <- getCurrentTime
+  -- print now
+  exitCode <- timeIt  main'
+  endTime <- getCurrentTime
+  putStrLn $ "Total time: " ++ show (diffUTCTime endTime startTime)
+  exitWith exitCode
 
-main' :: IO ()
+main' :: IO ExitCode
 main' = doBackup =<< execParser opts
  where
    opts = info (cmdline <**> helper)
@@ -75,8 +80,11 @@ main' = doBackup =<< execParser opts
     <> header "yaba - yeat another backup" )
 
 
-doBackup :: Cmdline -> IO ()
-doBackup (Cmdline backupDir False n) = do
+doBackup :: Cmdline -> IO ExitCode
+doBackup (Cmdline _ True _ _) = do
+  putStrLn $ "yaba " ++ showVersion Paths_yaba.version ++ " - yeat another backup"
+  return ExitSuccess
+doBackup (Cmdline backupDir _ False n) = do
   backupDirAbs <- makeAbsolute backupDir
   putStrLn $ "Backing up to \"" ++ backupDirAbs ++ "\" using definition in \"" ++ configFileName ++ "\""
   config <- readConfig backupDirAbs
@@ -84,12 +92,14 @@ doBackup (Cmdline backupDir False n) = do
   case forestDef of
     Left msg -> do
       putStrLn msg
-      exitWith $ ExitFailure 1
+      return $ ExitFailure 1
     Right forest -> do
       results <- backup backupDirAbs forest
       let failus = fmap (\(b :/ d) -> (b, failures d)) results
       let failus2 = failus >>= \(b, list)  -> (b,) <$> list
-      if null failus2 then putStrLn "**** SUCCESS **** - backup has finished"
+      if null failus2 then do
+                          putStrLn "**** SUCCESS **** - backup has finished"
+                          return ExitSuccess
                       else do
                           putStrLn "!!!!!!!!!!!!!!!!!!! ERROR LIST !!!!!!!!!!!!"
                           forM_ failus (\(b, list) -> do
@@ -100,12 +110,12 @@ doBackup (Cmdline backupDir False n) = do
                                )
                             )
                           putStrLn $ "!!!!!!!!!!!! " ++ show (length failus2) ++ " ERRORS !!!!!!!!!"
-                          exitWith $ ExitFailure 2
+                          return $ ExitFailure 2
 
 
   --let sourceOfMainTree = "./test/data/case3/source-of-maintree"
   -- backup backupDir [("maintree", sourceOfMainTree)]
   --putStrLn $ " Back up finished "
-doBackup _  = return ()
+doBackup _  = return (ExitFailure 5)
 
 -- putStrLn $ "Backup, " ++ h ++ replicate n '!'
