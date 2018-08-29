@@ -1,3 +1,5 @@
+{-# LANGUAGE TupleSections #-}
+
 module Main where
 
 import           Data.Maybe
@@ -15,10 +17,13 @@ import           YabaDirTree           hiding (RegularFile)
 
 --import           Data.Time.Calendar
 import           Config
+import           Control.Monad
 import           Data.Time.Clock
 import           System.Directory
 import           System.TimeIt
 import           Types
+
+
 --main :: IO ()
 --main = do
 --  setLocaleEncoding utf8
@@ -81,8 +86,23 @@ doBackup (Cmdline backupDir False n) = do
       putStrLn msg
       exitWith $ ExitFailure 1
     Right forest -> do
-      backup backupDirAbs forest
-      putStrLn " Back up finished "
+      results <- backup backupDirAbs forest
+      let failus = fmap (\(b :/ d) -> (b, failures d)) results
+      let failus2 = failus >>= \(b, list)  -> (b,) <$> list
+      if null failus2 then putStrLn "**** SUCCESS **** - backup has finished"
+                      else do
+                          putStrLn "!!!!!!!!!!!!!!!!!!! ERROR LIST !!!!!!!!!!!!"
+                          forM_ failus (\(b, list) -> do
+                              putStrLn b
+                              forM_ list (\x -> do
+                                putStr "    "
+                                print x
+                               )
+                            )
+                          putStrLn $ "!!!!!!!!!!!! " ++ show (length failus2) ++ " ERRORS !!!!!!!!!"
+                          exitWith $ ExitFailure 2
+
+
   --let sourceOfMainTree = "./test/data/case3/source-of-maintree"
   -- backup backupDir [("maintree", sourceOfMainTree)]
   --putStrLn $ " Back up finished "

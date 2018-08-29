@@ -15,7 +15,6 @@ import           System.FilePath
 import           TurboWare
 import           Types
 import           YabaDirTree
-import           YabaFileContent
 
 import           Data.Time.Calendar
 import           Data.Time.Clock
@@ -37,44 +36,43 @@ readBackupDir backupRoot = do
 
 --maintree = "maintree"
 
-writeBackup :: AnchoredBackupTree -> [(FileName, FilePath)] -> IO ()
+writeBackup :: AnchoredBackupTree -> [(FileName, FilePath)] -> IO [AnchoredDirTree ()]
 writeBackup x sourceTrees = do
-    putStrLn $ "jsem v writeBackup"
-    hFlush stdout
+    -- putStrLn $ "jsem v writeBackup"
+    -- hFlush stdout
     -- nasledujici prikaz buh vi proc dlouho trva
     let (base :/ d@(Dir yabadir _)) = x
-    putStrLn $ "Writing backu slice: " ++ yabadir
+    putStrLn $ "Writing backup slice: " ++ yabadir
     hFlush stdout
     mapM ( \(treeName, treePath) -> do
        putStrLn $ "Writing tree: " ++ treePath ++ " ==> " ++ (yabadir </> treeName)
-       putStrLn $ unlines $ dirTreeToStringList (Just . show) $ d
+       putStrLn $ unlines $ dirTreeToStringList (Just . show) d
        -- musíme umazat adresář yaba a také adresář kořene
        let kolikSmazat = 1 + length yabadir + 1 + length treeName + length base
        writeDirectoryWith (writeFileToBackup kolikSmazat treePath) x
       ) sourceTrees
-    return ()
   where
     writeFileToBackup :: Int -> FilePath -> FilePath -> Cmd -> IO ()
     writeFileToBackup kolikSmazat sourceOfMainTreeDir path (Insert _) =
        let odkud = sourceOfMainTreeDir ++ drop kolikSmazat path
        in do
-        putStrLn $  "kopy file: " ++ odkud ++ " --> " ++ path
+        putStrLn $  "copy file: " ++ odkud ++ " --> " ++ path
         copyFile odkud path
     writeFileToBackup _ _ path cmd = do
         let (dir, file) = splitFileName path
         let cesta = dir </> (yabaFilePrefix cmd ++ file) ++ ".yaba"
-        putStrLn $ "budeme resit: " ++ cesta
+        putStrLn $ "create meta: " ++ cesta
             -- ++ unJabaContent (convertToJabaContent cmd)
         writeFile cesta (unJabaContent (convertToJabaContent cmd))
 
 yabaFilePrefix :: Cmd -> String
 yabaFilePrefix (Insert _)                         = "~INSERT~"
 yabaFilePrefix BackupTreeBuilder.Delete           = "~DELETE-OR-MOVE~"
-yabaFilePrefix (BackupTreeBuilder.LogicalLink  _) = "~LINK~"
-yabaFilePrefix (BackupTreeBuilder.PhysicalLink _) = "~LINK~"
-yabaFilePrefix (NewLink _)                        = "~LINK~"
+yabaFilePrefix (BackupTreeBuilder.LogicalLink  _) = "~L-LINK~"
+yabaFilePrefix (BackupTreeBuilder.PhysicalLink _) = "~P-LINK~"
+yabaFilePrefix (NewLink _)                        = "~N-LINK~"
 
-backup :: FilePath -> [(FileName, FilePath)] ->  IO ()
+backup :: FilePath -> [(FileName, FilePath)] ->  IO [AnchoredDirTree ()]
 backup backupDir sourceTrees = do
   newYabaDir <- nextBackupDir
   lodreeBackupAll <- readBackupDir backupDir
@@ -88,7 +86,9 @@ backup backupDir sourceTrees = do
   -- let lodreeSourceAllNodes = LDir emptyDRee [(maintree, lodreeSourceOneNode)]
   putStrLn $ "Building new backup slice: " ++ newYabaDir
   case buildBackup lodreeBackupAll lodreeSourceAllNodes newYabaDir of
-    Nothing ->  putStrLn $ "Nothing to backup: "
+    Nothing -> do
+       putStrLn "NOTHING to backup: "
+       return []
     Just backupDirTree -> do
        putStrLn $ "Writing backup to: " ++ backupDir
        writeBackup (backupDir :/ backupDirTree) sourceTrees
@@ -104,7 +104,7 @@ convertToYaba :: Cmd -> YabaFileContent
 convertToYaba (BackupTreeBuilder.LogicalLink x) = YabaFileContent.LogicalLink x
 convertToYaba (BackupTreeBuilder.PhysicalLink x) = YabaFileContent.PhysicalLink x
 convertToYaba (BackupTreeBuilder.NewLink x) = YabaFileContent.PhysicalLink x
-convertToYaba (BackupTreeBuilder.Delete) = YabaFileContent.Delete
+convertToYaba BackupTreeBuilder.Delete = YabaFileContent.Delete
 
 convertToJabaContent :: Cmd -> JabaContent
 convertToJabaContent = formatYabaFile . convertToYaba
@@ -115,3 +115,4 @@ ba = do
   let backupDir = "./test/data/case3/backup"
   let sourceOfMainTree = "./test/data/case3/source-of-maintree"
   backup backupDir [("maintree", sourceOfMainTree)]
+  return ()
