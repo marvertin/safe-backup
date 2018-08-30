@@ -21,6 +21,7 @@ import           Control.Monad
 import           Data.Time.Clock
 import           Data.Version          (showVersion)
 import qualified Paths_yaba            (version)
+import           Slice
 import           System.Directory
 import           System.Environment
 import           System.TimeIt

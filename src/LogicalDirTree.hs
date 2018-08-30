@@ -34,8 +34,6 @@ import           Types
 import           YabaDirTree
 import           YabaFileContent
 
--- data LfInfo = LfInfo { physPath :: FilePath}
-data Ree = Ree { rphysPath :: FilePath, rcount :: Int, rsize :: FileSize, rhash :: Hash } deriving (Show)
 
 data Lodree = LFile Ree
             | LDir Ree [(FileName, Lodree)]

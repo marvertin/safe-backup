@@ -1,6 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Types (
+  Ree(..),
   FileSize,
   Hash,
   JabaContent(..),
@@ -22,6 +23,9 @@ import           System.FilePath
 
 type FileSize = Integer
 newtype JabaContent = JabaContent { unJabaContent :: String } deriving (Show, ToJSON, FromJSON)
+
+data Ree = Ree { rphysPath :: FilePath, rcount :: Int, rsize :: FileSize, rhash :: Hash }
+  deriving (Eq, Show, Read)
 
 type Hash = Strict.ByteString
 
