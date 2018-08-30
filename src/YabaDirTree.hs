@@ -36,6 +36,12 @@ import qualified Data.ByteString       as Strict
 import qualified Data.ByteString.Lazy  as Lazy
 import qualified Data.ByteString.UTF8  as BSU
 
+import qualified Data.Map              as M
+import           Data.Yaml
+import           GHC.Generics
+
+
+
 type YabaDirTree = DirTree FordInfo
 
 data FordInfo = RegularFile { physPath :: FilePath, fordSize :: FileSize, fileHash :: Hash }
@@ -74,18 +80,25 @@ readYabaDir :: FilePath -> IO (AnchoredDirTree FordInfo)
 readYabaDir f = do
     putStr $ " - " ++ f ++ " ... "
     hFlush stdout
-    tree@(base :/ d) <- sortDirShape </$> readDirectoryWith getFileInfo f
-    if anyFailed d then do
-      putStrLn $ "  !!!!!!!!!!!!! Selhalo to: " ++ show (failures d)
-      return $ fmap (truncate (length base)) tree
+    (base :/ tree) <- sortDirShape </$> readDirectoryWith getFileInfo f
+    let tree' = fmap (truncate (length base)) (base :/ removeFirstLevelFiles tree)
+    if anyFailed tree then do
+      putStrLn $ "  !!!!!!!!!!!!! Selhalo to: " ++ show (failures tree)
     else do
-      putStrLn $ " OK  #" ++  show (totalFilesCount d) ++ " / " ++ show (fromIntegral (totalDirSize d) / 1024 / 1024 ) ++ " MB"
-      return $ fmap (truncate (length base)) tree
+      putStrLn $ " OK  #" ++  show (totalFilesCount tree) ++ " / " ++ show (fromIntegral (totalDirSize tree) / 1024 / 1024 ) ++ " MB"
+    return $ tree'
   where
     truncate :: Int -> FordInfo -> FordInfo
     truncate n this@ RegularFile {} = this { physPath = drop n (physPath this)}
     truncate _ x                    = x
 
+hu (Dir name list) = putStr "\n   " >> putStr name >> putStr ": " >> print (length list)
+
+removeFirstLevelFiles :: DirTree a -> DirTree a
+removeFirstLevelFiles (Dir name contents) = Dir name $ filter (not . isFile) contents
+   where
+    isFile (File _ _) = True
+    isFile _          = False
 
 totalDirSize :: YabaDirTree -> FileSize
 totalDirSize = sum . fmap size0
@@ -100,3 +113,19 @@ totalFilesCount = sum . fmap (const 1)
 
 instance Dumpable (DirTree FordInfo) where
   toDump = dirTreeToStringList printFordInfo
+
+
+  --------------------------------------------------------
+  --
+  -- Instances for YAML
+
+instance ToJSON (DirTree FordInfo) where
+     toJSON (File _ x)   = toJSON x
+     toJSON (Dir _ list) = toJSON $ M.fromList $ (tupl <$> list)
+       where
+        tupl q@(File name _) = (name, q)
+        tupl q@(Dir name _)  = (name, q)
+
+instance ToJSON FordInfo where
+  toJSON RegularFile{..} = toJSON $ show fordSize ++ " " ++ toHexStr fileHash
+  toJSON (YabaFile x)    = toJSON x

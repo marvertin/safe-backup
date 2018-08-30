@@ -4,6 +4,7 @@ module Backup (
 ) where
 
 import           BackupTreeBuilder
+import           Control.Monad
 import           Data.List
 import           Dump
 import           Lib
@@ -19,6 +20,7 @@ import           YabaDirTree
 import           Data.Time.Calendar
 import           Data.Time.Clock
 import           Data.Time.Format
+import           Data.Yaml
 import           System.IO             (hFlush, stdout)
 import           YabaFileContent
 
@@ -31,6 +33,9 @@ readBackupDir backupRoot = do
   yabaDirNames <-  (sort . filter isSliceName) <$> listDirectory backupRoot
   putStrLn $ "Reading " ++ show (length yabaDirNames) ++ " slices allredy backed up"
   yabaDirs <- mapM (\name -> deAnchore <$> readYabaDir (backupRoot ++ "/" ++ name)) yabaDirNames
+  forM_ yabaDirs (\x ->
+      encodeFile (backupRoot </> fileNamex x </> yabaSliceTree) x
+    )
   let rootLodree = mergesToLodree emptyLodree yabaDirs
   return rootLodree
 
@@ -78,8 +83,12 @@ backup backupDir sourceTrees = do
   lodreeBackupAll <- readBackupDir backupDir
   let lodreeBackupCurrent = currentLodree lodreeBackupAll
   putStrLn $  "Reading " ++ show (length sourceTrees) ++ " source trees"
+  createDirectory (backupDir </> newYabaDir)
+  encodeFile (backupDir </> newYabaDir </> yabaLodreeTree) lodreeBackupCurrent
+
   lodreeSourceAllNodes <- makeLDir <$> mapM ( \(treeName, treePath) -> do
                     lodreeSourceOneNode <- readSourceTree treePath
+                    encodeFile (backupDir </> newYabaDir </> (treeName ++ yabaSrcTree)) lodreeSourceOneNode
                     return (treeName, lodreeSourceOneNode)
                    ) sourceTrees
   --lodreeSourceOneNode <- readSourceTree sourceOfMainTreeDir

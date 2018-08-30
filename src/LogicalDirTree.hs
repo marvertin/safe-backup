@@ -22,7 +22,10 @@ import qualified Data.ByteString       as Strict
 import qualified Data.ByteString.UTF8  as BSU
 import           Data.Function
 import           Data.List
+import qualified Data.Map              as M
 import           Data.Maybe
+import           Data.Yaml
+import           GHC.Generics
 import           Lib
 import           System.Directory.Tree (DirTree (Dir, File), FileName)
 import           System.FilePath
@@ -175,6 +178,18 @@ findNode path (LDir _ list) = let
   (name, rest) = break ('/'==) (dropPrefixSlashes path)
   lodree2 = snd <$> find ((name==) . fst) list
   in lodree2 >>= findNode rest
+
+--------------------------------------------------------
+--
+-- Instances for YAML
+instance ToJSON Ree where
+  -- toJSON (Finfo x y) = object ["x" .= x, "y" .= y]
+  toJSON Ree{..} = let val = show rsize ++ " " ++ toHexStr rhash
+     in toJSON val
+
+instance ToJSON Lodree where
+   toJSON (LFile ree)   = toJSON ree
+   toJSON (LDir _ list) = toJSON (M.fromList list)
 
 --------------------------------------------------------
 -- The rest of this modul is for DEBUGING purpose only - it is dump
