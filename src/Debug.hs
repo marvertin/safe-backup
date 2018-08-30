@@ -1,7 +1,9 @@
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes         #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
 
 module Debug (
-  q, w, p3, mainovec, e, rr, (>:), (<:), (?:), Test(..), ww
+  q, w, p3, mainovec, e, rr, (>:), (<:), (?:), Test(..), ww, cc
 ) where
 
 import           Crypto.Hash.SHA1      (hashlazy)
@@ -12,7 +14,7 @@ import           Data.Maybe
 import           Backup
 import           BackupTreeBuilder
 import           Dump
-import           GHC.IO.Encoding
+import qualified GHC.IO.Encoding       as GIE
 import           Hashpairing
 import           Lib
 import           LogicalDirTree
@@ -21,10 +23,19 @@ import           System.Directory.Tree
 import           System.FilePath.Find
 import           Text.Printf           (printf)
 import           Text.RawString.QQ
+import           Tree
 import           TreeComparator
 import           TurboWare
 import           YabaDirTree           hiding (RegularFile)
 import           YabaFileContent
+
+
+import qualified Data.ByteString.Char8 as B8
+--import qualified Data.HashMap.Strict   as HM
+import qualified Data.Map              as M
+--import           Data.Text
+import           Data.Yaml
+import           GHC.Generics
 
 hashFile :: FilePath -> IO Strict.ByteString
 hashFile = fmap hashlazy . Lazy.readFile
@@ -57,8 +68,8 @@ backupname = "backupdisk1"
 
 p3 :: IO ()
 p3 = do
-    setLocaleEncoding utf8
-    getLocaleEncoding >>= print
+    GIE.setLocaleEncoding GIE.utf8
+    GIE.getLocaleEncoding >>= print
 
     -- proved  "S:/"
     -- proved  "S:\\"
@@ -170,3 +181,45 @@ infixl 6 <:
 
 --  lodree <- readBackupDir "./test/data/backupdisk1"
 --  dump lodree
+
+
+
+check  :: (FromJSON a, ToJSON a, Generic a, Eq a) => Tree a -> Bool
+check t = let (Right tt) = (decodeEither' . encode) t
+   in tt == t
+
+
+xx :: Tree String
+xx = MDir $ M.fromList [
+   ("jedna", MFile "1"),
+   ("dva", MFile "2"),
+   ("TRI", MDir (
+     M.fromList [
+       ("příliš žluťoučky kůň úpěl ďábelské ódy \"\\:/=[]{}() # blb", MFile "11"),
+       ("ddva", MFile "22")
+      ]
+    )
+   )
+ ]
+
+xxx :: Tree Finfo
+xxx = MDir $ M.fromList [
+   ("jedna", MFile $ Finfo 1 "ha"),
+   ("dva", MFile $ Finfo 2 "br"),
+   ("TRI", MDir (
+     M.fromList [
+       ("příliš žluťoučky kůň úpěl ďábelské ódy \"\\:/=[]{}() # blb", MFile $ Finfo 11 "hajal"),
+       ("ddva", MFile $ Finfo 3 "sul")
+      ]
+    )
+   )
+  ]
+
+
+cc = do
+  B8.putStrLn $ encode xx
+  B8.putStrLn $ encode xxx
+  print $ check xx
+  print $ check xxx
+  let (Right tt :: Either ParseException (Tree Finfo)) = (decodeEither' . encode) xxx
+  B8.putStrLn $ encode tt

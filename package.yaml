@@ -39,6 +39,8 @@ dependencies:
 - yaml
 - text
 - timeit
+- aeson
+- unordered-containers
 
 
 # - derive

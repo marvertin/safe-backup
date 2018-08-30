@@ -24,6 +24,7 @@ import qualified Paths_yaba            (version)
 import           System.Directory
 import           System.Environment
 import           System.TimeIt
+import           Tree
 import           Types
 
   -- putStrLn "→"
