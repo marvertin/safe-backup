@@ -15,16 +15,15 @@ import           Data.List
 import           Data.Maybe
 import           Lib
 import           Lodree
+import           Slice
 import           SliceMerger
 import           System.Directory.Tree (AnchoredDirTree (..),
                                         DirTree (Dir, File), FileName)
 import           System.FilePath
 import           TurboWare
 import           Types
-import           YabaDirTree
-import           YabaFileContent
 
 readSourceTree :: FileName -> IO Lodree
 readSourceTree dirName = do
-    (base :/ d) <- readYabaDir dirName
+    (base :/ d) <- readSlice dirName
     return$ currentLodree $ mergeToLodree emptyLodree d

@@ -4,7 +4,6 @@ module Types (
   Ree(..),
   FileSize,
   Hash,
-  JabaContent(..),
   FileName,
   FilePath,
   ErrMsg,
@@ -22,7 +21,6 @@ import           System.Directory.Tree (DirTree (..), FileName)
 import           System.FilePath
 
 type FileSize = Integer
-newtype JabaContent = JabaContent { unJabaContent :: String } deriving (Show, ToJSON, FromJSON)
 
 data Ree = Ree { rphysPath :: FilePath, rcount :: Int, rsize :: FileSize, rhash :: Hash }
   deriving (Eq, Show, Read)

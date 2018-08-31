@@ -18,6 +18,7 @@ import qualified GHC.IO.Encoding       as GIE
 import           Hashpairing
 import           Lib
 import           Lodree
+import           Slice                 hiding (RegularFile)
 import           SliceMerger
 import           SourceTree
 import           System.Directory.Tree
@@ -27,8 +28,6 @@ import           Text.RawString.QQ
 import           Tree
 import           TreeComparator
 import           TurboWare
-import           YabaDirTree           hiding (RegularFile)
-import           YabaFileContent
 
 
 import qualified Data.ByteString.Char8 as B8
@@ -61,7 +60,7 @@ mainovec = do
 
 printYabaDir :: String -> IO ()
 printYabaDir s = do
- (base :/ tree) <- readYabaDir s
+ (base :/ tree) <- readSlice s
  putStrLn $ "************** <" ++ s ++ "> | <" ++ base ++ ">"
  dump tree
 
@@ -83,14 +82,14 @@ p3 = do
 
 
 q = do
-  (base :/ d) <- readYabaDir  $ "./test/data/" ++ backupname ++ "/2018-02-03T00-00-00.yaba"
+  (base :/ d) <- readSlice  $ "./test/data/" ++ backupname ++ "/2018-02-03T00-00-00.yaba"
   putStrLn $ " ============ " ++ base
   dump d
   putStrLn " ============ "
   let lodree1 = mergeToLodree emptyLodree d
   dump lodree1
 
-  (base :/ d) <- readYabaDir $ "./test/data/" ++ backupname ++ "/2018-02-04T00-00-00.yaba"
+  (base :/ d) <- readSlice $ "./test/data/" ++ backupname ++ "/2018-02-04T00-00-00.yaba"
   putStrLn $ " ============= " ++ base
   dump d
   putStrLn " ============ "
@@ -109,8 +108,8 @@ q = do
   dump $ createLogicalHashMap lodree2
 
 w = do
-   (base1 :/ d1) <- readYabaDir "./test/data/compare1/left"
-   (base2 :/ d2) <- readYabaDir "./test/data/compare1/right"
+   (base1 :/ d1) <- readSlice "./test/data/compare1/left"
+   (base2 :/ d2) <- readSlice "./test/data/compare1/right"
    -- putStrLn $ " ============ " ++ base1 ++ " | " ++ base2
    putStrLn  " ============ LEFT"
    let lodree1 = mergeToLodree emptyLodree d1
@@ -123,8 +122,8 @@ w = do
    dump (fromJust diff)
 
 ww  = do
-  (base1 :/ d1) <- readYabaDir "./test/data/double/backup/2018-02-03T00-00-00Z.yaba-slice"
-  (base2 :/ d2) <- readYabaDir "./test/data/double/backup/2018-08-29T07-13-19Z.yaba-slice"
+  (base1 :/ d1) <- readSlice "./test/data/double/backup/2018-02-03T00-00-00Z.yaba-slice"
+  (base2 :/ d2) <- readSlice "./test/data/double/backup/2018-08-29T07-13-19Z.yaba-slice"
   let lodree1 = mergeToLodree emptyLodree d1
   putStrLn  " ============ FIRST MERGE"
   let lodree2a = mergeToLodree lodree1 d2

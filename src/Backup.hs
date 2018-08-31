@@ -9,6 +9,7 @@ import           Data.List
 import           Dump
 import           Lib
 import           Lodree
+import           Slice
 import           SliceMerger
 import           SourceTree
 import           System.Directory
@@ -16,14 +17,12 @@ import           System.Directory.Tree
 import           System.FilePath
 import           TurboWare
 import           Types
-import           YabaDirTree
 
 import           Data.Time.Calendar
 import           Data.Time.Clock
 import           Data.Time.Format
 import           Data.Yaml
 import           System.IO             (hFlush, stdout)
-import           YabaFileContent
 
 
 isSliceName :: FileName -> Bool
@@ -33,7 +32,7 @@ readBackupDir :: FilePath -> IO Lodree
 readBackupDir backupRoot = do
   yabaDirNames <-  (sort . filter isSliceName) <$> listDirectory backupRoot
   putStrLn $ "Reading " ++ show (length yabaDirNames) ++ " slices allredy backed up"
-  yabaDirs <- mapM (\name -> deAnchore <$> readYabaDir (backupRoot ++ "/" ++ name)) yabaDirNames
+  yabaDirs <- mapM (\name -> deAnchore <$> readSlice (backupRoot ++ "/" ++ name)) yabaDirNames
   forM_ yabaDirs (\x ->
       encodeFile (backupRoot </> fileNamex x </> yabaSliceTree) x
     )
@@ -69,7 +68,7 @@ writeBackup x sourceTrees = do
         let cesta = dir </> (yabaFilePrefix cmd ++ file) ++ ".yaba"
         putStrLn $ "create meta: " ++ cesta
             -- ++ unJabaContent (convertToJabaContent cmd)
-        writeFile cesta (unJabaContent (convertToJabaContent cmd))
+        writeFile cesta (formatMetaFile . convertToYaba $ cmd)
 
 yabaFilePrefix :: Cmd -> String
 yabaFilePrefix (Insert _)                         = "~INSERT~"
@@ -110,14 +109,11 @@ nextBackupDir = do
   return $ formatTime defaultTimeLocale (iso8601DateFormat (Just "%H-%M-%SZ")) now
     ++ yabaSliceSuffix
 
-convertToYaba :: Cmd -> YabaFileContent
-convertToYaba (BackupTreeBuilder.LogicalLink x) = YabaFileContent.LogicalLink x
-convertToYaba (BackupTreeBuilder.PhysicalLink x) = YabaFileContent.PhysicalLink x
-convertToYaba (BackupTreeBuilder.NewLink x) = YabaFileContent.PhysicalLink x
-convertToYaba BackupTreeBuilder.Delete = YabaFileContent.Delete
-
-convertToJabaContent :: Cmd -> JabaContent
-convertToJabaContent = formatYabaFile . convertToYaba
+convertToYaba :: Cmd -> SliceCmd
+convertToYaba (BackupTreeBuilder.LogicalLink x)  = Slice.LogicalLink x
+convertToYaba (BackupTreeBuilder.PhysicalLink x) = Slice.PhysicalLink x
+convertToYaba (BackupTreeBuilder.NewLink x)      = Slice.PhysicalLink x
+convertToYaba BackupTreeBuilder.Delete           = Slice.Delete
 
 
 ba :: IO ()

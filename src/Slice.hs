@@ -9,15 +9,11 @@
 
 module Slice
     (
-    --YabaDirTree,
-    --FordInfo(..),
-
-    --readYabaDir,
-    --JabaContent,
-    --isYabaFile,
     readSlice,
+    formatMetaFile,
     SliceFile(..),
     SliceTree(..),
+    SliceCmd(..),
     AnchoredSliceTree
     ) where
 
@@ -94,6 +90,9 @@ parseMetaFile fileContent = (parse . lines) fileContent
     parse ("#yaba1" : line : _) = read line
     parse _ = error $ "Bad version of Yaba file, probably old version of yaba tool: " ++ show fileContent
 
+formatMetaFile :: SliceCmd -> String
+formatMetaFile x = unlines ["#yaba1", show x, "------------------------"]
+
 isSliceRegularFile :: SliceTree -> Bool
 isSliceRegularFile (File _ (RegularFile _)) = True
 isSliceRegularFile _                        = False
@@ -144,7 +143,7 @@ instance Dumpable SliceTree where
 
 instance ToJSON SliceTree where
      toJSON (File _ x)   = toJSON x
-     toJSON (Dir _ list) = toJSON $ M.fromList $ (tupl <$> list)
+     toJSON (Dir _ list) = toJSON $ M.fromList (tupl <$> list)
        where
         tupl q@(File name _) = (name, q)
         tupl q@(Dir name _)  = (name, q)

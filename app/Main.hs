@@ -13,7 +13,6 @@ import           System.Directory.Tree
 import           System.FilePath.Find
 import           TreeComparator
 import           TurboWare
-import           YabaDirTree           hiding (RegularFile)
 
 --import           Data.Time.Calendar
 import           Config
