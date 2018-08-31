@@ -10,7 +10,8 @@ import           Dump
 import           Lib
 import           Lodree
 import           Slice
-import           SliceMerger
+import           SliceScaner
+import           SliceToLodree
 import           SourceTree
 import           System.Directory
 import           System.Directory.Tree

@@ -18,8 +18,8 @@ import qualified GHC.IO.Encoding       as GIE
 import           Hashpairing
 import           Lib
 import           Lodree
-import           Slice                 hiding (RegularFile)
-import           SliceMerger
+import           SliceScaner           hiding (RegularFile)
+import           SliceToLodree
 import           SourceTree
 import           System.Directory.Tree
 import           System.FilePath.Find

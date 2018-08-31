@@ -12,7 +12,7 @@ import           Debug.Trace
 import           Hashpairing
 import           Lib
 import           Lodree
-import           SliceMerger
+import           SliceToLodree
 import           System.Directory.Tree
 import           TreeComparator
 import           TurboWare

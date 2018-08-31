@@ -2,7 +2,7 @@
 {-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module SliceMerger (
+module SliceToLodree (
   mergeToLodree,
   mergesToLodree,
 ) where

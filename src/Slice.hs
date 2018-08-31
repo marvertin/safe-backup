@@ -9,8 +9,8 @@
 
 module Slice
     (
-    readSlice,
     formatMetaFile,
+    parseMetaFile,
     SliceFile(..),
     SliceTree(..),
     SliceCmd(..),
@@ -56,31 +56,6 @@ data SliceFile = RegularFile Ree
 data SliceCmd = Delete | LogicalLink FilePath | PhysicalLink FilePath
   deriving (Eq, Show, Read, Generic, ToJSON)
 
-readSlice :: FilePath -> IO AnchoredSliceTree
-readSlice f = do
-    putStr $ " - " ++ f ++ " ... "
-    hFlush stdout
-    (base :/ tree) <- sortDirShape </$> readDirectoryWith loadSliceFile f
-    let tree' = fmap (truncate (length base)) (base :/ removeFirstLevelFiles tree)
-    if anyFailed tree then do
-      putStrLn $ "  !!!!!!!!!!!!! Selhalo to: " ++ show (failures tree)
-    else do
-      putStrLn $ " OK  #" ++  show (totalFilesCount tree) ++ " / " ++ show (fromIntegral (totalDirSize tree) / 1024 / 1024 ) ++ " MB"
-    return $ tree'
-  where
-    truncate :: Int -> SliceFile -> SliceFile
-    truncate n (RegularFile ree@Ree{}) = RegularFile $ ree { rphysPath = drop n (rphysPath ree)}
-    truncate _ x                    = x
-
-
-
-loadSliceFile :: FilePath -> IO SliceFile
-loadSliceFile ff = do
-  let f = replaceBacklashesToSlashes ff
-  size <- getFileSize f
-  hash <- computeFileHash f
-  if not $ yabaSuffix `isSuffixOf` f then return (RegularFile $ Ree f 1 size hash)
-          else (MetaFile . parseMetaFile . T.unpack) <$> TIO.readFile f
 
 parseMetaFile :: String -> SliceCmd
 parseMetaFile fileContent = (parse . lines) fileContent
@@ -101,11 +76,6 @@ isSliceMetaFile :: SliceTree -> Bool
 isSliceMetaFile (File _ (MetaFile _)) = True
 isSliceMetaFile _                     = False
 
--- | Compute hask of the file on filesystem
-computeFileHash :: FilePath -> IO Strict.ByteString
-computeFileHash = (fmap Cr.hashlazy . Lazy.readFile)  >=> evaluate
-
-
 
 printSliceFile :: SliceFile ->  Maybe String
 printSliceFile (RegularFile Ree{..}) = Just$ "  #" ++ show rsize ++ " " ++ toHexStr rhash ++ " \"" ++ rphysPath ++ "\""
@@ -115,23 +85,7 @@ printSliceFile2 :: SliceFile -> Maybe String
 printSliceFile2 (RegularFile Ree{rphysPath}) = Just rphysPath
 printSliceFile2 (MetaFile _)                 = Nothing
 
-
-removeFirstLevelFiles :: DirTree a -> DirTree a
-removeFirstLevelFiles (Dir name contents) = Dir name $ filter (not . isFile) contents
-   where
-    isFile (File _ _) = True
-    isFile _          = False
-
-totalDirSize :: SliceTree -> FileSize
-totalDirSize = sum . fmap size0
-  where
-    size0 :: SliceFile -> FileSize
-    size0 (MetaFile _)          = 100 -- odhadnout
-    size0 (RegularFile Ree{..})=rsize
-
-totalFilesCount :: SliceTree -> Int
-totalFilesCount = sum . fmap (const 1)
-
+--------------------------------------------------------
 
 instance Dumpable SliceTree where
   toDump = dirTreeToStringList printSliceFile

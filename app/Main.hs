@@ -8,7 +8,7 @@ import           GHC.IO.Encoding
 import           Backup
 import           Debug
 import           Lib
-import           SliceMerger
+import           SliceToLodree
 import           System.Directory.Tree
 import           System.FilePath.Find
 import           TreeComparator

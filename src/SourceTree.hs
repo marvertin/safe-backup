@@ -15,8 +15,8 @@ import           Data.List
 import           Data.Maybe
 import           Lib
 import           Lodree
-import           Slice
-import           SliceMerger
+import           SliceScaner
+import           SliceToLodree
 import           System.Directory.Tree (AnchoredDirTree (..),
                                         DirTree (Dir, File), FileName)
 import           System.FilePath
