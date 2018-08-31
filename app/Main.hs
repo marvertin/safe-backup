@@ -17,27 +17,30 @@ import           TurboWare
 --import           Data.Time.Calendar
 import           Config
 import           Control.Monad
+import           Data.Semigroup        ((<>))
 import           Data.Time.Clock
 import           Data.Version          (showVersion)
+import           DirScan
+import           Options.Applicative
 import qualified Paths_yaba            (version)
 import           Slice
 import           System.Directory
 import           System.Environment
+import           System.Exit
 import           System.TimeIt
 import           Tree
 import           Types
 
-  -- putStrLn "→"
 
-import           Data.Semigroup        ((<>))
-import           Options.Applicative
-import           System.Exit
+-- putStrLn "→"
 
 data Cmdline = Cmdline
   { backupDir  :: String
   , version    :: Bool
   , quiet      :: Bool
-  , enthusiasm :: Int }
+  , enthusiasm :: Int
+  , scan       :: Bool
+  }
 
 cmdline :: Parser Cmdline
 cmdline = Cmdline
@@ -58,6 +61,9 @@ cmdline = Cmdline
          <> showDefault
          <> value 1
          <> metavar "INT" )
+      <*> switch
+         ( long "scan"
+         <> help "Jen skenovat, testovací účel" )
 
 --  test directory: ./test/data/case3/backup
 main = do
@@ -82,10 +88,14 @@ main' = doBackup =<< execParser opts
 
 
 doBackup :: Cmdline -> IO ExitCode
-doBackup (Cmdline _ True _ _) = do
+doBackup (Cmdline dirToScan _ _ _ True) = do
+  putStrLn $ "Budeme jen skenovat adrear: " ++ dirToScan
+  scanDirectory dirToScan
+  return $ ExitFailure 8
+doBackup (Cmdline _ True _ _ False) = do
   putStrLn $ "yaba " ++ showVersion Paths_yaba.version ++ " - yeat another backup"
   return ExitSuccess
-doBackup (Cmdline backupDir _ False n) = do
+doBackup (Cmdline backupDir _ False n _) = do
   backupDirAbs <- makeAbsolute backupDir
   putStrLn $ "Backing up to \"" ++ backupDirAbs ++ "\" using definition in \"" ++ configFileName ++ "\""
   config <- readConfig backupDirAbs
