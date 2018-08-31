@@ -11,7 +11,8 @@ import           Data.Maybe
 import           Debug.Trace
 import           Hashpairing
 import           Lib
-import           LogicalDirTree
+import           Lodree
+import           SliceMerger
 import           System.Directory.Tree
 import           TreeComparator
 import           TurboWare

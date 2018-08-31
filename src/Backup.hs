@@ -8,7 +8,8 @@ import           Control.Monad
 import           Data.List
 import           Dump
 import           Lib
-import           LogicalDirTree
+import           Lodree
+import           SliceMerger
 import           SourceTree
 import           System.Directory
 import           System.Directory.Tree

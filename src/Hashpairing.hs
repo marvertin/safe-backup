@@ -10,9 +10,9 @@ module Hashpairing (
 
 ) where
 
-import qualified Data.Map       as M
+import qualified Data.Map  as M
 import           Lib
-import           LogicalDirTree
+import           Lodree
 import           TurboWare
 import           Types
 

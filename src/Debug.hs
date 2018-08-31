@@ -17,7 +17,8 @@ import           Dump
 import qualified GHC.IO.Encoding       as GIE
 import           Hashpairing
 import           Lib
-import           LogicalDirTree
+import           Lodree
+import           SliceMerger
 import           SourceTree
 import           System.Directory.Tree
 import           System.FilePath.Find

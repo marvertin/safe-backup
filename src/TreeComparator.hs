@@ -8,7 +8,7 @@ module TreeComparator (
 
 import           Data.Maybe
 import           Lib
-import           LogicalDirTree
+import           Lodree
 import           TurboWare
 import           Types
 

@@ -14,7 +14,8 @@ import           Data.Function
 import           Data.List
 import           Data.Maybe
 import           Lib
-import           LogicalDirTree
+import           Lodree
+import           SliceMerger
 import           System.Directory.Tree (AnchoredDirTree (..),
                                         DirTree (Dir, File), FileName)
 import           System.FilePath
