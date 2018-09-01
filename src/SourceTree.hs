@@ -39,10 +39,11 @@ readSourceTree' dirName = do
 readSourceTree :: FilePath -> IO Lodree
 readSourceTree rootDir = scanDirectory (const makeLDir) filterFord readLFile rootDir
   where
-    filterFord []          = True
+    -- filterFord []          = False
     filterFord (('p':_):_) = True
+    filterFord (('N':_):_) = True
     filterFord (('n':_):_) = True
-    filterFord _           = True
+    filterFord (_ : _)     = True
 
     readLFile :: RevPath -> IO Lodree
     readLFile rp = LFile <$> loadFileRee (rootDir </> (pth rp))

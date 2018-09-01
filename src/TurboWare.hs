@@ -8,6 +8,7 @@ module TurboWare
       appendToFirst,
       dropPrefixSlashes,
       trim,
+      safeHead,
       Dumpable(..),
       Hexable(..)
     ) where
@@ -91,3 +92,7 @@ zipMaybe af bf al bl = merge (sortBy (compare `on` af) al)
 
 trim :: String -> String
 trim = reverse . dropWhile isSpace . reverse . dropWhile isSpace
+
+safeHead :: a -> [a] -> a
+safeHead def [] = def
+safeHead _ l    = head l

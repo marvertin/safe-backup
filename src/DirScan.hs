@@ -18,8 +18,9 @@ import           System.FilePath
 import           System.IO
 import           Text.Printf
 
+
 type FlowAvar = [(UTCTime, Int, Integer, UTCTime)] -- timce, count, size, header has latest
-data Acum a = Acum FlowAvar [a] deriving (Show)
+data Acum a = Acum FlowAvar [(FilePath, a)] deriving (Show)
 
 type RevPath = [String] -- it is reverse list of path items: ["myfile.txt", "myaccount", "home", "opt"]
 
@@ -44,11 +45,14 @@ scanDirectory createDirNode predicate createFileNode rootPath = do
     putStrLn $ "End scanning at " ++ show endTime ++ ", duration=" ++ show duration ++ "; total: "
     printf "%6d# %10.3f MB | %9.2f #/s  %10.3f MB/s  \n" count (sizeInMb size) countSpeed sizeSpeed
     putStrLn $ "Result: " ++ show reslist
-    return $ head reslist
+    return $ snd $ head reslist
  where
   -- scanDirectory' :: Show a => Int -> Acum a -> RevPath -> IO (Acum a)
   scanDirectory' level startTime acum@(Acum flowAvar reslist) revpath = do
-    if False && (not $ predicate revpath) then return acum
+    print revpath
+    if (not . null) revpath -- root level is not checked, predicate has never empty
+        && (not . predicate) revpath then -- if not skip whole subtree
+       return acum
     else do
       let fullPath = rootPath </> pth revpath
       -- putStrLn $ "Pokus: " ++ path
@@ -63,8 +67,8 @@ scanDirectory createDirNode predicate createFileNode rootPath = do
           Acum newFlowAvar lili <- foldM (scanDirectory' (level + 1) startTime)
                                          (Acum flowAvar [])
                                          (fmap (:revpath) (reverse fords)) -- foldM reverts it again
-          let dirnode = createDirNode revpath (zip fords lili)
-          return $  Acum newFlowAvar (dirnode: reslist)
+          let dirnode = createDirNode revpath lili
+          return $  Acum newFlowAvar ((safeHead "" revpath, dirnode): reslist)
 
        else do
          sz <- getFileSize fullPath
@@ -76,7 +80,7 @@ scanDirectory createDirNode predicate createFileNode rootPath = do
          let newFlowAvar = updateFlowAvar flowAvar (1, fromIntegral sz) nowTime
          putStr $ take 6 (show (diffUTCTime nowTime startTime)) ++ "s "
          printPostup newFlowAvar (sz, revpath)
-         let newAcum =  Acum newFlowAvar (result: reslist)
+         let newAcum =  Acum newFlowAvar ((head revpath, result): reslist)
          return newAcum
 
 
@@ -118,3 +122,7 @@ averageSpeed' (time1, count1, size1, _) (time2, count2, size2, _) =
 
 sizeInMb :: Integer -> Double
 sizeInMb x =  fromIntegral x / 1024 / 1024
+
+safeHead :: a -> [a] -> a
+safeHead def [] = def
+safeHead _ l    = head l
