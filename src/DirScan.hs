@@ -1,80 +1,53 @@
-
+{-
+   Scan direcotory and do some stuff for files and folders
+-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module DirScan (
   scanDirectory,
+  pth,
+  RevPath
 ) where
 
-import           BackupTreeBuilder
 import           Control.Exception
 import           Control.Monad
-import qualified Data.ByteString.Lazy  as Lazy
 import           Data.List
-import           Data.Time.Calendar
 import           Data.Time.Clock
-import           Data.Time.Format
-import           Data.Yaml
-import           Dump
-import           Lib
-import           Lodree
-import           Slice
-import           SliceScaner
-import           SliceToLodree
-import           SourceTree
 import           System.Directory
-import           System.Directory.Tree
 import           System.FilePath
 import           System.IO
-import           System.IO             (hFlush, stdout)
 import           Text.Printf
-import           TurboWare
-import           Types
 
-type FlowAvar = [(UTCTime, Int, Integer)] -- timce, count, size, header has latest
+type FlowAvar = [(UTCTime, Int, Integer, UTCTime)] -- timce, count, size, header has latest
 data Acum a = Acum FlowAvar [a] deriving (Show)
 
 type RevPath = [String] -- it is reverse list of path items: ["myfile.txt", "myaccount", "home", "opt"]
 
-scanDirectory :: FilePath -> IO ()
--- scanDirectory = scanDirectory'' (\y b -> ()) (const True) (return . const ())
-scanDirectory path = do
-   result <- scanDirectory'' (\rp list -> sum $ fmap snd list) (\rp -> True) readAndCountBytes path
-   print "hotobo"
-   where
-     readAndCountBytes :: RevPath -> IO Integer
-     readAndCountBytes revpath = do
-       h <- openFile  (path </> (pth revpath)) ReadMode
-       hSetBuffering h (BlockBuffering $ Just 100000)
-       -- print (path </> (pth revpath))
-       --dataa <- Lazy.readFile (path </> (pth revpath))
-       --evaluate $ fromIntegral (Lazy.length dataa)
-       dataa <- Lazy.hGetContents h
-       evaluate $ fromIntegral (Lazy.length dataa)
+flowAvarEmpty :: UTCTime -> FlowAvar
+flowAvarEmpty startTime = [(startTime, 0, 0, startTime), (startTime, 0, 0, startTime)]
 
 
 
-scanDirectory'' :: Show a =>
-        (RevPath -> [(FileName, a)] -> a) -> -- directory node creator
+scanDirectory :: Show a =>
+        (RevPath -> [(FilePath, a)] -> a) -> -- directory node creator
         (RevPath -> Bool) ->                 -- dir or file filter
         (RevPath -> IO a) ->                -- file processor
         FilePath ->                         -- scaned root
         IO a                                -- result
-
-scanDirectory'' createDirNode predicate createFileNode rootPath = do
-    putStrLn ""
+scanDirectory createDirNode predicate createFileNode rootPath = do
     startTime <- getCurrentTime
-    Acum ((_, count, size): _) reslist <- scanDirectory' 0  (Acum [(startTime, 0, 0), (startTime, 0, 0)] []) []
+    putStrLn $ "Start scanning: " ++ rootPath ++ " at " ++ show startTime
+    Acum ((_, count, size, _): _) reslist <- scanDirectory' 0  (Acum (flowAvarEmpty startTime)  []) []
     endTime <- getCurrentTime
-    let (countSpeed, sizeSpeed) = averageSpeed' (startTime, 0, 0) (endTime, count, size)
-    putStrLn "Total: "
+    let (countSpeed, sizeSpeed) = averageSpeed' (startTime, 0, 0, startTime) (endTime, count, size, endTime)
+    let duration = diffUTCTime endTime startTime
+    putStrLn $ "End scanning at " ++ show endTime ++ ", duration=" ++ show duration ++ "; total: "
     printf "%6d# %10.3f MB | %9.2f #/s  %10.3f MB/s  \n" count (sizeInMb size) countSpeed sizeSpeed
-    putStrLn "-----------"
-    print reslist
-    putStrLn "-----------"
+    putStrLn $ "Result: " ++ show reslist
     return $ head reslist
  where
   -- scanDirectory' :: Show a => Int -> Acum a -> RevPath -> IO (Acum a)
-  scanDirectory' level acum@(Acum flowAvar@((time, count, size) : _) reslist) revpath = do
+  scanDirectory' level acum@(Acum flowAvar reslist) revpath = do
     let fullPath = rootPath </> pth revpath
     -- putStrLn $ "Pokus: " ++ path
     isDir <- doesDirectoryExist fullPath
@@ -91,8 +64,8 @@ scanDirectory'' createDirNode predicate createFileNode rootPath = do
 
      else do
        sz <- getFileSize fullPath
+       newFlowAvar <- updateFlowAvar flowAvar (1, fromIntegral sz, revpath)
        result <- createFileNode revpath
-       newFlowAvar <- updateFlowAvar flowAvar (count + 1, size + fromIntegral sz)
        let newAcum =  Acum newFlowAvar (result: reslist)
        return newAcum
 
@@ -100,23 +73,25 @@ scanDirectory'' createDirNode predicate createFileNode rootPath = do
   fullPth :: RevPath -> FilePath
   fullPth p = rootPath </> pth  p
 
+-- | convert reverse path to forward path not starting with slash
+-- | pth ["yaba", "home", "opt"] == opt/home/jaba
 pth :: RevPath -> FilePath
 pth = foldl (flip (</>)) []
 
 
-
-
-
-updateFlowAvar :: FlowAvar -> (Int, Integer) -> IO FlowAvar
-updateFlowAvar flowavar (count, size) = do
-  let (lastTime ,_ ,_ )  = head flowavar
+updateFlowAvar :: FlowAvar -> (Int, Integer, RevPath) -> IO FlowAvar
+updateFlowAvar flowavar (count', size', revpath) = do
+  let (lastTime, count1 , size1, latTraceTime )  = head flowavar
+  let count2 = count1 + count'
+  let size2 = size1 + size'
   nowTime <- getCurrentTime
-  let jecas = diffUTCTime nowTime lastTime > 1.0
-  let newFlowAvar = if jecas then (nowTime, count, size) : take 10 flowavar
-                             else (lastTime, count, size) : tail flowavar
-  when jecas (
+  let jecas = diffUTCTime nowTime latTraceTime > 1.0
+  let newFlowAvar = if jecas then (nowTime, count2, size2, nowTime) : take 10 flowavar
+                             else (nowTime, count2, size2, lastTime) : tail flowavar
+  when True (
      let (countSpeed, sizeSpeed) = averageSpeed newFlowAvar
-       in printf "%6d# %10.3f MB | %9.2f #/s  %10.3f MB/s  \n" count (sizeInMb size) countSpeed sizeSpeed
+       in printf "%s %6d # %10.3f MB %9.2f #/s  %7.3f MB/s %10.3f %s\n"
+          (take 19 $ show nowTime) count2 (sizeInMb size2) countSpeed sizeSpeed (sizeInMb size') (pth revpath)
    )
   return newFlowAvar
 
@@ -124,8 +99,8 @@ updateFlowAvar flowavar (count, size) = do
 averageSpeed :: FlowAvar -> (Double, Double)
 averageSpeed flowAvar = averageSpeed' (last flowAvar) (head flowAvar)
 
-averageSpeed' :: (UTCTime, Int, Integer) -> (UTCTime, Int, Integer) -> (Double, Double)
-averageSpeed' (time1, count1, size1) (time2, count2, size2) =
+averageSpeed' :: (UTCTime, Int, Integer, UTCTime) -> (UTCTime, Int, Integer, UTCTime) -> (Double, Double)
+averageSpeed' (time1, count1, size1, _) (time2, count2, size2, _) =
     let
         timeDiff :: Double = realToFrac  $ diffUTCTime time2 time1
     in (fromIntegral (count2 - count1) / timeDiff,

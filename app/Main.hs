@@ -11,6 +11,7 @@ import           Lib
 import           SliceToLodree
 import           System.Directory.Tree
 import           System.FilePath.Find
+import           System.IO
 import           TreeComparator
 import           TurboWare
 
@@ -24,6 +25,7 @@ import           DirScan
 import           Options.Applicative
 import qualified Paths_yaba            (version)
 import           Slice
+import           SourceTree
 import           System.Directory
 import           System.Environment
 import           System.Exit
@@ -68,6 +70,8 @@ cmdline = Cmdline
 --  test directory: ./test/data/case3/backup
 main = do
   setLocaleEncoding utf8
+  hSetBuffering stdout LineBuffering
+  hGetBuffering stdout >>= print
   putStrLn $ "yaba " ++ showVersion Paths_yaba.version ++ " - yeat another backup"
   startTime <- getCurrentTime
   -- getLocaleEncoding >>= print
@@ -90,7 +94,7 @@ main' = doBackup =<< execParser opts
 doBackup :: Cmdline -> IO ExitCode
 doBackup (Cmdline dirToScan _ _ _ True) = do
   putStrLn $ "Budeme jen skenovat adrear: " ++ dirToScan
-  scanDirectory dirToScan
+  scanDirectoryTest dirToScan
   return $ ExitFailure 8
 doBackup (Cmdline _ True _ _ False) = do
   putStrLn $ "yaba " ++ showVersion Paths_yaba.version ++ " - yeat another backup"
