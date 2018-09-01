@@ -3,7 +3,7 @@
 
 
 module Debug (
-  q, w, p3, mainovec, e, rr, (>:), (<:), (?:), Test(..), ww, cc
+  q, w, p3, mainovec, e, rr, (>:), (<:), (?:), Test(..), ww, cc, ee
 ) where
 
 import           Crypto.Hash.SHA1      (hashlazy)
@@ -156,6 +156,14 @@ e = do
 
   putStrLn $ unlines $ dirTreeToStringList (Just . toDumpS) $
     fromJust $ buildBackup lodreeBackupAll lodreeSourceAllNodes "POKUSNYBEKUP"
+
+ee = do
+  putStrLn  " ====NOVE=========================="
+  lodree1 <- readSourceTree "./test/data/case3/source-of-maintree"
+  dump lodree1
+  putStrLn  " ====STARE=========================="
+  lodree2 <- readSourceTree' "./test/data/case3/source-of-maintree"
+  dump lodree2
 
 rr = do
     let backupDir = "./test/data/case3/backup"

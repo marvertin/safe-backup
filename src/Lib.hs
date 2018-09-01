@@ -5,18 +5,29 @@ module Lib
       namesToPath,
       deAnchore,
       splitByChar,
+      computeFileHash,
+      loadFileRee
 
     ) where
 
+import           Control.Exception
+import           Control.Monad
+import qualified Crypto.Hash.SHA1      as Cr
+import qualified Data.ByteString       as Strict
+import qualified Data.ByteString       as Strict
+import qualified Data.ByteString.Lazy  as Lazy
+import qualified Data.ByteString.UTF8  as BSU
 import           Data.Either
 import           Data.Function
 import           Data.List             (intercalate, nub, sortBy)
 import           Data.List.Unique
 import           Data.Maybe
+import           System.Directory
 import           System.Directory.Tree
 import           Text.Printf           (printf)
 import           TurboWare
 import           Types
+
 
 
 class  HasFileName a  where
@@ -51,3 +62,11 @@ removeFirstChar c q@(x: xs)
 splitByChar :: Char -> String -> (String, String)
 splitByChar z xs = let (s1, s2) = span (/=z) xs
                    in (trim s1, trim . removeFirstChar z $ s2)
+
+
+-- | Compute hask of the file on filesystem
+computeFileHash :: FilePath -> IO Strict.ByteString
+computeFileHash = (fmap Cr.hashlazy . Lazy.readFile)  >=> evaluate
+
+loadFileRee :: FilePath -> IO Ree
+loadFileRee f = Ree "BLBOVINA" 1 <$> getFileSize f <*> computeFileHash f

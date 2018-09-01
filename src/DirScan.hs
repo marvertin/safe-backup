@@ -48,32 +48,36 @@ scanDirectory createDirNode predicate createFileNode rootPath = do
  where
   -- scanDirectory' :: Show a => Int -> Acum a -> RevPath -> IO (Acum a)
   scanDirectory' level startTime acum@(Acum flowAvar reslist) revpath = do
-    let fullPath = rootPath </> pth revpath
-    -- putStrLn $ "Pokus: " ++ path
-    isDir <- doesDirectoryExist fullPath
-    -- time <- getCurrentTime
-    --putStr $  "\r" ++ show level ++ ": " ++ show acum ++ "  " ++ replicate (level * 4) ' ' ++ path
-    -- print time
-    -- printf "%2d #%6d %10.3f MB %s %s  \n" level count (sizeInMb size) (show time) path
-    if isDir then do
-        fords <- listDirectory fullPath -- simple names
-        -- fords <- fmap (fmap (path </>)) (listDirectory fullPath)
-        Acum newFlowAvar lili <- foldM (scanDirectory' (level + 1) startTime) (Acum flowAvar []) (fmap (:revpath) fords)
-        let dirnode = createDirNode revpath (zip fords lili)
-        return $  Acum newFlowAvar (dirnode: reslist)
+    if False && (not $ predicate revpath) then return acum
+    else do
+      let fullPath = rootPath </> pth revpath
+      -- putStrLn $ "Pokus: " ++ path
+      isDir <- doesDirectoryExist fullPath
+      -- time <- getCurrentTime
+      --putStr $  "\r" ++ show level ++ ": " ++ show acum ++ "  " ++ replicate (level * 4) ' ' ++ path
+      -- print time
+      -- printf "%2d #%6d %10.3f MB %s %s  \n" level count (sizeInMb size) (show time) path
+      if isDir then do
+          fords <- sort <$> listDirectory fullPath -- simple names
+          -- fords <- fmap (fmap (path </>)) (listDirectory fullPath)
+          Acum newFlowAvar lili <- foldM (scanDirectory' (level + 1) startTime)
+                                         (Acum flowAvar [])
+                                         (fmap (:revpath) (reverse fords)) -- foldM reverts it again
+          let dirnode = createDirNode revpath (zip fords lili)
+          return $  Acum newFlowAvar (dirnode: reslist)
 
-     else do
-       sz <- getFileSize fullPath
-       when (sz > 1024 * 1024 * 100) (do
-         (printf "  ... big file: %10.3f - %s \r" (sizeInMb sz) fullPath)
-         hFlush stdout)
-       result <- createFileNode revpath -- can takes long
-       nowTime <- getCurrentTime
-       let newFlowAvar = updateFlowAvar flowAvar (1, fromIntegral sz) nowTime
-       putStr $ take 6 (show (diffUTCTime nowTime startTime)) ++ "s "
-       printPostup newFlowAvar (sz, revpath)
-       let newAcum =  Acum newFlowAvar (result: reslist)
-       return newAcum
+       else do
+         sz <- getFileSize fullPath
+         when (sz > 1024 * 1024 * 100) (do
+           printf "  ... big file: %10.3f - %s \r" (sizeInMb sz) fullPath
+           hFlush stdout)
+         result <- createFileNode revpath -- can takes long
+         nowTime <- getCurrentTime
+         let newFlowAvar = updateFlowAvar flowAvar (1, fromIntegral sz) nowTime
+         putStr $ take 6 (show (diffUTCTime nowTime startTime)) ++ "s "
+         printPostup newFlowAvar (sz, revpath)
+         let newAcum =  Acum newFlowAvar (result: reslist)
+         return newAcum
 
 
   fullPth :: RevPath -> FilePath

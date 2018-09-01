@@ -4,6 +4,7 @@
 
 module SourceTree (
  readSourceTree,
+ readSourceTree',
  scanDirectoryTest
 ) where
 
@@ -30,17 +31,28 @@ import           Types
 
 import qualified Data.ByteString.Lazy  as Lazy
 
-readSourceTree :: FileName -> IO Lodree
-readSourceTree dirName = do
+readSourceTree' :: FilePath -> IO Lodree
+readSourceTree' dirName = do
     (base :/ d) <- readSlice dirName
     return$ currentLodree $ mergeToLodree emptyLodree d
+
+readSourceTree :: FilePath -> IO Lodree
+readSourceTree rootDir = scanDirectory (const makeLDir) filterFord readLFile rootDir
+  where
+    filterFord []          = True
+    filterFord (('p':_):_) = True
+    filterFord (('n':_):_) = True
+    filterFord _           = True
+
+    readLFile :: RevPath -> IO Lodree
+    readLFile rp = LFile <$> loadFileRee (rootDir </> (pth rp))
 
 
 scanDirectoryTest :: FilePath -> IO ()
 -- scanDirectory = scanDirectory'' (\y b -> ()) (const True) (return . const ())
 scanDirectoryTest path = do
    result <- scanDirectory (\rp list -> sum $ fmap snd list) (\rp -> True) readAndCountBytes path
-   print "hotobo"
+   putStrLn "Hotovo"
    where
      readAndCountBytes :: RevPath -> IO Integer
      readAndCountBytes revpath = do

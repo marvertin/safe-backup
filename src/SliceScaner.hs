@@ -70,13 +70,9 @@ loadSliceFile ff = do
           else (MetaFile . parseMetaFile . T.unpack) <$> TIO.readFile f
 
 
--- | Compute hask of the file on filesystem
-computeFileHash :: FilePath -> IO Strict.ByteString
-computeFileHash = (fmap Cr.hashlazy . Lazy.readFile)  >=> evaluate
-
-
 
 removeFirstLevelFiles :: DirTree a -> DirTree a
+--removeFirstLevelFiles = id
 removeFirstLevelFiles (Dir name contents) = Dir name $ filter (not . isFile) contents
    where
     isFile (File _ _) = True
