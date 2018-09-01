@@ -37,4 +37,4 @@ configFileName = "yaba-config.yaml" :: FileName
 
 yabaSliceTree = "~yaba-slice-physical-tree.yaml"
 yabaSrcTree = "~yaba-src-tree.yaml"
-yabaLodreeTree = "~yaba-slice-logical-tree"
+yabaLodreeTree = "~yaba-slice-logical-tree.yaml"

@@ -10,6 +10,7 @@
 module SliceScaner
     (
     readSlice,
+    readSlice'
 
     ) where
 
@@ -19,6 +20,7 @@ import           Data.List
 import           Data.Maybe
 import qualified Data.Text             as T
 import qualified Data.Text.IO          as TIO
+import           DirScan
 import           Dump
 import           GHC.IO.Encoding
 import           Lib
@@ -43,8 +45,8 @@ import           Slice
 
 
 
-readSlice :: FilePath -> IO AnchoredSliceTree
-readSlice f = do
+readSlice' :: FilePath -> IO AnchoredSliceTree
+readSlice' f = do
     putStr $ " - " ++ f ++ " ... "
     hFlush stdout
     (base :/ tree) <- sortDirShape </$> readDirectoryWith loadSliceFile f
@@ -58,6 +60,37 @@ readSlice f = do
     truncate :: Int -> SliceFile -> SliceFile
     truncate n (RegularFile ree@Ree{}) = RegularFile $ ree { rphysPath = drop n (rphysPath ree)}
     truncate _ x                    = x
+
+readSlice :: FilePath -> IO AnchoredSliceTree
+readSlice rootDir = do
+  d <- readSlice'' rootDir
+  return (takeDirectory rootDir :/ d)
+
+readSlice'' :: FilePath -> IO SliceTree
+readSlice'' rootDir =
+    scanDirectory mkDir filterFilesInRoot readSFile rootDir -- >>= ((takeDirectory rootDir ):/)
+  where
+    rootDir1 = takeFileName rootDir -- it os not filename but root directory
+    readSFile :: RevPath -> IO SliceTree
+    readSFile rp = File (head rp) <$> loadSliceFile' rootDir rp
+
+    mkDir rp list = Dir (safeHead rootDir1 rp) (fmap snd list)
+
+    filterFilesInRoot [fordName] = takeExtension fordName /= ".yaml"
+    filterFilesInRoot _          = True
+
+
+
+loadSliceFile' :: FilePath -> RevPath -> IO SliceFile
+loadSliceFile' rootPath rp = do
+  let path = replaceBacklashesToSlashes (pth rp)
+  let realPath = rootPath </> path
+  size <- getFileSize realPath
+  hash <- computeFileHash realPath
+  let physPath = "/" ++ takeFileName rootPath ++ "/" ++ path
+  if not $ yabaSuffix `isSuffixOf` path then return (RegularFile $ Ree physPath 1 size hash)
+          else (MetaFile . parseMetaFile . T.unpack) <$> TIO.readFile realPath
+
 
 
 

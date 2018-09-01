@@ -44,12 +44,11 @@ scanDirectory createDirNode predicate createFileNode rootPath = do
     let duration = diffUTCTime endTime startTime
     putStrLn $ "End scanning at " ++ show endTime ++ ", duration=" ++ show duration ++ "; total: "
     printf "%6d# %10.3f MB | %9.2f #/s  %10.3f MB/s  \n" count (sizeInMb size) countSpeed sizeSpeed
-    putStrLn $ "Result: " ++ show reslist
-    return $ snd $ head reslist
+    -- putStrLn $ "Result: " ++ show reslist
+    return . snd . head $ reslist
  where
   -- scanDirectory' :: Show a => Int -> Acum a -> RevPath -> IO (Acum a)
   scanDirectory' level startTime acum@(Acum flowAvar reslist) revpath = do
-    print revpath
     if (not . null) revpath -- root level is not checked, predicate has never empty
         && (not . predicate) revpath then -- if not skip whole subtree
        return acum

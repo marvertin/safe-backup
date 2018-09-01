@@ -3,7 +3,7 @@
 
 
 module Debug (
-  q, w, p3, mainovec, e, rr, (>:), (<:), (?:), Test(..), ww, cc, ee
+  q, w, p3, mainovec, e, rr, (>:), (<:), (?:), Test(..), ww, cc, ee, qq
 ) where
 
 import           Crypto.Hash.SHA1      (hashlazy)
@@ -106,6 +106,14 @@ q = do
 
   putStrLn  " ============ HASHPAIRS - logical"
   dump $ createLogicalHashMap lodree2
+
+qq = do
+  (base :/ d) <- readSlice  $ "./test/data/" ++ backupname ++ "/2018-02-03T00-00-00.yaba"
+  putStrLn $ " =====NOVE======= " ++ base
+  dump d
+  (base :/ d) <- readSlice'  $ "./test/data/" ++ backupname ++ "/2018-02-03T00-00-00.yaba"
+  putStrLn $ " =====STARE======= " ++ base
+  dump d
 
 w = do
    (base1 :/ d1) <- readSlice "./test/data/compare1/left"
