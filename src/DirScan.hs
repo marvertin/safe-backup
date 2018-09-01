@@ -37,7 +37,7 @@ scanDirectory :: Show a =>
 scanDirectory createDirNode predicate createFileNode rootPath = do
     startTime <- getCurrentTime
     putStrLn $ "Start scanning: " ++ rootPath ++ " at " ++ show startTime
-    Acum ((_, count, size, _): _) reslist <- scanDirectory' 0  (Acum (flowAvarEmpty startTime)  []) []
+    Acum ((_, count, size, _): _) reslist <- scanDirectory' 0 startTime (Acum (flowAvarEmpty startTime)  []) []
     endTime <- getCurrentTime
     let (countSpeed, sizeSpeed) = averageSpeed' (startTime, 0, 0, startTime) (endTime, count, size, endTime)
     let duration = diffUTCTime endTime startTime
@@ -47,7 +47,7 @@ scanDirectory createDirNode predicate createFileNode rootPath = do
     return $ head reslist
  where
   -- scanDirectory' :: Show a => Int -> Acum a -> RevPath -> IO (Acum a)
-  scanDirectory' level acum@(Acum flowAvar reslist) revpath = do
+  scanDirectory' level startTime acum@(Acum flowAvar reslist) revpath = do
     let fullPath = rootPath </> pth revpath
     -- putStrLn $ "Pokus: " ++ path
     isDir <- doesDirectoryExist fullPath
@@ -58,14 +58,20 @@ scanDirectory createDirNode predicate createFileNode rootPath = do
     if isDir then do
         fords <- listDirectory fullPath -- simple names
         -- fords <- fmap (fmap (path </>)) (listDirectory fullPath)
-        Acum newFlowAvar lili <- foldM (scanDirectory' (level + 1)) (Acum flowAvar []) (fmap (:revpath) fords)
+        Acum newFlowAvar lili <- foldM (scanDirectory' (level + 1) startTime) (Acum flowAvar []) (fmap (:revpath) fords)
         let dirnode = createDirNode revpath (zip fords lili)
         return $  Acum newFlowAvar (dirnode: reslist)
 
      else do
        sz <- getFileSize fullPath
-       newFlowAvar <- updateFlowAvar flowAvar (1, fromIntegral sz, revpath)
-       result <- createFileNode revpath
+       when (sz > 1024 * 1024 * 100) (do
+         (printf "  ... big file: %10.3f - %s \r" (sizeInMb sz) fullPath)
+         hFlush stdout)
+       result <- createFileNode revpath -- can takes long
+       nowTime <- getCurrentTime
+       let newFlowAvar = updateFlowAvar flowAvar (1, fromIntegral sz) nowTime
+       putStr $ take 6 (show (diffUTCTime nowTime startTime)) ++ "s "
+       printPostup newFlowAvar (sz, revpath)
        let newAcum =  Acum newFlowAvar (result: reslist)
        return newAcum
 
@@ -79,21 +85,21 @@ pth :: RevPath -> FilePath
 pth = foldl (flip (</>)) []
 
 
-updateFlowAvar :: FlowAvar -> (Int, Integer, RevPath) -> IO FlowAvar
-updateFlowAvar flowavar (count', size', revpath) = do
+printPostup :: FlowAvar -> (Integer, RevPath) -> IO ()
+printPostup flowAvar@((time', count', size', _):_) (size, revpath) = do
+    let (countSpeed, sizeSpeed) = averageSpeed flowAvar
+    printf "%s %6d # %10.3f MB %9.2f #/s  %7.3f MB/s %10.3f %s\n"
+          (take 19 $ show time') count' (sizeInMb size') countSpeed sizeSpeed (sizeInMb size) (pth revpath)
+
+updateFlowAvar :: FlowAvar -> (Int, Integer) -> UTCTime ->FlowAvar
+updateFlowAvar flowavar (count', size') nowTime =
   let (lastTime, count1 , size1, latTraceTime )  = head flowavar
-  let count2 = count1 + count'
-  let size2 = size1 + size'
-  nowTime <- getCurrentTime
-  let jecas = diffUTCTime nowTime latTraceTime > 1.0
-  let newFlowAvar = if jecas then (nowTime, count2, size2, nowTime) : take 10 flowavar
-                             else (nowTime, count2, size2, lastTime) : tail flowavar
-  when True (
-     let (countSpeed, sizeSpeed) = averageSpeed newFlowAvar
-       in printf "%s %6d # %10.3f MB %9.2f #/s  %7.3f MB/s %10.3f %s\n"
-          (take 19 $ show nowTime) count2 (sizeInMb size2) countSpeed sizeSpeed (sizeInMb size') (pth revpath)
-   )
-  return newFlowAvar
+      count2 = count1 + count'
+      size2 = size1 + size'
+      jecas = diffUTCTime nowTime latTraceTime > 1.0
+  in if jecas then (nowTime, count2, size2, nowTime) : take 10 flowavar
+              else (nowTime, count2, size2, lastTime) : tail flowavar
+
 
 
 averageSpeed :: FlowAvar -> (Double, Double)
