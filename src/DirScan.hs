@@ -6,7 +6,9 @@
 module DirScan (
   scanDirectory,
   pth,
-  RevPath
+  RevPath,
+  emptyEventHandler,
+  stdOutLoggingEventHanler
 ) where
 
 import           Control.Exception
@@ -20,25 +22,54 @@ import           Text.Printf
 
 
 type FlowAvar = [(UTCTime, Int, Integer, UTCTime)] -- timce, count, size, header has latest
-data Acum a = Acum FlowAvar [(FilePath, a)] deriving (Show)
+data Acum a b = Acum FlowAvar [(FilePath, a)] b deriving (Show)
 
 type RevPath = [String] -- it is reverse list of path items: ["myfile.txt", "myaccount", "home", "opt"]
+
+data EventEnvelop a b = EventEnvelop UTCTime RevPath Cumulative (Event a) b
+
+type EventHandler a b =   (EventEnvelop a b -> IO b, IO b)
+
+data Event a
+      = BeforeFile {
+            efile :: EventFile
+          }
+      | AfterFile  {
+            efile   :: EventFile,
+            eresult :: a
+          }
+
+data EventFile = EventFile {
+     efileSize :: Integer
+   }
+data Cumulative = Cumulative {
+      etotalCount       :: Int,
+      etotalSize        :: Integer,
+      avarageCountSpeed :: Double,
+      avarageMbSpeed    :: Double
+    }
 
 flowAvarEmpty :: UTCTime -> FlowAvar
 flowAvarEmpty startTime = [(startTime, 0, 0, startTime), (startTime, 0, 0, startTime)]
 
+emptyEventHandler :: EventHandler a ()
+emptyEventHandler = (\x -> return (), return ())
 
+stdOutLoggingEventHanler = (printPostup2, getCurrentTime)
 
 scanDirectory :: Show a =>
         (RevPath -> [(FilePath, a)] -> a) -> -- directory node creator
         (RevPath -> Bool) ->                 -- dir or file filter
         (RevPath -> IO a) ->                -- file processor
+        -- EventHandler ->
         FilePath ->                         -- scaned root
         IO a                                -- result
 scanDirectory createDirNode predicate createFileNode rootPath = do
     startTime <- getCurrentTime
     putStrLn $ "Start scanning: " ++ rootPath ++ " at " ++ show startTime
-    Acum ((_, count, size, _): _) reslist <- scanDirectory' 0 startTime (Acum (flowAvarEmpty startTime)  []) []
+    let nula = 0 :: Int
+    Acum ((_, count, size, _): _) reslist _
+      <- scanDirectory' 0 startTime (Acum (flowAvarEmpty startTime) [] startTime) []
     endTime <- getCurrentTime
     let (countSpeed, sizeSpeed) = averageSpeed' (startTime, 0, 0, startTime) (endTime, count, size, endTime)
     let duration = diffUTCTime endTime startTime
@@ -48,7 +79,7 @@ scanDirectory createDirNode predicate createFileNode rootPath = do
     return . snd . head $ reslist
  where
   -- scanDirectory' :: Show a => Int -> Acum a -> RevPath -> IO (Acum a)
-  scanDirectory' level startTime acum@(Acum flowAvar reslist) revpath = do
+  scanDirectory' level startTime acum@(Acum flowAvar reslist evacum) revpath = do
     if (not . null) revpath -- root level is not checked, predicate has never empty
         && (not . predicate) revpath then -- if not skip whole subtree
        return acum
@@ -63,11 +94,11 @@ scanDirectory createDirNode predicate createFileNode rootPath = do
       if isDir then do
           fords <- sort <$> listDirectory fullPath -- simple names
           -- fords <- fmap (fmap (path </>)) (listDirectory fullPath)
-          Acum newFlowAvar lili <- foldM (scanDirectory' (level + 1) startTime)
-                                         (Acum flowAvar [])
+          Acum newFlowAvar lili evacum2 <- foldM (scanDirectory' (level + 1) startTime)
+                                         (Acum flowAvar [] evacum)
                                          (fmap (:revpath) (reverse fords)) -- foldM reverts it again
           let dirnode = createDirNode revpath lili
-          return $  Acum newFlowAvar ((safeHead "" revpath, dirnode): reslist)
+          return $  Acum newFlowAvar ((safeHead "" revpath, dirnode): reslist) evacum2
 
        else do
          sz <- getFileSize fullPath
@@ -78,8 +109,15 @@ scanDirectory createDirNode predicate createFileNode rootPath = do
          nowTime <- getCurrentTime
          let newFlowAvar = updateFlowAvar flowAvar (1, fromIntegral sz) nowTime
          putStr $ take 6 (show (diffUTCTime nowTime startTime)) ++ "s "
+         let ev = EventEnvelop nowTime revpath
+                       (getCumulative newFlowAvar)
+                       (AfterFile (EventFile sz) ())
+                       evacum
          printPostup newFlowAvar (sz, revpath)
-         let newAcum =  Acum newFlowAvar ((head revpath, result): reslist)
+         evacum2 <- printPostup2 ev
+         {-
+         -}
+         let newAcum =  Acum newFlowAvar ((head revpath, result): reslist) evacum2
          return newAcum
 
 
@@ -92,10 +130,19 @@ pth :: RevPath -> FilePath
 pth = foldl (flip (</>)) []
 
 
+printPostup2 :: EventEnvelop () UTCTime -> IO UTCTime
+printPostup2 (EventEnvelop time' revpath (Cumulative count' size' countSpeed sizeSpeed) event startTime) =
+  case event of
+    AfterFile (EventFile size)  _ -> do
+      putStr $ take 6 (show (diffUTCTime time' startTime)) ++ "s "
+      printf "A%s %6d # %10.3f MB %9.2f #/s  %7.3f MB/s %10.3f %s\n"
+          (take 19 $ show time') count' (sizeInMb size') countSpeed sizeSpeed (sizeInMb size) (pth revpath)
+      return startTime
+
 printPostup :: FlowAvar -> (Integer, RevPath) -> IO ()
 printPostup flowAvar@((time', count', size', _):_) (size, revpath) = do
     let (countSpeed, sizeSpeed) = averageSpeed flowAvar
-    printf "%s %6d # %10.3f MB %9.2f #/s  %7.3f MB/s %10.3f %s\n"
+    printf "B%s %6d # %10.3f MB %9.2f #/s  %7.3f MB/s %10.3f %s\n"
           (take 19 $ show time') count' (sizeInMb size') countSpeed sizeSpeed (sizeInMb size) (pth revpath)
 
 updateFlowAvar :: FlowAvar -> (Int, Integer) -> UTCTime ->FlowAvar
@@ -106,6 +153,12 @@ updateFlowAvar flowavar (count', size') nowTime =
       jecas = diffUTCTime nowTime latTraceTime > 1.0
   in if jecas then (nowTime, count2, size2, nowTime) : take 10 flowavar
               else (nowTime, count2, size2, lastTime) : tail flowavar
+
+getCumulative :: FlowAvar -> Cumulative
+getCumulative flowAvar = let
+     (countSpeed, sizeSpeed) = averageSpeed' (last flowAvar) (head flowAvar)
+     (_, totalCount, totalSize, _) = head flowAvar
+    in Cumulative totalCount totalSize countSpeed sizeSpeed
 
 
 
