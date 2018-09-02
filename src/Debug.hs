@@ -111,9 +111,9 @@ qq = do
   (base :/ d) <- readSlice  $ "./test/data/" ++ backupname ++ "/2018-02-03T00-00-00.yaba"
   putStrLn $ " =====NOVE======= " ++ base
   dump d
-  (base :/ d) <- readSlice'  $ "./test/data/" ++ backupname ++ "/2018-02-03T00-00-00.yaba"
-  putStrLn $ " =====STARE======= " ++ base
-  dump d
+  --(base :/ d) <- readSlice'  $ "./test/data/" ++ backupname ++ "/2018-02-03T00-00-00.yaba"
+  --putStrLn $ " =====STARE======= " ++ base
+  --dump d
 
 w = do
    (base1 :/ d1) <- readSlice "./test/data/compare1/left"
@@ -169,9 +169,9 @@ ee = do
   putStrLn  " ====NOVE=========================="
   lodree1 <- readSourceTree "./test/data/case3/source-of-maintree"
   dump lodree1
-  putStrLn  " ====STARE=========================="
-  lodree2 <- readSourceTree' "./test/data/case3/source-of-maintree"
-  dump lodree2
+  --putStrLn  " ====STARE=========================="
+  --lodree2 <- readSourceTree' "./test/data/case3/source-of-maintree"
+  --dump lodree2
 
 rr = do
     let backupDir = "./test/data/case3/backup"
