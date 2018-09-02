@@ -30,8 +30,10 @@ import           Types
 
 import qualified Data.ByteString.Lazy  as Lazy
 
-readSourceTree :: FilePath -> IO Lodree
-readSourceTree rootDir = scanDirectory (const makeLDir) (filterFord) readLFile rootDir
+readSourceTree :: EventHandler Lodree b -> FilePath -> IO Lodree
+readSourceTree eventHandler rootDir = scanDirectory (const makeLDir) (filterFord) readLFile
+   eventHandler
+   rootDir
   where
     filterFord _ = True
 
@@ -42,7 +44,10 @@ readSourceTree rootDir = scanDirectory (const makeLDir) (filterFord) readLFile r
 scanDirectoryTest :: FilePath -> IO ()
 -- scanDirectory = scanDirectory'' (\y b -> ()) (const True) (return . const ())
 scanDirectoryTest path = do
-   result <- scanDirectory (\rp list -> sum $ fmap snd list) (\rp -> True) readAndCountBytes path
+   result <- scanDirectory (\rp list -> sum $ fmap snd list) (\rp -> True)
+                readAndCountBytes
+                stdOutLoggingEventHanler
+                path
    putStrLn "Hotovo"
    where
      readAndCountBytes :: RevPath -> IO Integer

@@ -45,12 +45,12 @@ import           Slice
 
 readSlice :: FilePath -> IO AnchoredSliceTree
 readSlice rootDir = do
-  d <- readSlice'' rootDir
+  d <- readSlice'' stdOutLoggingEventHanler rootDir
   return (takeDirectory rootDir :/ d)
 
-readSlice'' :: FilePath -> IO SliceTree
-readSlice'' rootDir =
-    scanDirectory mkDir filterFilesInRoot readSFile rootDir -- >>= ((takeDirectory rootDir ):/)
+readSlice'' :: EventHandler SliceTree b -> FilePath -> IO SliceTree
+readSlice'' eventHandler rootDir =
+    scanDirectory mkDir filterFilesInRoot readSFile eventHandler rootDir -- >>= ((takeDirectory rootDir ):/)
   where
     rootDir1 = takeFileName rootDir -- it os not filename but root directory
     readSFile :: RevPath -> IO SliceTree

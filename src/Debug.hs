@@ -13,6 +13,7 @@ import           Data.Maybe
 --import           Filesystem.Path
 import           Backup
 import           BackupTreeBuilder
+import           DirScan
 import           Dump
 import qualified GHC.IO.Encoding       as GIE
 import           Hashpairing
@@ -145,11 +146,11 @@ ww  = do
 
 e = do
   putStrLn  " ============ LBACKUP lodreeBackupCurrent 22"
-  lodreeBackupAll <- readBackupDir "./test/data/case4/backup/data" "./test/data/case4/backup/index"
+  lodreeBackupAll <- readBackupDir stdOutLoggingEventHanler "./test/data/case4/backup/data" "./test/data/case4/backup/index"
   let lodreeBackupCurrent = currentLodree lodreeBackupAll
   dump lodreeBackupCurrent
   putStrLn  " ============ SOURCE lodreeSourceAllNodes"
-  lodreeSourceOneNode <- readSourceTree "./test/data/case4/source-of-maintree"
+  lodreeSourceOneNode <- readSourceTree stdOutLoggingEventHanler "./test/data/case4/source-of-maintree"
   let lodreeSourceAllNodes = makeLDir [("maintree", lodreeSourceOneNode)]
   dump lodreeSourceAllNodes
   putStrLn  " ============ COMPARE"
@@ -167,7 +168,7 @@ e = do
 
 ee = do
   putStrLn  " ====NOVE=========================="
-  lodree1 <- readSourceTree "./test/data/case3/source-of-maintree"
+  lodree1 <- readSourceTree stdOutLoggingEventHanler "./test/data/case3/source-of-maintree"
   dump lodree1
   --putStrLn  " ====STARE=========================="
   --lodree2 <- readSourceTree' "./test/data/case3/source-of-maintree"
