@@ -10,9 +10,12 @@ module Types (
   yabaSuffix,
   yabaSliceSuffix,
   configFileName,
-  yabaSliceTree,
-  yabaSrcTree,
-  yabaLodreeTree
+  slicePhysicalTree_suffix,
+  sliceLogicalTree_suffix,
+  sliceSourceTree_suffix,
+  indexSubdir,
+  dataSubdir,
+  logSubdir,
 ) where
 
 import qualified Data.ByteString       as Strict
@@ -35,6 +38,10 @@ yabaSliceSuffix = ".yaba-slice"
 
 configFileName = "yaba-config.yaml" :: FileName
 
-yabaSliceTree = "~yaba-slice-physical-tree.yaml"
-yabaSrcTree = "~yaba-src-tree.yaml"
-yabaLodreeTree = "~yaba-slice-logical-tree.yaml"
+slicePhysicalTree_suffix = "_physical-tree.yaml"
+sliceLogicalTree_suffix = "_logical-tree.yaml"
+sliceSourceTree_suffix = "_source-tree.yaml"
+
+indexSubdir = "index"
+dataSubdir = "data"
+logSubdir = "log"

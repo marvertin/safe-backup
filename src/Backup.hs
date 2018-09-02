@@ -29,14 +29,18 @@ import           System.IO             (hFlush, stdout)
 isSliceName :: FileName -> Bool
 isSliceName = isSuffixOf yabaSliceSuffix
 
-readBackupDir :: FilePath -> IO Lodree
-readBackupDir backupRoot = do
-  yabaDirNames <-  (sort . filter isSliceName) <$> listDirectory backupRoot
-  putStrLn $ "Reading " ++ show (length yabaDirNames) ++ " slices allredy backed up"
-  yabaDirs <- mapM (\name -> deAnchore <$> readSlice (backupRoot ++ "/" ++ name)) yabaDirNames
-  forM_ yabaDirs (\x ->
-      encodeFile (backupRoot </> fileNamex x </> yabaSliceTree) x
+readBackupDir :: FilePath -> FilePath -> IO Lodree
+readBackupDir backupRoot indexDir = do
+  sliceNames <-  (map takeBaseName . sort . filter isSliceName) <$> listDirectory backupRoot
+  putStrLn $ "Reading " ++ show (length sliceNames) ++ " slices allredy backed up"
+  yabaDirs <- forM sliceNames (\name -> do
+      slice <- readSlice'' (backupRoot </> name ++ yabaSliceSuffix)
+      encodeFile (indexDir </> takeBaseName (fileNamex slice) ++ slicePhysicalTree_suffix) slice
+      return slice
     )
+  --forM_ yabaDirs (\x ->
+    --  encodeFile (indexDir </> takeBaseName (fileNamex x) ++ slicePhysicalTree_suffix) x
+    --)
   let rootLodree = mergesToLodree emptyLodree yabaDirs
   return rootLodree
 
@@ -79,36 +83,44 @@ yabaFilePrefix (BackupTreeBuilder.PhysicalLink _) = "~P-LINK~"
 yabaFilePrefix (NewLink _)                        = "~N-LINK~"
 
 backup :: FilePath -> [(FileName, FilePath)] ->  IO [AnchoredDirTree ()]
-backup backupDir sourceTrees = do
-  newYabaDir <- nextBackupDir
-  lodreeBackupAll <- readBackupDir backupDir
-  let lodreeBackupCurrent = currentLodree lodreeBackupAll
-  putStrLn $  "Reading " ++ show (length sourceTrees) ++ " source trees"
-  createDirectory (backupDir </> newYabaDir)
-  encodeFile (backupDir </> newYabaDir </> yabaLodreeTree) lodreeBackupCurrent
+backup backupDirRoot  sourceTrees = do
+    createDirectoryIfMissing False dataDir
+    createDirectoryIfMissing False indexDir
+    createDirectoryIfMissing False logDir
+    newSliceName <- nextSliceName
+    let newSliceDirName = newSliceName ++ yabaSliceSuffix
+    let newSlicePath = dataDir </> newSliceDirName
+    lodreeBackupAll <- readBackupDir dataDir indexDir
+    let lodreeBackupCurrent = currentLodree lodreeBackupAll
+    putStrLn $  "Reading " ++ show (length sourceTrees) ++ " source trees"
+    encodeFile (indexDir </> newSliceName ++ sliceLogicalTree_suffix) lodreeBackupCurrent
+    encodeFile (indexDir </> sliceLogicalTree_suffix) lodreeBackupCurrent
 
-  lodreeSourceAllNodes <- makeLDir <$> mapM ( \(treeName, treePath) -> do
-                    lodreeSourceOneNode <- readSourceTree treePath
-                    encodeFile (backupDir </> newYabaDir </> (treeName ++ yabaSrcTree)) lodreeSourceOneNode
-                    return (treeName, lodreeSourceOneNode)
-                   ) sourceTrees
-  --lodreeSourceOneNode <- readSourceTree sourceOfMainTreeDir
-  -- let lodreeSourceAllNodes = LDir emptyDRee [(maintree, lodreeSourceOneNode)]
-  putStrLn $ "Building new backup slice: " ++ newYabaDir
-  case buildBackup lodreeBackupAll lodreeSourceAllNodes newYabaDir of
-    Nothing -> do
-       putStrLn "NOTHING to backup: "
-       return []
-    Just backupDirTree -> do
-       putStrLn $ "Writing backup to: " ++ backupDir
-       writeBackup (backupDir :/ backupDirTree) sourceTrees
+    lodreeSourceAllNodes <- makeLDir <$> forM sourceTrees ( \(treeName, treePath) -> do
+        lodreeSourceOneNode <- readSourceTree treePath
+        encodeFile (indexDir </> (treeName ++ sliceSourceTree_suffix)) lodreeSourceOneNode
+        return (treeName, lodreeSourceOneNode)
+       )
+    --lodreeSourceOneNode <- readSourceTree sourceOfMainTreeDir
+    -- let lodreeSourceAllNodes = LDir emptyDRee [(maintree, lodreeSourceOneNode)]
+    putStrLn $ "Building new backup slice: " ++ newSliceName
+    case buildBackup lodreeBackupAll lodreeSourceAllNodes newSliceDirName of
+      Nothing -> do
+         putStrLn "NOTHING to backup: "
+         return []
+      Just backupDirTree -> do
+         putStrLn $ "Writing backup to: " ++ dataDir
+         writeBackup (dataDir :/ backupDirTree) sourceTrees
+  where
+    dataDir = backupDirRoot </> dataSubdir
+    indexDir = backupDirRoot </> indexSubdir
+    logDir = backupDirRoot </> logSubdir
   -- return ()
 
-nextBackupDir :: IO FilePath
-nextBackupDir = do
+nextSliceName :: IO String
+nextSliceName = do
   now <- getCurrentTime
   return $ formatTime defaultTimeLocale (iso8601DateFormat (Just "%H-%M-%SZ")) now
-    ++ yabaSliceSuffix
 
 convertToYaba :: Cmd -> SliceCmd
 convertToYaba (BackupTreeBuilder.LogicalLink x)  = Slice.LogicalLink x

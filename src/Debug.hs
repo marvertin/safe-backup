@@ -145,7 +145,7 @@ ww  = do
 
 e = do
   putStrLn  " ============ LBACKUP lodreeBackupCurrent 22"
-  lodreeBackupAll <- readBackupDir "./test/data/case4/backup"
+  lodreeBackupAll <- readBackupDir "./test/data/case4/backup/data" "./test/data/case4/backup/index"
   let lodreeBackupCurrent = currentLodree lodreeBackupAll
   dump lodreeBackupCurrent
   putStrLn  " ============ SOURCE lodreeSourceAllNodes"
