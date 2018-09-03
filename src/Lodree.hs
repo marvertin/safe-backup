@@ -1,6 +1,8 @@
-{-# LANGUAGE InstanceSigs    #-}
-{-# LANGUAGE NamedFieldPuns  #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE InstanceSigs         #-}
+{-# LANGUAGE NamedFieldPuns       #-}
+{-# LANGUAGE RecordWildCards      #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+
 
 module Lodree (
   Lodree(..),
@@ -87,14 +89,19 @@ findNode path (LDir _ list) = let
 --------------------------------------------------------
 --
 -- Instances for YAML
+{-
 instance ToJSON Ree where
   -- toJSON (Finfo x y) = object ["x" .= x, "y" .= y]
   toJSON Ree{..} = let val = show rsize ++ " " ++ toHexStr rhash
      in toJSON val
 
+-}
+
 instance ToJSON Lodree where
    toJSON (LFile ree)   = toJSON ree
    toJSON (LDir _ list) = toJSON (M.fromList list)
+
+
 
 --------------------------------------------------------
 -- The rest of this modul is for DEBUGING purpose only - it is dump

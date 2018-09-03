@@ -1,4 +1,8 @@
+{-# LANGUAGE DeriveAnyClass             #-}
+{-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE StandaloneDeriving         #-}
+{-# LANGUAGE TypeSynonymInstances       #-}
 
 module Types (
   Ree(..),
@@ -18,17 +22,20 @@ module Types (
   logSubdir,
 ) where
 
-import qualified Data.ByteString       as Strict
+import qualified Data.ByteString       as BS
+import           Data.Text
+import           Data.Time.Clock
 import           Data.Yaml
+import           GHC.Generics
 import           System.Directory.Tree (DirTree (..), FileName)
 import           System.FilePath
 
 type FileSize = Integer
 
-data Ree = Ree { rphysPath :: FilePath, rcount :: Int, rsize :: FileSize, rhash :: Hash }
-  deriving (Eq, Show, Read)
+data Ree = Ree { rphysPath :: FilePath, rcount :: Int, rsize :: FileSize, rtime :: UTCTime, rhash :: BS.ByteString }
+  deriving (Eq, Show, Read, ToJSON, Generic)
 
-type Hash = Strict.ByteString
+type Hash = BS.ByteString
 
 type ErrMsg = String
 
@@ -45,3 +52,20 @@ sliceSourceTree_suffix = "_source-tree.yaml"
 indexSubdir = "index"
 dataSubdir = "data"
 logSubdir = "log"
+
+
+instance ToJSON Hash where
+  toJSON hash = toJSON (show hash)
+
+instance FromJSON Hash where
+  parseJSON = withText "chuj2" (return . parseee)
+    where
+      parseee :: Text -> Hash
+      parseee x = BS.empty
+{-
+instance ToJSON Ree where
+  -- toJSON (Finfo x y) = object ["x" .= x, "y" .= y]
+  toJSON Ree{..} = let val = show rsize ++ " " ++ toHexStr rhash
+     in toJSON val
+
+-}

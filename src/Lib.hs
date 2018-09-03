@@ -69,4 +69,4 @@ computeFileHash :: FilePath -> IO Strict.ByteString
 computeFileHash = (fmap Cr.hashlazy . Lazy.readFile)  >=> evaluate
 
 loadFileRee :: FilePath -> IO Ree
-loadFileRee f = Ree "BLBOVINA" 1 <$> getFileSize f <*> computeFileHash f
+loadFileRee f = Ree "BLBOVINA" 1 <$> getFileSize f <*> getModificationTime f <*> computeFileHash f

@@ -68,9 +68,10 @@ loadSliceFile rootPath rp = do
   let path = replaceBacklashesToSlashes (pth rp)
   let realPath = rootPath </> path
   size <- getFileSize realPath
+  time <- getModificationTime realPath
   hash <- computeFileHash realPath
   let physPath = "/" ++ takeFileName rootPath ++ "/" ++ path
-  if not $ yabaSuffix `isSuffixOf` path then return (RegularFile $ Ree physPath 1 size hash)
+  if not $ yabaSuffix `isSuffixOf` path then return (RegularFile $ Ree physPath 1 size time hash)
           else (MetaFile . parseMetaFile . T.unpack) <$> TIO.readFile realPath
 
 
