@@ -16,6 +16,7 @@ import           Data.Function
 import           Data.List
 import           Data.Maybe
 import           DirScan
+import           Ignorances
 import           Lib
 import           Lodree
 import           SliceScaner
@@ -30,13 +31,14 @@ import           Types
 
 import qualified Data.ByteString.Lazy  as Lazy
 
-readSourceTree :: EventHandler Lodree b -> FilePath -> IO Lodree
-readSourceTree eventHandler rootDir = fst <$> scanDirectory (const makeLDir) (filterFord) readLFile
-   eventHandler
-   rootDir
+readSourceTree :: EventHandler Lodree b -> IgnoranceDef -> FilePath -> IO Lodree
+readSourceTree eventHandler ignorance rootDir =
+     fst <$> scanDirectory (const makeLDir)
+                     (makeFilterFce ignorance)
+                     readLFile
+                     eventHandler
+                     rootDir
   where
-    filterFord _ = True
-
     readLFile :: RevPath -> IO Lodree
     readLFile rp = LFile <$> loadFileRee (rootDir </> pth rp)
 

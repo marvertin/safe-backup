@@ -18,6 +18,7 @@ import           TurboWare
 --import           Data.Time.Calendar
 import           Config
 import           Control.Monad
+import           Data.Either
 import           Data.Semigroup        ((<>))
 import           Data.Time.Clock
 import           Data.Version          (showVersion)

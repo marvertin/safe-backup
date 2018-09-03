@@ -4,6 +4,7 @@ module Backup (
 ) where
 
 import           BackupTreeBuilder
+import           Config
 import           Control.Monad
 import           Data.List
 import           Data.Time.Calendar
@@ -12,6 +13,7 @@ import           Data.Time.Format
 import           Data.Yaml
 import           DirScan
 import           Dump
+import           Ignorances
 import           Lib
 import           Lodree
 import           Slice
@@ -46,7 +48,7 @@ readBackupDir eventHanlder backupRoot indexDir = do
 
 --maintree = "maintree"
 
-writeBackup :: Handle -> AnchoredBackupTree -> [(FileName, FilePath)] -> IO [AnchoredDirTree ()]
+writeBackup :: Handle -> AnchoredBackupTree -> ForestDef -> IO [AnchoredDirTree ()]
 writeBackup loghandle x sourceTrees = do
     -- putStrLn $ "jsem v writeBackup"
     -- hFlush stdout
@@ -54,7 +56,7 @@ writeBackup loghandle x sourceTrees = do
     let (base :/ d@(Dir yabadir _)) = x
     putStrLn $ "Writing backup slice: " ++ yabadir
     hFlush stdout
-    mapM ( \(treeName, treePath) -> do
+    mapM ( \(treeName, treePath, _) -> do
        putStrLn $ "Writing tree: " ++ treePath ++ " ==> " ++ (yabadir </> treeName)
        putStrLn $ unlines $ dirTreeToStringList (Just . show) d
        -- musíme umazat adresář yaba a také adresář kořene
@@ -82,8 +84,8 @@ yabaFilePrefix (BackupTreeBuilder.LogicalLink  _) = "~L-LINK~"
 yabaFilePrefix (BackupTreeBuilder.PhysicalLink _) = "~P-LINK~"
 yabaFilePrefix (NewLink _)                        = "~N-LINK~"
 
-backup :: FilePath -> [(FileName, FilePath)] ->  IO [AnchoredDirTree ()]
-backup backupDirRoot  sourceTrees = do
+backup :: FilePath -> [(FileName, FilePath, IgnoranceDef)] -> IO [AnchoredDirTree ()]
+backup backupDirRoot  sourceTrees  = do
     createDirectoryIfMissing False dataDir
     createDirectoryIfMissing False indexDir
     createDirectoryIfMissing False logDir
@@ -99,8 +101,8 @@ backup backupDirRoot  sourceTrees = do
       encodeFile (indexDir </> newSliceName ++ sliceLogicalTree_suffix) lodreeBackupCurrent
       encodeFile (indexDir </> sliceLogicalTree_suffix) lodreeBackupCurrent
 
-      lodreeSourceAllNodes <- makeLDir <$> forM sourceTrees ( \(treeName, treePath) -> do
-          lodreeSourceOneNode <- readSourceTree logger treePath
+      lodreeSourceAllNodes <- makeLDir <$> forM sourceTrees ( \(treeName, treePath, ignorances) -> do
+          lodreeSourceOneNode <- readSourceTree logger ignorances treePath
           encodeFile (indexDir </> (treeName ++ sliceSourceTree_suffix)) lodreeSourceOneNode
           return (treeName, lodreeSourceOneNode)
          )
@@ -131,11 +133,3 @@ convertToYaba (BackupTreeBuilder.LogicalLink x)  = Slice.LogicalLink x
 convertToYaba (BackupTreeBuilder.PhysicalLink x) = Slice.PhysicalLink x
 convertToYaba (BackupTreeBuilder.NewLink x)      = Slice.PhysicalLink x
 convertToYaba BackupTreeBuilder.Delete           = Slice.Delete
-
-
-ba :: IO ()
-ba = do
-  let backupDir = "./test/data/case3/backup"
-  let sourceOfMainTree = "./test/data/case3/source-of-maintree"
-  backup backupDir [("maintree", sourceOfMainTree)]
-  return ()

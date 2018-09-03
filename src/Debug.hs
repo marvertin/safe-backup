@@ -3,7 +3,7 @@
 
 
 module Debug (
-  q, w, p3, mainovec, e, rr, (>:), (<:), (?:), Test(..), ww, cc, ee, qq
+  q, w, p3, mainovec, e, (>:), (<:), (?:), Test(..), ww, cc, ee, qq
 ) where
 
 import           Crypto.Hash.SHA1      (hashlazy)
@@ -150,7 +150,7 @@ e = do
   let lodreeBackupCurrent = currentLodree lodreeBackupAll
   dump lodreeBackupCurrent
   putStrLn  " ============ SOURCE lodreeSourceAllNodes"
-  lodreeSourceOneNode <- readSourceTree stdOutLoggingEventHanler "./test/data/case4/source-of-maintree"
+  lodreeSourceOneNode <- readSourceTree stdOutLoggingEventHanler [] "./test/data/case4/source-of-maintree"
   let lodreeSourceAllNodes = makeLDir [("maintree", lodreeSourceOneNode)]
   dump lodreeSourceAllNodes
   putStrLn  " ============ COMPARE"
@@ -168,17 +168,11 @@ e = do
 
 ee = do
   putStrLn  " ====NOVE=========================="
-  lodree1 <- readSourceTree stdOutLoggingEventHanler "./test/data/case3/source-of-maintree"
+  lodree1 <- readSourceTree stdOutLoggingEventHanler [] "./test/data/case3/source-of-maintree"
   dump lodree1
   --putStrLn  " ====STARE=========================="
   --lodree2 <- readSourceTree' "./test/data/case3/source-of-maintree"
   --dump lodree2
-
-rr = do
-    let backupDir = "./test/data/case3/backup"
-    let sourceOfMainTree = "./test/data/case3/source-of-maintree"
-    backup backupDir [("maintree", sourceOfMainTree)]
-    return ()
 
 
 data Test = Test String deriving (Eq, Show)
