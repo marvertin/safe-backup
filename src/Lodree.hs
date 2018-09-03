@@ -89,13 +89,7 @@ findNode path (LDir _ list) = let
 --------------------------------------------------------
 --
 -- Instances for YAML
-{-
-instance ToJSON Ree where
-  -- toJSON (Finfo x y) = object ["x" .= x, "y" .= y]
-  toJSON Ree{..} = let val = show rsize ++ " " ++ toHexStr rhash
-     in toJSON val
 
--}
 
 instance ToJSON Lodree where
    toJSON (LFile ree)   = toJSON ree
