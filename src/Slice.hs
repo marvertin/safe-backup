@@ -3,6 +3,7 @@
 {-# LANGUAGE DuplicateRecordFields      #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE InstanceSigs               #-}
 {-# LANGUAGE NamedFieldPuns             #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RecordWildCards            #-}
@@ -40,7 +41,9 @@ import qualified Data.ByteString       as Strict
 import qualified Data.ByteString.Lazy  as Lazy
 import qualified Data.ByteString.UTF8  as BSU
 
+import qualified Data.HashMap.Strict   as HM
 import qualified Data.Map              as M
+import           Data.Text             hiding (lines, unlines)
 import           Data.Yaml
 import           GHC.Generics
 
@@ -108,11 +111,20 @@ deriving instance FromJSON IOException
   -- Instances for YAML
 
 instance ToJSON SliceTree where
-     toJSON (File _ x)   = toJSON x
+     toJSON (File _ x)   = toJSON (show x)
      toJSON (Dir _ list) = toJSON $ M.fromList (tupl <$> list)
        where
         tupl q@(File name _) = (name, q)
         tupl q@(Dir name _)  = (name, q)
+
+instance FromJSON SliceTree where
+  parseJSON :: Value -> Parser SliceTree
+  parseJSON q@(String text)   = (File "blb" . read) <$> parseJSON q
+  parseJSON q@(Object object) = (Dir "blbe" . mapConvert) <$> mapM parseJSON object
+   where
+    mapConvert :: HM.HashMap Text SliceTree -> [SliceTree]
+    mapConvert  =  fmap snd . HM.toList
+
 {-
 instance ToJSON SliceFile where
   toJSON (RegularFile Ree{..}) = toJSON $ show rsize ++ " " ++ toHexStr rhash
