@@ -17,11 +17,12 @@ type IgnoranceDef = [String]
 
 makeFilterFce :: [String] -> (RevPath -> Bool)
 makeFilterFce reglist revpath =
-    let fces = (neg <$> reglist) ++
+    let fces = (neg <$> wrapregexp <$> reglist) ++
                   [const $ Just True]
     in fromJust $ getFirst (foldMap First (fmap ($ revpath) fces))
 
-
+wrapregexp :: String -> String
+wrapregexp r = "^" ++ r ++ "$"
 -- = trace ("AAAAAAAA " ++ show x) (const True)
 
 -- fce :: String -> (RevPath -> Maybe Bool)
@@ -33,7 +34,8 @@ neg regexp        = justFalse  $ check regexp
 
 check :: String -> (RevPath -> Bool)
 -- check _ _ = True
-check regexp revpath = (replaceBacklashesToSlashes . pth) revpath =~ regexp
+check regexp revpath =
+    (replaceBacklashesToSlashes . pth) revpath =~ regexp
 
 
 justTrue :: (a -> Bool) -> (a -> Maybe Bool)
