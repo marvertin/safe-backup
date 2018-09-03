@@ -1,5 +1,6 @@
 forest:
-  maintree: 
+  maintree:
      path: ./test/data/case3/source-of-maintree
-  
-
+     ignore:
+       - NECHATI/nechati11.txt
+       - "!NECHATI/.*"

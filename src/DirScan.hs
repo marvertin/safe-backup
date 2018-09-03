@@ -141,6 +141,8 @@ pth = foldl (flip (</>)) []
 printLog :: Handle -> EventEnvelop a UTCTime -> IO UTCTime
 printLog handle (EventEnvelop revpath (Cumulative count' size' countSpeed sizeSpeed) event startTime) = do
   case event of
+    Ignore ->
+      hPutStrLn handle $ "IGNORE: " ++ pth revpath
     Start rootPath -> do
       hPutStrLn handle "========================================================================="
       hPutStrLn handle $ "Start scanning: " ++ rootPath ++ " at " ++ show startTime
