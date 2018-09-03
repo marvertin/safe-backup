@@ -31,7 +31,7 @@ import           Types
 import qualified Data.ByteString.Lazy  as Lazy
 
 readSourceTree :: EventHandler Lodree b -> FilePath -> IO Lodree
-readSourceTree eventHandler rootDir = scanDirectory (const makeLDir) (filterFord) readLFile
+readSourceTree eventHandler rootDir = fst <$> scanDirectory (const makeLDir) (filterFord) readLFile
    eventHandler
    rootDir
   where

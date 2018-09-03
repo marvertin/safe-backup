@@ -10,7 +10,8 @@ module DirScan (
   emptyEventHandler,
   stdOutLoggingEventHanler,
   hLoggingEventHandler,
-  EventHandler
+  EventHandler,
+  Event(..)
 ) where
 
 import           Control.Exception
@@ -40,11 +41,21 @@ data Event a
             efile   :: EventFile,
             eresult :: a
           }
-      | BeforeDir [String]
+      | BeforeDir { efords :: [String] }
+      | AfterDir  { efords     :: [String],
+                    etuplelist :: [(FilePath, a)],
+                    eresult    :: a
+                  }
+      | Start { erootPath :: FilePath }
+      | End {
+               erootPath :: FilePath,
+               eresult   :: a
+            }
+      | Ignore
 
 
 
-data EventFile = EventFile {
+newtype EventFile = EventFile {
      efileSize :: Integer
    }
 data Cumulative = Cumulative {
@@ -69,43 +80,41 @@ scanDirectory :: Show a =>
         (RevPath -> IO a) ->                -- file processor
         EventHandler a b ->
         FilePath ->                         -- scaned root
-        IO a                                -- result
+        IO (a, b)                           -- result,
 scanDirectory createDirNode predicate createFileNode (eventFce, eventStart) rootPath = do
     startTime <- getCurrentTime
-    putStrLn $ "Start scanning: " ++ rootPath ++ " at " ++ show startTime
     let nula = 0 :: Int
     evStart <- eventStart
-    Acum ((_, count, size, _): _) reslist _
-      <- scanDirectory' 0 startTime (Acum (flowAvarEmpty startTime) [] evStart) []
+    let startFlowAvar = flowAvarEmpty startTime
+    evacum2 <- emitEvent' [] startFlowAvar (Start rootPath) evStart
+    Acum flowAvar ((_, result) : _) evacum
+      <- scanDirectory' 0 startTime (Acum startFlowAvar [] evacum2) []
     endTime <- getCurrentTime
-    let (countSpeed, sizeSpeed) = averageSpeed' (startTime, 0, 0, startTime) (endTime, count, size, endTime)
-    let duration = diffUTCTime endTime startTime
-    putStrLn $ "End scanning at " ++ show endTime ++ ", duration=" ++ show duration ++ "; total: "
-    printf "%6d# %10.3f MB | %9.2f #/s  %10.3f MB/s  \n" count (sizeInMb size) countSpeed sizeSpeed
-    -- putStrLn $ "Result: " ++ show reslist
-    return . snd . head $ reslist
+    evacum3 <- emitEvent' [] [head flowAvar, last startFlowAvar]  (End rootPath result) evacum2
+    --putStrLn $ "End scanning at " ++ show endTime ++ ", duration=" ++ show duration ++ "; total: "
+    --printf "%6d# %10.3f MB | %9.2f #/s  %10.3f MB/s  \n" count (sizeInMb size) countSpeed sizeSpeed
+    return (result, evacum3)
  where
   -- scanDirectory' :: Show a => Int -> Acum a -> RevPath -> IO (Acum a)
-  scanDirectory' level startTime acum@(Acum flowAvar reslist evacum) revpath = do
+  scanDirectory' level startTime acum@(Acum flowAvar reslist evacum) revpath =
     if (not . null) revpath -- root level is not checked, predicate has never empty
-        && (not . predicate) revpath then -- if not skip whole subtree
-       return acum
+        && (not . predicate) revpath then do -- if not skip whole subtree
+       evacum2 <- emitEvent flowAvar Ignore evacum
+       return $  Acum flowAvar reslist evacum2
     else do
       let fullPath = rootPath </> pth revpath
       -- putStrLn $ "Pokus: " ++ path
       isDir <- doesDirectoryExist fullPath
-      -- time <- getCurrentTime
-      --putStr $  "\r" ++ show level ++ ": " ++ show acum ++ "  " ++ replicate (level * 4) ' ' ++ path
-      -- print time
-      -- printf "%2d #%6d %10.3f MB %s %s  \n" level count (sizeInMb size) (show time) path
       if isDir then do
          fords <- sort <$> listDirectory fullPath -- simple names
           -- fords <- fmap (fmap (path </>)) (listDirectory fullPath)
-         Acum newFlowAvar lili evacum2 <- foldM (scanDirectory' (level + 1) startTime)
-                                         (Acum flowAvar [] evacum)
+         evacum2 <- emitEvent flowAvar (BeforeDir fords) evacum
+         Acum newFlowAvar lili evacum3 <- foldM (scanDirectory' (level + 1) startTime)
+                                         (Acum flowAvar [] evacum2)
                                          (fmap (:revpath) (reverse fords)) -- foldM reverts it again
          let dirnode = createDirNode revpath lili
-         return $  Acum newFlowAvar ((safeHead "" revpath, dirnode): reslist) evacum2
+         evacum4 <- emitEvent flowAvar (AfterDir fords lili dirnode) evacum3
+         return $  Acum newFlowAvar ((safeHead "" revpath, dirnode): reslist) evacum4
 
        else do
          sz <- getFileSize fullPath
@@ -116,12 +125,9 @@ scanDirectory createDirNode predicate createFileNode (eventFce, eventStart) root
          evacum3 <- emitEvent newFlowAvar (AfterFile (EventFile sz) result) evacum2
          let newAcum =  Acum newFlowAvar ((head revpath, result): reslist) evacum3
          return newAcum
-        where
-          emitEvent  flowAvar event evacum =
-             eventFce $ EventEnvelop revpath
-                             (getCumulative flowAvar)
-                             event evacum
-
+    where emitEvent = emitEvent' revpath
+  emitEvent'  revpath flowAvar event evacum =
+     eventFce $ EventEnvelop revpath (getCumulative flowAvar) event evacum
 
   fullPth :: RevPath -> FilePath
   fullPth p = rootPath </> pth  p
@@ -133,19 +139,28 @@ pth = foldl (flip (</>)) []
 
 
 printLog :: Handle -> EventEnvelop a UTCTime -> IO UTCTime
-printLog handle (EventEnvelop revpath (Cumulative count' size' countSpeed sizeSpeed) event startTime) =
+printLog handle (EventEnvelop revpath (Cumulative count' size' countSpeed sizeSpeed) event startTime) = do
   case event of
+    Start rootPath -> do
+      hPutStrLn handle "========================================================================="
+      hPutStrLn handle $ "Start scanning: " ++ rootPath ++ " at " ++ show startTime
+    End _ _ -> do
+      endTime <- getCurrentTime
+      hPutStrLn handle $ "End scanning at " ++ show endTime ++ ", duration=" ++ show (duration endTime) ++ "; total: "
+      hPrintf handle "%6d# %10.3f MB | %9.2f #/s  %10.3f MB/s  \n" count' (sizeInMb size') countSpeed sizeSpeed
     AfterFile (EventFile size)  _ -> do
       time' <- getCurrentTime
-      hPutStr handle $ take 6 (show (diffUTCTime time' startTime)) ++ "s "
+      hPutStr handle $ duration time'
       hPrintf handle "%s %6d # %10.3f MB %9.2f #/s  %7.3f MB/s %10.3f %s\n"
           (take 19 $ show time') count' (sizeInMb size') countSpeed sizeSpeed (sizeInMb size) (pth revpath)
-      return startTime
-    BeforeFile (EventFile size) -> do
+    BeforeFile (EventFile size) ->
       when (size > 1024 * 1024 * 100) (do
         hPrintf handle"  ... big file: %10.3f - %s \r" (sizeInMb size) (pth revpath)
         hFlush handle)
-      return startTime
+    _ -> return ()
+  return startTime
+  where duration time' = take 6 (show (diffUTCTime time' startTime)) ++ "s "
+
 
 updateFlowAvar :: FlowAvar -> (Int, Integer) -> UTCTime ->FlowAvar
 updateFlowAvar flowavar (count', size') nowTime =
