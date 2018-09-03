@@ -32,6 +32,11 @@ import           System.FilePath
 import           TurboWare
 import           Types
 
+import           Data.Time.Clock.POSIX
+-- import           Data.Time.Clock.UTC
+
+millisToUTC :: Integer -> UTCTime
+millisToUTC t = posixSecondsToUTCTime $ (fromInteger t) / 1000
 
 data Lodree = LFile Ree
             | LDir Ree [(FileName, Lodree)]
@@ -53,6 +58,7 @@ makeLDir list' = LDir (foldToDree list) list
       in Ree { rphysPath = "",
                rsize = sum $ (pickSize . snd) <$> list,
                rcount = sum $ (pickCount . snd) <$> list,
+               rtime = millisToUTC 0,
                rhash = Cr.finalize $ foldl Cr.update Cr.init (hashes ++ names)
             }-- emptyDRee = DRee 0 0 Strict.empty
 

@@ -6,6 +6,7 @@
 {-# LANGUAGE NamedFieldPuns             #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE StandaloneDeriving         #-}
 
 module Slice
     (
@@ -51,10 +52,10 @@ type AnchoredSliceTree = AnchoredDirTree SliceFile
 
 data SliceFile = RegularFile Ree
               |  MetaFile SliceCmd  -- file content
-              deriving (Eq, Show, Read)
+              deriving (Eq, Show, Read, Generic, ToJSON, FromJSON)
 
 data SliceCmd = Delete | LogicalLink FilePath | PhysicalLink FilePath
-  deriving (Eq, Show, Read, Generic, ToJSON)
+  deriving (Eq, Show, Read, Generic, ToJSON, FromJSON)
 
 
 parseMetaFile :: String -> SliceCmd
@@ -90,6 +91,17 @@ printSliceFile2 (MetaFile _)                 = Nothing
 instance Dumpable SliceTree where
   toDump = dirTreeToStringList printSliceFile
 
+{-
+deriving instance Generic SliceTree
+deriving instance ToJSON SliceTree
+deriving instance FromJSON SliceTree
+
+deriving instance Generic IOException
+deriving instance ToJSON IOException
+deriving instance FromJSON IOException
+
+-}
+
 
   --------------------------------------------------------
   --
@@ -101,7 +113,9 @@ instance ToJSON SliceTree where
        where
         tupl q@(File name _) = (name, q)
         tupl q@(Dir name _)  = (name, q)
-
+{-
 instance ToJSON SliceFile where
   toJSON (RegularFile Ree{..}) = toJSON $ show rsize ++ " " ++ toHexStr rhash
   toJSON (MetaFile x)          = toJSON x
+
+-}

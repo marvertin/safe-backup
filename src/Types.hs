@@ -20,6 +20,8 @@ module Types (
   indexSubdir,
   dataSubdir,
   logSubdir,
+
+  UTCTime
 ) where
 
 import qualified Data.ByteString       as BS
@@ -33,7 +35,7 @@ import           System.FilePath
 type FileSize = Integer
 
 data Ree = Ree { rphysPath :: FilePath, rcount :: Int, rsize :: FileSize, rtime :: UTCTime, rhash :: BS.ByteString }
-  deriving (Eq, Show, Read, ToJSON, Generic)
+  deriving (Eq, Show, Read, ToJSON, FromJSON, Generic)
 
 type Hash = BS.ByteString
 
