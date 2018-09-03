@@ -56,7 +56,7 @@ readSlice'' eventHandler rootDir =
     readSFile :: RevPath -> IO SliceTree
     readSFile rp = File (head rp) <$> loadSliceFile rootDir rp
 
-    mkDir rp list = Dir (safeHead rootDir1 rp) (fmap snd list)
+    mkDir rp list = Dir (safeHead rootDir1 rp) (filter (not . isEmptyDir) . fmap snd $ list)
 
     filterFilesInRoot [fordName] = takeExtension fordName /= ".yaml"
     filterFilesInRoot _          = True
@@ -84,3 +84,7 @@ totalDirSize = sum . fmap size0
 
 totalFilesCount :: SliceTree -> Int
 totalFilesCount = sum . fmap (const 1)
+
+isEmptyDir :: SliceTree -> Bool
+isEmptyDir (Dir _ []) = True
+isEmptyDir _          = False

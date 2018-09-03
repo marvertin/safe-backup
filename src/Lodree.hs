@@ -41,8 +41,10 @@ emptyLodree :: Lodree
 emptyLodree = makeLDir []
 
 makeLDir :: [(FileName, Lodree)] -> Lodree
-makeLDir list = LDir (foldToDree list) list
+makeLDir list' = LDir (foldToDree list) list
   where
+    list = filter (not . isEmptyDir . snd) list'
+
     foldToDree :: [(FileName, Lodree)] -> Ree
     foldToDree list = let
         sortedList = sortBy (compare `on` fst) list
@@ -75,7 +77,9 @@ hashLodree = pickHash
 pickCount :: Lodree -> Int
 pickCount = rcount . ree
 
-
+isEmptyDir :: Lodree -> Bool
+isEmptyDir (LDir _ []) = True
+isEmptyDir _           = False
 
 findNode :: FilePath -> Lodree -> Maybe Lodree
 findNode [] lodree = Just lodree
