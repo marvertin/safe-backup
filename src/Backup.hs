@@ -78,11 +78,10 @@ writeBackup loghandle x sourceTrees = do
         writeFile cesta (formatMetaFile . convertToYaba $ cmd)
 
 yabaFilePrefix :: Cmd -> String
-yabaFilePrefix (Insert _)                         = "~INSERT~"
-yabaFilePrefix BackupTreeBuilder.Delete           = "~DELETE-OR-MOVE~"
-yabaFilePrefix (BackupTreeBuilder.LogicalLink  _) = "~L-LINK~"
-yabaFilePrefix (BackupTreeBuilder.PhysicalLink _) = "~P-LINK~"
-yabaFilePrefix (NewLink _)                        = "~N-LINK~"
+yabaFilePrefix (Insert _)                 = "~INSERT~"
+yabaFilePrefix BackupTreeBuilder.Delete   = "~DELETE-OR-MOVE~"
+yabaFilePrefix (BackupTreeBuilder.Link _) = "~P-LINK~"
+yabaFilePrefix (NewLink _)                = "~N-LINK~"
 
 backup :: FilePath -> [(FileName, FilePath, IgnoranceDef)] -> IO [AnchoredDirTree ()]
 backup backupDirRoot  sourceTrees  = do
@@ -129,7 +128,6 @@ nextSliceName = do
   return $ formatTime defaultTimeLocale (iso8601DateFormat (Just "%H-%M-%SZ")) now
 
 convertToYaba :: Cmd -> SliceCmd
-convertToYaba (BackupTreeBuilder.LogicalLink x)  = Slice.LogicalLink x
-convertToYaba (BackupTreeBuilder.PhysicalLink x) = Slice.PhysicalLink x
-convertToYaba (BackupTreeBuilder.NewLink x)      = Slice.PhysicalLink x
-convertToYaba BackupTreeBuilder.Delete           = Slice.Delete
+convertToYaba (BackupTreeBuilder.Link x)    = Slice.PhysicalLink x
+convertToYaba (BackupTreeBuilder.NewLink x) = Slice.PhysicalLink x
+convertToYaba BackupTreeBuilder.Delete      = Slice.Delete

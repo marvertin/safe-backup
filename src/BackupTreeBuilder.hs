@@ -18,7 +18,7 @@ import           TreeComparator
 import           TurboWare
 import           Types
 
-data Cmd = Insert Hash | Delete | LogicalLink FilePath | PhysicalLink FilePath | NewLink FilePath deriving (Show)
+data Cmd = Insert Hash | Delete | Link FilePath | NewLink FilePath deriving (Show)
 
 type BackupTree = DirTree Cmd
 type AnchoredBackupTree = AnchoredDirTree Cmd
@@ -33,7 +33,7 @@ buildBackup blodree slodree outputDir =
       hashing name lodree =
          case M.lookup (hashLodree lodree) hashes of
           Nothing   ->   bFromLodree name lodree
-          Just path -> File name (PhysicalLink path)
+          Just path -> File name (Link path)
 
 
       bFromLodree :: FileName -> Lodree  -> BackupTree
