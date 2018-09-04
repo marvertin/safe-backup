@@ -6,6 +6,7 @@ module Hashpairing (
     -- flattenRees,
     -- flattenLodrees,
     createMapOfHashes,
+    createMapOfHashes',
 
 ) where
 
@@ -31,10 +32,10 @@ createMapOfHashes' lodree =
       list :: [(Hash, (FilePath, Lodree))]
       list =
             map (\(path, lodree) -> (rhash . ree $ lodree , (path, lodree))) $
-            (sortBy (flip compare `on` fst) $ flattenLodrees lodree)
+            flattenLodrees lodree
 
       grouped :: [[(Hash, (FilePath, Lodree))]]
-      grouped = groupBy ((==) `on` fst) list
+      grouped = groupBy ((==) `on` fst) $ sortBy (compare `on` fst) list
 
       organized :: [(Hash, ([FilePath], Lodree))]
       organized = fmap konv grouped
@@ -43,11 +44,8 @@ createMapOfHashes' lodree =
 
 konv :: [(Hash, (FilePath, Lodree))] -> (Hash, ([FilePath], Lodree))
 konv x = let
-              pathList :: [FilePath]
-              pathList = (fst . snd) <$> x
-              hash :: Hash
+              pathList = reverse . sort $ (fst . snd) <$> x
               hash = fst . head $ x
-              lodree :: Lodree
               lodree = snd . snd . head $ x
          in (hash, (pathList, lodree))
 
@@ -63,3 +61,6 @@ flattenLodrees = fla [] ""
 
 instance Dumpable (M.Map Hash FilePath) where
    toDump m = map (\(k,v) -> toHexStr k ++ " = " ++ v) (M.toList m)
+
+instance Dumpable (M.Map Hash ([FilePath], Lodree)) where
+  toDump m = map (\(k, (v, _)) -> toHexStr k ++ " = " ++ show v) (M.toList m)

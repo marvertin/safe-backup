@@ -100,8 +100,11 @@ q = do
   dump lodree2
 
 
-  putStrLn  " ============ HASHPAIRS - logical"
+  putStrLn  " ============ HASHPAIRS"
   dump $ createMapOfHashes lodree2
+
+  putStrLn  " ============ HASHPAIRS'"
+  dump $ createMapOfHashes' lodree2
 
 
   forM_ ["/slice1/přesunout-do-noveho", "blb", "/slice1/SMAZATI"] (\co -> do
