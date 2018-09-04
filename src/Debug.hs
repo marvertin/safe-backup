@@ -99,8 +99,6 @@ q = do
   let lodree2 = mergeToLodree lodree1 d2
   dump lodree2
 
-  putStrLn  " ============ HASHPAIRS - phys"
-  dump $ createFhysicalHashMap lodree2
 
   putStrLn  " ============ HASHPAIRS - logical"
   dump $ createMapOfHashes lodree2
@@ -163,8 +161,6 @@ e = do
   let diff = compareTrees lodreeBackupCurrent lodreeSourceAllNodes
   dump (fromJust diff)
 
-  putStrLn  " ============ HASHPAIRS - physical - lodreeBackupAll"
-  dump $ createFhysicalHashMap lodreeBackupAll
 
   putStrLn  " ============ HASHPAIRS - logical - lodreeBackupAll"
   dump $ createMapOfHashes lodreeBackupAll

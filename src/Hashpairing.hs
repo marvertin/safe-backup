@@ -3,10 +3,8 @@
 {-# LANGUAGE RecordWildCards   #-}
 
 module Hashpairing (
-      --createFhysicalHashMap
-    flattenRees,
-    flattenLodrees,
-    createFhysicalHashMap,
+    -- flattenRees,
+    -- flattenLodrees,
     createMapOfHashes,
 
 ) where
@@ -20,21 +18,38 @@ import           TurboWare
 import           Types
 
 
-createFhysicalHashMap :: Lodree -> M.Map Hash FilePath
-createFhysicalHashMap lodree = M.fromList $
-  map (\Ree{..} -> (rhash, rphysPath)) $ flattenRees lodree
+
 
 createMapOfHashes :: Lodree -> M.Map Hash FilePath
 createMapOfHashes lodree = M.fromList $ -- last winns
   map (\(path, lodree) -> (rhash . ree $ lodree , path)) $
    (reverse . sortBy (compare `on` fst) $ flattenLodrees lodree)
 
+createMapOfHashes' :: Lodree -> M.Map Hash ([FilePath], Lodree)
+createMapOfHashes' lodree =
+  let
+      list :: [(Hash, (FilePath, Lodree))]
+      list =
+            map (\(path, lodree) -> (rhash . ree $ lodree , (path, lodree))) $
+            (sortBy (flip compare `on` fst) $ flattenLodrees lodree)
 
-flattenRees :: Lodree -> [Ree]
-flattenRees = fla []
-  where
-    fla reslist (LFile ree)  = ree : reslist
-    fla reslist (LDir _ sez) = ((snd <$> sez) >>= fla reslist)
+      grouped :: [[(Hash, (FilePath, Lodree))]]
+      grouped = groupBy ((==) `on` fst) list
+
+      organized :: [(Hash, ([FilePath], Lodree))]
+      organized = fmap konv grouped
+  in M.fromList organized
+
+
+konv :: [(Hash, (FilePath, Lodree))] -> (Hash, ([FilePath], Lodree))
+konv x = let
+              pathList :: [FilePath]
+              pathList = (fst . snd) <$> x
+              hash :: Hash
+              hash = fst . head $ x
+              lodree :: Lodree
+              lodree = snd . snd . head $ x
+         in (hash, (pathList, lodree))
 
 flattenLodrees :: Lodree -> [(FilePath, Lodree)]
 flattenLodrees = fla [] ""
