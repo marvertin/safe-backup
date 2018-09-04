@@ -9,33 +9,44 @@ import           Data.Maybe
 import           Data.Monoid
 import           Debug.Trace
 import           DirScan
+import           System.FilePath
 import           Text.Regex.Posix
 import           TurboWare
 
 
 type IgnoranceDef = [String]
 
-makeFilterFce :: [String] -> (RevPath -> Bool)
-makeFilterFce reglist revpath =
-    let fces = (neg <$> wrapregexp <$> reglist) ++
-                  [const $ Just True]
-    in fromJust $ getFirst (foldMap First (fmap ($ revpath) fces))
+type Expr = String
+type Expr1 = String
+type Expr2 = String
+
+makeFilterFce :: [Expr2] -> (RevPath -> Bool)
+makeFilterFce exprlist revpath =
+    let path = (replaceBacklashesToSlashes . pth) revpath
+        fces = (neg <$> exprlist) ++ [const $ Just True]
+    in fromJust $ getFirst (foldMap First (fmap ($  path) fces))
+
+
+neg :: Expr2 -> (FilePath -> Maybe Bool)
+neg ('i': expr1) = justTrue $ check expr1
+neg ('e': expr1) = justFalse $ check expr1
+neg __           = const Nothing
+
+check :: Expr1 -> (FilePath -> Bool)
+check ('=': expr) path = checkEquality expr path
+check ('~': expr) path = checkRegexp expr path
+check expr _           = error ("Bat pattern in filter: " ++ expr)
+-- check _ _ = True
+
+checkEquality :: Expr -> FilePath -> Bool
+checkEquality = (==)
+
+
+checkRegexp :: Expr -> FilePath -> Bool
+checkRegexp regexp path = path =~ wrapregexp regexp
 
 wrapregexp :: String -> String
 wrapregexp r = "^" ++ r ++ "$"
--- = trace ("AAAAAAAA " ++ show x) (const True)
-
--- fce :: String -> (RevPath -> Maybe Bool)
-
-
-neg :: String -> (RevPath -> Maybe Bool)
-neg ('!': regexp) = justTrue $ check regexp
-neg regexp        = justFalse  $ check regexp
-
-check :: String -> (RevPath -> Bool)
--- check _ _ = True
-check regexp revpath =
-    (replaceBacklashesToSlashes . pth) revpath =~ regexp
 
 
 justTrue :: (a -> Bool) -> (a -> Maybe Bool)

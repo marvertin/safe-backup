@@ -3,7 +3,7 @@
 
 
 module Debug (
-  q, w, p3, mainovec, e, (>:), (<:), (?:), Test(..), ww, cc, ee, qq
+  q, w, p3, mainovec, e, (>:), (<:), (?:), Test(..), ww, cc, ee, qq, yy
 ) where
 
 import           Crypto.Hash.SHA1      (hashlazy)
@@ -17,6 +17,7 @@ import           DirScan
 import           Dump
 import qualified GHC.IO.Encoding       as GIE
 import           Hashpairing
+import           Ignorances
 import           Lib
 import           Lodree
 import           SliceScaner           hiding (RegularFile)
@@ -234,3 +235,9 @@ cc = do
   print $ check xxx
   let (Right tt :: Either ParseException (Tree Finfo)) = (decodeEither' . encode) xxx
   B8.putStrLn $ encode tt
+
+yy = do
+   print $ True == makeFilterFce []  ["ahoj"]
+   print $ False == makeFilterFce ["e=ahoj"]  ["ahoj"]
+   print $ False == makeFilterFce ["e~ahoj.*"]  ["ahojek"]
+   print $ True == makeFilterFce ["e~ahoj.*"]  ["ahajek"]

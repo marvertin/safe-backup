@@ -25,11 +25,11 @@ import           Types
 type ForestDef = [(String, FilePath, IgnoranceDef)]
 
 
-data CfgTree = CfgTree { path :: FilePath, ignore :: Maybe [String]} deriving (Show, Generic, FromJSON )
+data CfgTree = CfgTree { path :: FilePath, filter :: Maybe [String]} deriving (Show, Generic, FromJSON )
 newtype Config = Config { forest :: M.Map String CfgTree }  deriving (Show, Generic, FromJSON )
 
 pickForestDef :: Config -> ForestDef
-pickForestDef = map (\(treename, CfgTree{..}) -> (treename, path, fromMaybe [] ignore) )
+pickForestDef = map (\(treename, CfgTree{..}) -> (treename, path, fromMaybe [] filter) )
   . M.toList . forest
 
 pickIgnorenceDef :: Config -> IgnoranceDef
