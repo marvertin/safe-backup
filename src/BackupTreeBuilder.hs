@@ -2,6 +2,7 @@ module BackupTreeBuilder (
   buildBackup,
   AnchoredBackupTree,
   Cmd(..),
+  LinkType(..)
 ) where
 
 
@@ -18,7 +19,8 @@ import           TreeComparator
 import           TurboWare
 import           Types
 
-data Cmd = Insert Hash | Delete | Link FilePath | NewLink FilePath deriving (Show)
+data LinkType = Newl | Movel deriving (Show)
+data Cmd = Insert Hash | Delete | Link LinkType Hash [FilePath] Lodree  deriving (Show)
 
 type BackupTree = DirTree Cmd
 type AnchoredBackupTree = AnchoredDirTree Cmd
@@ -27,13 +29,15 @@ type AnchoredBackupTree = AnchoredDirTree Cmd
 buildBackup :: Lodree -> Lodree ->  FileName -> Maybe BackupTree
 buildBackup blodree slodree outputDir =
   let
-      hashes = createMapOfHashes blodree
+      hashes = createMapOfHashes' blodree
 
       hashing :: FileName -> Lodree -> BackupTree
       hashing name lodree =
-         case M.lookup (hashLodree lodree) hashes of
-          Nothing   ->   bFromLodree name lodree
-          Just path -> File name (Link path)
+        let hash = hashLodree lodree
+        in
+         case M.lookup hash hashes of
+          Nothing              ->   bFromLodree name lodree
+          Just (paths, lodree) -> File name (Link Movel hash paths lodree)
 
 
       bFromLodree :: FileName -> Lodree  -> BackupTree
@@ -64,7 +68,7 @@ replaceRedundantNewFiles =
       repla path hm this@(File name (Insert hash)) =
           case M.lookup hash hm of
             Nothing   -> (M.insert hash (name:path) hm, this)
-            Just path -> (hm, File name (NewLink (namesToPath path)))
+            Just path -> (hm, File name ( Link Newl hash [namesToPath path] emptyLodree))
     -- mapAccumL :: Traversable t => (a -> b -> (a, c)) -> a -> t b -> (a, t c)
       repla path hm (Dir name list) = let
          (hm2 , list2) = mapAccumL (repla (name:path)) hm list
