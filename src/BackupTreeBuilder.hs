@@ -26,15 +26,13 @@ type AnchoredBackupTree = AnchoredDirTree Cmd
 
 buildBackup :: Lodree -> Lodree ->  FileName -> Maybe BackupTree
 buildBackup blodree slodree outputDir =
-  let fileHashes = createFhysicalHashMap blodree
-      dirHashes = createLogicalHashMap blodree
+  let
+      hashes = createMapOfHashes blodree
 
       hashing :: FileName -> Lodree -> BackupTree
       hashing name lodree =
-         case M.lookup (hashLodree lodree) fileHashes of
-          Nothing   ->  case M.lookup (hashLodree lodree) dirHashes of
-                            Nothing   -> bFromLodree name lodree
-                            Just path -> File name (LogicalLink path)
+         case M.lookup (hashLodree lodree) hashes of
+          Nothing   ->   bFromLodree name lodree
           Just path -> File name (PhysicalLink path)
 
 

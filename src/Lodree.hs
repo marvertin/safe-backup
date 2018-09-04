@@ -13,6 +13,7 @@ module Lodree (
 
   currentLodree,
   findLodreeNode,
+  ree
 ) where
 
 import qualified Crypto.Hash.SHA1      as Cr

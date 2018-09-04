@@ -13,6 +13,7 @@ import           Data.Maybe
 --import           Filesystem.Path
 import           Backup
 import           BackupTreeBuilder
+import           Control.Monad
 import           DirScan
 import           Dump
 import qualified GHC.IO.Encoding       as GIE
@@ -84,30 +85,34 @@ p3 = do
 
 
 q = do
-  (base :/ d) <- readSlice  $ "./test/data/" ++ backupname ++ "/2018-02-03T00-00-00.yaba"
-  putStrLn $ " ============ " ++ base
-  dump d
+  (base1 :/ d1) <- readSlice $ "./test/data/hashing/slice1"
+  putStrLn $ " ============ " ++ base1
+  dump d1
   putStrLn " ============ "
-  let lodree1 = mergeToLodree emptyLodree d
+  let lodree1 = mergeToLodree emptyLodree d1
   dump lodree1
 
-  (base :/ d) <- readSlice $ "./test/data/" ++ backupname ++ "/2018-02-04T00-00-00.yaba"
-  putStrLn $ " ============= " ++ base
-  dump d
+  (base2 :/ d2) <- readSlice $ "./test/data/hashing/slice2"
+  putStrLn $ " ============ " ++ base2
+  dump d2
   putStrLn " ============ "
-  let lodree2 = mergeToLodree lodree1 d
+  let lodree2 = mergeToLodree lodree1 d2
   dump lodree2
-
-  let co = "maintree/M/OO/"
-  -- let co = "/"
-  putStrLn $ " ============ VYBER " ++ co
-  dump $ fromJust $ findLodreeNode co (currentLodree lodree2)
 
   putStrLn  " ============ HASHPAIRS - phys"
   dump $ createFhysicalHashMap lodree2
 
   putStrLn  " ============ HASHPAIRS - logical"
-  dump $ createLogicalHashMap lodree2
+  dump $ createMapOfHashes lodree2
+
+
+  forM_ ["/slice1/přesunout-do-noveho", "blb", "/slice1/SMAZATI"] (\co -> do
+      putStrLn $ " ============ VYBER " ++ co
+      case findLodreeNode co (lodree2) of
+        Just x  -> dump x
+        Nothing ->   putStrLn "NIC"
+    )
+
 
 qq = do
   (base :/ d) <- readSlice  $ "./test/data/" ++ backupname ++ "/2018-02-03T00-00-00.yaba"
@@ -162,7 +167,7 @@ e = do
   dump $ createFhysicalHashMap lodreeBackupAll
 
   putStrLn  " ============ HASHPAIRS - logical - lodreeBackupAll"
-  dump $ createLogicalHashMap lodreeBackupAll
+  dump $ createMapOfHashes lodreeBackupAll
 
   putStrLn $ unlines $ dirTreeToStringList (Just . toDumpS) $
     fromJust $ buildBackup lodreeBackupAll lodreeSourceAllNodes "POKUSNYBEKUP"
