@@ -21,21 +21,29 @@ import           Types
 
 data LinkType = Newl | Movel deriving (Show)
 data Cmd = Insert Hash | Delete | Link LinkType Hash [FilePath] Lodree  deriving (Show)
+data Paths = Paths { pathsNew :: [FilePath], pathsLast:: [FilePath], pathsHistory :: [FilePath] }
 
 type BackupTree = DirTree Cmd
 type AnchoredBackupTree = AnchoredDirTree Cmd
 
 
 buildBackup :: Lodree -> Lodree ->  FileName -> Maybe BackupTree
-buildBackup blodree slodree outputDir =
+buildBackup sliceLodree surceLodree outputDir =
   let
-      hashes = createMapOfHashes' blodree
+      sliceHashes = createMapOfHashes' sliceLodree
+      sourceHashes = createMapOfHashes' surceLodree
+      currentSliceHashes = createMapOfHashes' (currentLodree sliceLodree)
+
+      makePaths :: Hash -> Paths
+      makePaths hash =
+        let find  set = maybe [] fst (M.lookup hash set)
+        in Paths (find sourceHashes) (find currentSliceHashes) (find sliceHashes)
 
       hashing :: FileName -> Lodree -> BackupTree
       hashing name lodree =
         let hash = hashLodree lodree
         in
-         case M.lookup hash hashes of
+         case M.lookup hash sliceHashes of
           Nothing              ->   bFromLodree name lodree
           Just (paths, lodree) -> File name (Link Movel hash paths lodree)
 
@@ -52,8 +60,8 @@ buildBackup blodree slodree outputDir =
       bFromDirCompare name (QRight lodree)  = hashing name lodree
       bFromDirCompare name (QBoth _ lodree) = hashing name lodree
       bFromDirCompare name (QDir list) =  Dir name (map (uncurry bFromDirCompare) list)
-      -- diff = trace ("\n\nslodree: " ++ show slodree ++ "\n\ncurrentLodre eblodree: " ++ show (currentLodree blodree) ++ "\n\n")
-      diff = compareTrees (currentLodree blodree) slodree
+      -- diff = trace ("\n\nsurceLodree: " ++ show surceLodree ++ "\n\ncurrentLodre esliceLodree: " ++ show (currentLodree sliceLodree) ++ "\n\n")
+      diff = compareTrees (currentLodree sliceLodree) surceLodree
 
   in  (replaceRedundantNewFiles . bFromDirCompare outputDir) <$> diff
 
