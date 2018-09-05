@@ -53,7 +53,7 @@ type SliceTree = DirTree SliceFile
 type AnchoredSliceTree = AnchoredDirTree SliceFile
 
 
-data SliceFile = RegularFile Ree
+data SliceFile = RegularFile Ree FilePath
               |  MetaFile SliceCmd  -- file content
               deriving (Eq, Show, Read, Generic, ToJSON, FromJSON)
 
@@ -73,8 +73,8 @@ formatMetaFile :: SliceCmd -> String
 formatMetaFile x = unlines ["#yaba1", show x, "------------------------"]
 
 isSliceRegularFile :: SliceTree -> Bool
-isSliceRegularFile (File _ (RegularFile _)) = True
-isSliceRegularFile _                        = False
+isSliceRegularFile (File _ (RegularFile _ _)) = True
+isSliceRegularFile _                          = False
 
 isSliceMetaFile :: SliceTree -> Bool
 isSliceMetaFile (File _ (MetaFile _)) = True
@@ -82,12 +82,12 @@ isSliceMetaFile _                     = False
 
 
 printSliceFile :: SliceFile ->  Maybe String
-printSliceFile (RegularFile Ree{..}) = Just$ "  #" ++ show rsize ++ " " ++ toHexStr rhash ++ " \"" ++ rphysPath ++ "\""
+printSliceFile (RegularFile Ree{..} realPath) = Just$ "  #" ++ show rsize ++ " " ++ toHexStr rhash ++ " \"" ++ realPath ++ "\""
 printSliceFile (MetaFile sliceCmd) = Just$  show sliceCmd
 
 printSliceFile2 :: SliceFile -> Maybe String
-printSliceFile2 (RegularFile Ree{rphysPath}) = Just rphysPath
-printSliceFile2 (MetaFile _)                 = Nothing
+printSliceFile2 (RegularFile _ realPath) = Just realPath
+printSliceFile2 (MetaFile _)             = Nothing
 
 --------------------------------------------------------
 

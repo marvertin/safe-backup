@@ -53,7 +53,7 @@ buildBackup sliceLodree surceLodree outputDir =
       --bFromLodree name lodree@(LFile _) = File name (Insert (hashLodree lodree))
       --bFromLodree name (LDir _ list) = Dir name (map (uncurry bFromLodree) list)
       -- TODO Také vyřešit hašování
-      bFromLodree name lodree@(LFile _) = File name (Insert (hashLodree lodree))
+      bFromLodree name lodree@(LFile _ _) = File name (Insert (hashLodree lodree))
       bFromLodree name (LDir _ list) = Dir name (map (uncurry hashing) list)
 
       bFromDirCompare :: FileName -> DirCompare -> BackupTree

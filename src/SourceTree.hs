@@ -40,7 +40,7 @@ readSourceTree eventHandler ignorance rootDir =
                      rootDir
   where
     readLFile :: RevPath -> IO Lodree
-    readLFile rp = LFile <$> loadFileRee (rootDir </> pth rp)
+    readLFile rp =  (flip LFile) (pth rp) <$> loadFileRee (rootDir </> pth rp)
 
 
 scanDirectoryTest :: FilePath -> IO ()

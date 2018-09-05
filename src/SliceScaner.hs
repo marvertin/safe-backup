@@ -70,8 +70,8 @@ loadSliceFile rootPath rp = do
   size <- getFileSize realPath
   time <- getModificationTime realPath
   hash <- computeFileHash realPath
-  let physPath = "/" ++ takeFileName rootPath ++ "/" ++ path
-  if not $ yabaSuffix `isSuffixOf` path then return (RegularFile $ Ree physPath 1 size time hash)
+  let originalPath = "/" ++ takeFileName rootPath ++ "/" ++ path
+  if not $ yabaSuffix `isSuffixOf` path then return (RegularFile  (Ree 1 size time hash) originalPath )
           else (MetaFile . parseMetaFile . T.unpack) <$> TIO.readFile realPath
 
 
@@ -79,8 +79,8 @@ totalDirSize :: SliceTree -> FileSize
 totalDirSize = sum . fmap size0
   where
     size0 :: SliceFile -> FileSize
-    size0 (MetaFile _)          = 100 -- odhadnout
-    size0 (RegularFile Ree{..})=rsize
+    size0 (MetaFile _)            = 100 -- odhadnout
+    size0 (RegularFile Ree{..} _)=rsize
 
 totalFilesCount :: SliceTree -> Int
 totalFilesCount = sum . fmap (const 1)

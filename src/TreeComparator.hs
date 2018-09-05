@@ -40,9 +40,9 @@ compareTrees l r = Just $ QBoth l r
 instance Dumpable DirCompare where
   toDump :: DirCompare -> [String]
 
-  toDump (QLeft (LFile _)) = ["- . "]
+  toDump (QLeft (LFile _ _)) = ["- . "]
   toDump (QLeft (LDir _ _)) = ["- / "]
-  toDump (QRight (LFile _)) = ["+ . "]
+  toDump (QRight (LFile _ _)) = ["+ . "]
   toDump (QRight (LDir _ _)) = ["+ / "]
   toDump (QBoth LFile {} LFile {}) = ["~ .."]
   toDump (QBoth LFile {} LDir {}) = ["~ ./"]

@@ -34,7 +34,7 @@ import           System.FilePath
 
 type FileSize = Integer
 
-data Ree = Ree { rphysPath :: FilePath, rcount :: Int, rsize :: FileSize, rtime :: UTCTime, rhash :: BS.ByteString }
+data Ree = Ree { rcount :: Int, rsize :: FileSize, rtime :: UTCTime, rhash :: BS.ByteString }
   deriving (Eq, Show, Read, ToJSON, FromJSON, Generic)
 
 type Hash = BS.ByteString

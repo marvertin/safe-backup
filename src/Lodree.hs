@@ -39,7 +39,7 @@ import           Data.Time.Clock.POSIX
 millisToUTC :: Integer -> UTCTime
 millisToUTC t = posixSecondsToUTCTime $ (fromInteger t) / 1000
 
-data Lodree = LFile Ree
+data Lodree = LFile Ree FilePath
             | LDir Ree [(FileName, Lodree)]
             deriving (Show)
 
@@ -56,7 +56,7 @@ makeLDir list' = LDir (foldToDree list) list
         sortedList = sortBy (compare `on` fst) list
         names = map (BSU.fromString . fst) list
         hashes = map (pickHash . snd) sortedList
-      in Ree { rphysPath = "",
+      in Ree {
                rsize = sum $ (pickSize . snd) <$> list,
                rcount = sum $ (pickCount . snd) <$> list,
                rtime = millisToUTC 0,
@@ -70,8 +70,8 @@ currentLodree (LDir _ ((_, current) : _)) = current
 findLodreeNode = findNode
 
 ree :: Lodree -> Ree
-ree (LFile ree)  = ree
-ree (LDir ree _) = ree
+ree (LFile ree _) = ree
+ree (LDir ree _)  = ree
 
 pickSize :: Lodree -> FileSize
 pickSize = rsize . ree
@@ -91,7 +91,7 @@ isEmptyDir _           = False
 findNode :: FilePath -> Lodree -> Maybe Lodree
 findNode [] lodree = Just lodree
 findNode "/" lodree = Just lodree
-findNode path (LFile _) = error $ "Impossible has happend, we have found file but ther is some stuff in the path: " ++ path
+findNode path (LFile _ _) = error $ "Impossible has happend, we have found file but ther is some stuff in the path: " ++ path
 findNode path (LDir _ list) = let
   (name, rest) = break ('/'==) (dropPrefixSlashes path)
   lodree2 = snd <$> find ((name==) . fst) list
@@ -103,7 +103,7 @@ findNode path (LDir _ list) = let
 
 
 instance ToJSON Lodree where
-   toJSON (LFile ree)   = toJSON ree
+   toJSON (LFile ree _) = toJSON ree
    toJSON (LDir _ list) = toJSON (M.fromList list)
 
 
@@ -115,15 +115,15 @@ instance Dumpable Lodree where
   -- toDump :: DirCompare -> [String]
 
   toDump :: Lodree -> [String]
-  toDump (LFile ree) = [printRee ree]
+  toDump (LFile ree _) = [printRee ree]
   toDump (LDir _ items) = ("    " ++) <$> (items >>= todump)
      where
         todump :: (FileName, Lodree) -> [String]
-        todump (filename, q@(LFile _)) = prependToFirst (filename ++ ": ") (toDump q)
+        todump (filename, q@(LFile _ _)) = prependToFirst (filename ++ ": ") (toDump q)
         todump (filename, q@(LDir ree _)) =   ("/" ++ filename ++ " " ++ printRee ree) : toDump q
 
 printRee :: Ree ->  String
-printRee Ree {..} = "  #" ++ show rsize ++ " " ++ toHexStr rhash ++ " \"" ++ rphysPath ++ "\""
+printRee Ree {..} = "  #" ++ show rsize ++ " " ++ toHexStr rhash
 
 
 --w = do

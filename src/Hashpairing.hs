@@ -54,7 +54,7 @@ flattenLodrees = fla [] ""
   where
     fla :: [(FilePath, Lodree)] -> FilePath  -> Lodree -> [(FilePath, Lodree)]
     --fla reslist path q@(LFile _)  = (path,  q) : reslist
-    fla reslist path q@(LFile _)  = (path, q) : reslist
+    fla reslist path q@(LFile _ _)  = (path, q) : reslist
     fla reslist path q@(LDir _ sez) = (path, q) :
         (sez >>= (\(p, lodree) -> fla reslist (path ++ "/" ++ p) lodree))
         -- TODO  eliminate O(n^2)

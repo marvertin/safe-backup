@@ -51,7 +51,7 @@ merge1 rootLodree rootDirTree = let
     merge' Nothing Nothing = Nothing
     merge' Nothing dirtree = merge' (Just emptyLodree) dirtree -- nemámeli složku, stvoříme ji
     merge' lodree Nothing = lodree
-    merge' _ (Just (File _ (RegularFile ree)))= Just $ LFile ree
+    merge' _ (Just (File _ (RegularFile ree originalPath)))= Just $ LFile ree originalPath
     merge' lodree (Just (File _ (MetaFile content)))
       | isDelete content = Nothing
       | isLogicalLink   content = findTarget content (currentLodree rootLodree) <|> lodree
