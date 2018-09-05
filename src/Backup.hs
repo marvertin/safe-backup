@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Backup (
   readBackupDir,
   backup
@@ -77,13 +79,16 @@ writeBackup loghandle x sourceTrees = do
             -- ++ unJabaContent (convertToJabaContent cmd)
         writeFile cesta (formatYabaLinkFile cmd)
 
+title x = "----- " ++ x ++ " ---------------------------"
+
 formatYabaLinkFile :: Cmd -> String
-formatYabaLinkFile cmd@(Link linkType hash paths@(path:_) lodree) =
+formatYabaLinkFile cmd@(Link linkType path hash Paths{..} lodree) =
     (formatMetaFile . convertToYaba) cmd
-    ++ toHexStr hash ++ "\n"
-    ++ show hash ++ "\n-------------\n"
-    ++ unlines paths ++ "\n-------------\n"
-    ++ toDumpS lodree ++ "\n"
+    ++ title "Hash" ++ toHexStr hash ++ "\n" ++ show hash ++ "\n"
+    ++ title "Source paths" ++ unlines pathsNew
+    ++ title "Last slice paths" ++ unlines pathsLast
+    ++ title "History paths" ++ unlines pathsHistory
+    ++ title "Tree" ++ toDumpS lodree
 formatYabaLinkFile cmd@BackupTreeBuilder.Delete  =
    (formatMetaFile . convertToYaba) cmd
 
@@ -91,10 +96,10 @@ formatYabaLinkFile cmd@BackupTreeBuilder.Delete  =
 
 
 yabaFilePrefix :: Cmd -> String
-yabaFilePrefix (Insert _)                           = "~INSERT~"
-yabaFilePrefix BackupTreeBuilder.Delete             = "~DELETE-OR-MOVE~"
-yabaFilePrefix (BackupTreeBuilder.Link Movel _ _ _) = "~LINK~"
-yabaFilePrefix (BackupTreeBuilder.Link Newl _ _ _)  = "~N-LINK~"
+yabaFilePrefix (Insert _)                             = "~INSERT~"
+yabaFilePrefix BackupTreeBuilder.Delete               = "~DELETE-OR-MOVE~"
+yabaFilePrefix (BackupTreeBuilder.Link Movel _ _ _ _) = "~LINK~"
+yabaFilePrefix (BackupTreeBuilder.Link Newl _ _ _ _)  = "~N-LINK~"
 
 backup :: FilePath -> [(FileName, FilePath, IgnoranceDef)] -> IO [AnchoredDirTree ()]
 backup backupDirRoot  sourceTrees  = do
@@ -141,5 +146,5 @@ nextSliceName = do
   return $ formatTime defaultTimeLocale (iso8601DateFormat (Just "%H-%M-%SZ")) now
 
 convertToYaba :: Cmd -> SliceCmd
-convertToYaba (BackupTreeBuilder.Link _ _ (x:_) _) = Slice.PhysicalLink x
-convertToYaba BackupTreeBuilder.Delete             = Slice.Delete
+convertToYaba (BackupTreeBuilder.Link _ x _ _ _) = Slice.PhysicalLink x
+convertToYaba BackupTreeBuilder.Delete           = Slice.Delete

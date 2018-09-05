@@ -2,7 +2,8 @@ module BackupTreeBuilder (
   buildBackup,
   AnchoredBackupTree,
   Cmd(..),
-  LinkType(..)
+  LinkType(..),
+  Paths(..)
 ) where
 
 
@@ -20,8 +21,8 @@ import           TurboWare
 import           Types
 
 data LinkType = Newl | Movel deriving (Show)
-data Cmd = Insert Hash | Delete | Link LinkType Hash [FilePath] Lodree  deriving (Show)
-data Paths = Paths { pathsNew :: [FilePath], pathsLast:: [FilePath], pathsHistory :: [FilePath] }
+data Cmd = Insert Hash | Delete | Link LinkType FilePath Hash Paths Lodree  deriving (Show)
+data Paths = Paths { pathsNew :: [FilePath], pathsLast:: [FilePath], pathsHistory :: [FilePath] }  deriving (Show)
 
 type BackupTree = DirTree Cmd
 type AnchoredBackupTree = AnchoredDirTree Cmd
@@ -45,7 +46,7 @@ buildBackup sliceLodree surceLodree outputDir =
         in
          case M.lookup hash sliceHashes of
           Nothing              ->   bFromLodree name lodree
-          Just (paths, lodree) -> File name (Link Movel hash paths lodree)
+          Just ((path:_), lodree) -> File name (Link Movel path hash (makePaths hash) lodree)
 
 
       bFromLodree :: FileName -> Lodree  -> BackupTree
@@ -71,12 +72,12 @@ replaceRedundantNewFiles :: BackupTree -> BackupTree
 replaceRedundantNewFiles =
     let
       --zz :: MapByHash -> BackupTree -> (MapByHash, BackupTree)
-
+      nullPaths = Paths [] [] []
       repla :: [FileName] -> MapByHash -> BackupTree -> (MapByHash, BackupTree)
       repla path hm this@(File name (Insert hash)) =
           case M.lookup hash hm of
             Nothing   -> (M.insert hash (name:path) hm, this)
-            Just path -> (hm, File name ( Link Newl hash [namesToPath path] emptyLodree))
+            Just path -> (hm, File name ( Link Newl (namesToPath path) hash nullPaths emptyLodree))
     -- mapAccumL :: Traversable t => (a -> b -> (a, c)) -> a -> t b -> (a, t c)
       repla path hm (Dir name list) = let
          (hm2 , list2) = mapAccumL (repla (name:path)) hm list
