@@ -67,7 +67,7 @@ writeBackup loghandle x sourceTrees = do
       ) sourceTrees
   where
     writeFileToBackup :: Int -> FilePath -> FilePath -> Cmd -> IO ()
-    writeFileToBackup kolikSmazat sourceOfMainTreeDir path (Insert _) =
+    writeFileToBackup kolikSmazat sourceOfMainTreeDir path Insert  =
        let odkud = sourceOfMainTreeDir ++ drop kolikSmazat path
        in do
         hPutStrLn loghandle ("copy file: " ++ odkud ++ " --> " ++ path)
@@ -77,34 +77,43 @@ writeBackup loghandle x sourceTrees = do
         let cesta = dir </> (yabaFilePrefix cmd ++ file) ++ ".yaba"
         hPutStrLn loghandle $ "create meta: " ++ cesta
             -- ++ unJabaContent (convertToJabaContent cmd)
-        writeFile cesta (formatYabaLinkFile cmd)
+        writeFile cesta (formatCmd cmd)
 
-title x = "\n----- " ++ x ++ " ---------------------------\n"
+title x = ["", "----- " ++ x ++ " ---------------------------"]
 
-formatYabaLinkFile :: Cmd -> String
-formatYabaLinkFile cmd@(Link linkType path hash Paths{..} lodree) =
-    (formatMetaFile . convertToYaba) cmd
-    ++ title "Hash" ++ toHexStr hash ++ "\n" ++ show hash ++ "\n"
-    ++ title "Source paths" ++ unlines pathsNew
-    ++ title "Last slice paths" ++ unlines pathsLast
-    ++ title "History paths" ++ unlines pathsHistory
-    ++ title "Tree" ++ toDumpS lodree
-formatYabaLinkFile cmd@(BackupTreeBuilder.Delete hash Paths{..} lodree)  =
-    (formatMetaFile . convertToYaba) cmd
-    ++ title "Hash" ++ toHexStr hash ++ "\n" ++ show hash ++ "\n"
-    ++ title "Source paths" ++ unlines pathsNew
-    ++ title "Last slice paths" ++ unlines pathsLast
-    ++ title "History paths" ++ unlines pathsHistory
-    ++ title "Tree" ++ toDumpS lodree
+formatCmd :: Cmd -> String
+formatCmd cmd = unlines $ concat $ [
+     (formatMetaFileHeader . convertToSliceCmd) cmd,
+     title "Operation",
+     [yabaFilePrefix cmd],
+     case cmd of
+           Link _ info                   -> formatInfo info
+           BackupTreeBuilder.Delete info -> formatInfo info
+  ]
 
+formatInfo :: Info -> [String]
+formatInfo (Info hash Paths{..} lodree)  = concat [
+    title "Hash" ,
+    [toHexStr hash],
+    [show hash],
+    title "Source paths",
+    pathsNew,
+    title "Last slice paths",
+    pathsLast,
+    title "History paths",
+    pathsHistory,
+    title "Tree",
+    toDump lodree
+   ]
 
 
 
 yabaFilePrefix :: Cmd -> String
-yabaFilePrefix (Insert _)                             = "~INSERT~"
-yabaFilePrefix ( BackupTreeBuilder.Delete _ _ _)      = "~DELETE-OR-MOVE~"
-yabaFilePrefix (BackupTreeBuilder.Link Movel _ _ _ _) = "~LINK~"
-yabaFilePrefix (BackupTreeBuilder.Link Newl _ _ _ _)  = "~N-LINK~"
+yabaFilePrefix (BackupTreeBuilder.Delete (Info _ (Paths {pathsNew=[]}) _ ))= "~DELETE~"
+yabaFilePrefix (BackupTreeBuilder.Delete _)= "~MOVE-AWAY~"
+yabaFilePrefix (BackupTreeBuilder.Link _ (Info _ (Paths {pathsHistory=[]}) _ ))= "~N-LINK~"
+yabaFilePrefix (BackupTreeBuilder.Link _ _)   = "~LINK~"
+yabaFilePrefix _ = "~IMPOSSIBLE~"
 
 backup :: FilePath -> [(FileName, FilePath, IgnoranceDef)] -> IO [AnchoredDirTree ()]
 backup backupDirRoot  sourceTrees  = do
@@ -150,6 +159,6 @@ nextSliceName = do
   now <- getCurrentTime
   return $ formatTime defaultTimeLocale (iso8601DateFormat (Just "%H-%M-%SZ")) now
 
-convertToYaba :: Cmd -> SliceCmd
-convertToYaba (BackupTreeBuilder.Link _ x _ _ _) = Slice.PhysicalLink x
-convertToYaba (BackupTreeBuilder.Delete _ _ _)   = Slice.Delete
+convertToSliceCmd :: Cmd -> SliceCmd
+convertToSliceCmd (BackupTreeBuilder.Link  x _) = Slice.PhysicalLink x
+convertToSliceCmd (BackupTreeBuilder.Delete _ ) = Slice.Delete

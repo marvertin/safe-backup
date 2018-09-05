@@ -11,7 +11,7 @@
 
 module Slice
     (
-    formatMetaFile,
+    formatMetaFileHeader,
     parseMetaFile,
     SliceFile(..),
     SliceTree(..),
@@ -69,8 +69,8 @@ parseMetaFile fileContent = (parse . lines) fileContent
     parse ("#yaba1" : line : _) = read line
     parse _ = error $ "Bad version of Yaba file, probably old version of yaba tool: " ++ show fileContent
 
-formatMetaFile :: SliceCmd -> String
-formatMetaFile x = unlines ["#yaba1", show x, "------------------------"]
+formatMetaFileHeader :: SliceCmd -> [String]
+formatMetaFileHeader x = ["#yaba1", show x]
 
 isSliceRegularFile :: SliceTree -> Bool
 isSliceRegularFile (File _ (RegularFile _ _)) = True
@@ -82,12 +82,12 @@ isSliceMetaFile _                     = False
 
 
 printSliceFile :: SliceFile ->  Maybe String
-printSliceFile (RegularFile Ree{..} realPath) = Just$ "  #" ++ show rsize ++ " " ++ toHexStr rhash ++ " \"" ++ realPath ++ "\""
+printSliceFile (RegularFile Ree{..} originalPath) = Just$ "  #" ++ show rsize ++ " " ++ toHexStr rhash ++ " \"" ++ originalPath ++ "\""
 printSliceFile (MetaFile sliceCmd) = Just$  show sliceCmd
 
 printSliceFile2 :: SliceFile -> Maybe String
-printSliceFile2 (RegularFile _ realPath) = Just realPath
-printSliceFile2 (MetaFile _)             = Nothing
+printSliceFile2 (RegularFile _ originalPath) = Just originalPath
+printSliceFile2 (MetaFile _)                 = Nothing
 
 --------------------------------------------------------
 
