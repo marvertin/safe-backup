@@ -7,10 +7,13 @@ module BackupTreeBuilder (
 ) where
 
 
+import           Control.Arrow
 import           Data.List             (mapAccumL)
 import qualified Data.Map              as M
 import           Data.Maybe
 import           Debug.Trace
+import           Debug.Trace
+import           DirScan               (RevPath, pth)
 import           Hashpairing
 import           Lib
 import           Lodree
@@ -27,6 +30,9 @@ data Paths = Paths { pathsNew :: [FilePath], pathsLast:: [FilePath], pathsHistor
 type BackupTree = DirTree Cmd
 type AnchoredBackupTree = AnchoredDirTree Cmd
 
+mapCall :: (RevPath -> a -> BackupTree ) -> RevPath -> [(FileName, a)] -> [BackupTree]
+mapCall fce revpath = map (uncurry fce . (first (:revpath)))
+
 
 buildBackup :: Lodree -> Lodree ->  FileName -> Maybe BackupTree
 buildBackup sliceLodree surceLodree outputDir =
@@ -40,21 +46,23 @@ buildBackup sliceLodree surceLodree outputDir =
         let find  set = maybe [] fst (M.lookup hash set)
         in Paths (find sourceHashes) (find currentSliceHashes) (find sliceHashes)
 
-      bFromLodree :: FileName -> Lodree -> BackupTree
-      bFromLodree name lodree =
+      bFromLodree :: RevPath -> Lodree -> BackupTree
+      bFromLodree revpath@(name:_) lodree =
         let hash = hashLodree lodree
         in
          case M.lookup hash sliceHashes of
           Nothing  ->  case lodree of
-                        LFile _ _   -> File name (Insert (hashLodree lodree))
-                        LDir _ list -> Dir name (map (uncurry bFromLodree) list)
+                        LFile _ _   ->  let
+                             path = ('/':) . replaceBacklashesToSlashes . pth . init $ revpath
+                             in File (trace path name) (Insert (hashLodree lodree))
+                        LDir _ list -> Dir name (mapCall bFromLodree revpath list)  -- Dir name (map (uncurry bFromLodree) list)
           Just (path: _, lodree) -> File name (Link Movel path hash (makePaths hash) lodree)
 
-      bFromDirCompare :: FileName -> DirCompare -> BackupTree
-      bFromDirCompare name (QLeft lodree)   = let hash = hashLodree lodree in File name (Delete hash (makePaths hash) lodree)
-      bFromDirCompare name (QRight lodree)  = bFromLodree name lodree
-      bFromDirCompare name (QBoth _ lodree) = bFromLodree name lodree
-      bFromDirCompare name (QDir list) =  Dir name (map (uncurry bFromDirCompare) list)
+      bFromDirCompare :: RevPath -> DirCompare -> BackupTree
+      bFromDirCompare (name:_) (QLeft lodree)   = let hash = hashLodree lodree in File name (Delete hash (makePaths hash) lodree)
+      bFromDirCompare revpath (QRight lodree)  = bFromLodree revpath lodree
+      bFromDirCompare revpath (QBoth _ lodree) = bFromLodree revpath lodree
+      bFromDirCompare revpath@(name:_) (QDir list) = Dir name (mapCall bFromDirCompare  revpath list)
       -- diff = trace ("\n\nsurceLodree: " ++ show surceLodree ++ "\n\ncurrentLodre esliceLodree: " ++ show (currentLodree sliceLodree) ++ "\n\n")
       diff = compareTrees (currentLodree sliceLodree) surceLodree
 
@@ -74,7 +82,8 @@ buildBackup sliceLodree surceLodree outputDir =
             repla _ hm x = (hm, x)
           in snd . (repla [] M.empty)
 
-  in  (replaceRedundantNewFiles . bFromDirCompare outputDir) <$> diff
+  in  (replaceRedundantNewFiles . bFromDirCompare [outputDir]) <$> diff
+
 
 type MapByHash = M.Map Hash [FileName]
 
