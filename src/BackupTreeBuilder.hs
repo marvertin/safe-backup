@@ -1,3 +1,5 @@
+{-# LANGUAGE NamedFieldPuns #-}
+
 module BackupTreeBuilder (
   buildBackup,
   AnchoredBackupTree,
@@ -52,9 +54,9 @@ buildBackup sliceLodree surceLodree outputDir =
         in
          case M.lookup hash sliceHashes of
           Nothing  ->  case lodree of
-                        LFile _ _   ->  let
-                             path = ('/':) . replaceBacklashesToSlashes . pth . init $ revpath
-                             in File (trace path name) (Insert (hashLodree lodree))
+                        LFile Ree{rhash} _   ->  let  paths = (makePaths rhash)
+                             in File name $ if mustInsert revpath paths then Insert rhash
+                                                                        else Link Newl (namesToPath revpath) hash paths lodree
                         LDir _ list -> Dir name (mapCall bFromLodree revpath list)  -- Dir name (map (uncurry bFromLodree) list)
           Just (path: _, lodree) -> File name (Link Movel path hash (makePaths hash) lodree)
 
@@ -80,9 +82,15 @@ buildBackup sliceLodree surceLodree outputDir =
                (hm2 , list2) = mapAccumL (repla (name:path)) hm list
                in (hm2, Dir name list2)
             repla _ hm x = (hm, x)
-          in snd . (repla [] M.empty)
+          in snd . repla [] M.empty
 
-  in  (replaceRedundantNewFiles . bFromDirCompare [outputDir]) <$> diff
+  in  (bFromDirCompare [outputDir]) <$> diff
+
+mustInsert :: RevPath -> Paths -> Bool
+mustInsert _ (Paths [] _ _) = True -- impossible
+mustInsert revpath (Paths (x:_) _ _) =
+    let path = namesToPath . init $ revpath
+    in path == x
 
 
 type MapByHash = M.Map Hash [FileName]
