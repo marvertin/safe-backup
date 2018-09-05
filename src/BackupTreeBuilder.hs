@@ -53,12 +53,14 @@ buildBackup sliceLodree surceLodree outputDir =
         let hash = hashLodree lodree
         in
          case M.lookup hash sliceHashes of
-          Nothing  ->  case lodree of
-                        LFile Ree{rhash} _   ->  let  paths = (makePaths rhash)
-                             in File name $ if mustInsert revpath paths then Insert rhash
-                                                                        else Link Newl (namesToPath revpath) hash paths lodree
-                        LDir _ list -> Dir name (mapCall bFromLodree revpath list)  -- Dir name (map (uncurry bFromLodree) list)
-          Just (path: _, lodree) -> File name (Link Movel path hash (makePaths hash) lodree)
+          Nothing  -> let paths = makePaths hash
+                      in  case mustInsert revpath paths of
+                            Nothing ->
+                              case lodree of
+                                LFile _ _   ->  File name (Insert hash)
+                                LDir _ list -> Dir name (mapCall bFromLodree revpath list)  -- Dir name (map (uncurry bFromLodree) list)
+                            Just pathToLink -> File name $ Link Newl ("/" ++ outputDir ++ pathToLink) hash paths lodree
+          Just (path: _, lodree2) -> File name (Link Movel path hash (makePaths hash) lodree2)
 
       bFromDirCompare :: RevPath -> DirCompare -> BackupTree
       bFromDirCompare (name:_) (QLeft lodree)   = let hash = hashLodree lodree in File name (Delete hash (makePaths hash) lodree)
@@ -86,11 +88,12 @@ buildBackup sliceLodree surceLodree outputDir =
 
   in  (bFromDirCompare [outputDir]) <$> diff
 
-mustInsert :: RevPath -> Paths -> Bool
-mustInsert _ (Paths [] _ _) = True -- impossible
-mustInsert revpath (Paths (x:_) _ _) =
+mustInsert :: RevPath -> Paths -> Maybe FilePath
+mustInsert _ (Paths [] _ _) = Nothing -- impossible
+mustInsert revpath (Paths (itMustInsert:_) _ _) =
     let path = namesToPath . init $ revpath
-    in path == x
+    in if path == itMustInsert then Nothing
+                               else Just itMustInsert
 
 
 type MapByHash = M.Map Hash [FileName]
