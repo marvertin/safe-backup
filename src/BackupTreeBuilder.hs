@@ -21,7 +21,7 @@ import           TurboWare
 import           Types
 
 data LinkType = Newl | Movel deriving (Show)
-data Cmd = Insert Hash | Delete | Link LinkType FilePath Hash Paths Lodree  deriving (Show)
+data Cmd = Insert Hash | Delete Hash Paths Lodree | Link LinkType FilePath Hash Paths Lodree  deriving (Show)
 data Paths = Paths { pathsNew :: [FilePath], pathsLast:: [FilePath], pathsHistory :: [FilePath] }  deriving (Show)
 
 type BackupTree = DirTree Cmd
@@ -57,33 +57,34 @@ buildBackup sliceLodree surceLodree outputDir =
       bFromLodree name (LDir _ list) = Dir name (map (uncurry hashing) list)
 
       bFromDirCompare :: FileName -> DirCompare -> BackupTree
-      bFromDirCompare name (QLeft lodree)   = File name Delete
+      bFromDirCompare name (QLeft lodree)   = let hash = hashLodree lodree in File name (Delete hash (makePaths hash) lodree)
       bFromDirCompare name (QRight lodree)  = hashing name lodree
       bFromDirCompare name (QBoth _ lodree) = hashing name lodree
       bFromDirCompare name (QDir list) =  Dir name (map (uncurry bFromDirCompare) list)
       -- diff = trace ("\n\nsurceLodree: " ++ show surceLodree ++ "\n\ncurrentLodre esliceLodree: " ++ show (currentLodree sliceLodree) ++ "\n\n")
       diff = compareTrees (currentLodree sliceLodree) surceLodree
 
+      replaceRedundantNewFiles :: BackupTree -> BackupTree
+      replaceRedundantNewFiles =
+          let
+            --zz :: MapByHash -> BackupTree -> (MapByHash, BackupTree)
+            repla :: [FileName] -> MapByHash -> BackupTree -> (MapByHash, BackupTree)
+            repla path hm this@(File name (Insert hash)) =
+                case M.lookup hash hm of
+                  Nothing   -> (M.insert hash (name:path) hm, this)
+                  Just path -> (hm, File name ( Link Newl (namesToPath path) hash (makePaths hash) emptyLodree))
+          -- mapAccumL :: Traversable t => (a -> b -> (a, c)) -> a -> t b -> (a, t c)
+            repla path hm (Dir name list) = let
+               (hm2 , list2) = mapAccumL (repla (name:path)) hm list
+               in (hm2, Dir name list2)
+            repla _ hm x = (hm, x)
+          in snd . (repla [] M.empty)
+
   in  (replaceRedundantNewFiles . bFromDirCompare outputDir) <$> diff
 
 type MapByHash = M.Map Hash [FileName]
 
-replaceRedundantNewFiles :: BackupTree -> BackupTree
-replaceRedundantNewFiles =
-    let
-      --zz :: MapByHash -> BackupTree -> (MapByHash, BackupTree)
-      nullPaths = Paths [] [] []
-      repla :: [FileName] -> MapByHash -> BackupTree -> (MapByHash, BackupTree)
-      repla path hm this@(File name (Insert hash)) =
-          case M.lookup hash hm of
-            Nothing   -> (M.insert hash (name:path) hm, this)
-            Just path -> (hm, File name ( Link Newl (namesToPath path) hash nullPaths emptyLodree))
-    -- mapAccumL :: Traversable t => (a -> b -> (a, c)) -> a -> t b -> (a, t c)
-      repla path hm (Dir name list) = let
-         (hm2 , list2) = mapAccumL (repla (name:path)) hm list
-         in (hm2, Dir name list2)
-      repla _ hm x = (hm, x)
-    in snd . (repla [] M.empty)
+
 
 
 instance Dumpable Cmd where

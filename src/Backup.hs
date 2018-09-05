@@ -79,7 +79,7 @@ writeBackup loghandle x sourceTrees = do
             -- ++ unJabaContent (convertToJabaContent cmd)
         writeFile cesta (formatYabaLinkFile cmd)
 
-title x = "----- " ++ x ++ " ---------------------------"
+title x = "\n----- " ++ x ++ " ---------------------------\n"
 
 formatYabaLinkFile :: Cmd -> String
 formatYabaLinkFile cmd@(Link linkType path hash Paths{..} lodree) =
@@ -89,15 +89,20 @@ formatYabaLinkFile cmd@(Link linkType path hash Paths{..} lodree) =
     ++ title "Last slice paths" ++ unlines pathsLast
     ++ title "History paths" ++ unlines pathsHistory
     ++ title "Tree" ++ toDumpS lodree
-formatYabaLinkFile cmd@BackupTreeBuilder.Delete  =
-   (formatMetaFile . convertToYaba) cmd
+formatYabaLinkFile cmd@(BackupTreeBuilder.Delete hash Paths{..} lodree)  =
+    (formatMetaFile . convertToYaba) cmd
+    ++ title "Hash" ++ toHexStr hash ++ "\n" ++ show hash ++ "\n"
+    ++ title "Source paths" ++ unlines pathsNew
+    ++ title "Last slice paths" ++ unlines pathsLast
+    ++ title "History paths" ++ unlines pathsHistory
+    ++ title "Tree" ++ toDumpS lodree
 
 
 
 
 yabaFilePrefix :: Cmd -> String
 yabaFilePrefix (Insert _)                             = "~INSERT~"
-yabaFilePrefix BackupTreeBuilder.Delete               = "~DELETE-OR-MOVE~"
+yabaFilePrefix ( BackupTreeBuilder.Delete _ _ _)      = "~DELETE-OR-MOVE~"
 yabaFilePrefix (BackupTreeBuilder.Link Movel _ _ _ _) = "~LINK~"
 yabaFilePrefix (BackupTreeBuilder.Link Newl _ _ _ _)  = "~N-LINK~"
 
@@ -147,4 +152,4 @@ nextSliceName = do
 
 convertToYaba :: Cmd -> SliceCmd
 convertToYaba (BackupTreeBuilder.Link _ x _ _ _) = Slice.PhysicalLink x
-convertToYaba BackupTreeBuilder.Delete           = Slice.Delete
+convertToYaba (BackupTreeBuilder.Delete _ _ _)   = Slice.Delete
