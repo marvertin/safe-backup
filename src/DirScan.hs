@@ -52,6 +52,7 @@ data Event a
                eresult   :: a
             }
       | Ignore
+      | Failure IOException
 
 
 
@@ -105,26 +106,33 @@ scanDirectory createDirNode predicate createFileNode (eventFce, eventStart) root
       let fullPath = rootPath </> pth revpath
       -- putStrLn $ "Pokus: " ++ path
       isDir <- doesDirectoryExist fullPath
-      if isDir then do
-         fords <- sort <$> listDirectory fullPath -- simple names
-          -- fords <- fmap (fmap (path </>)) (listDirectory fullPath)
-         evacum2 <- emitEvent flowAvar (BeforeDir fords) evacum
-         Acum newFlowAvar lili evacum3 <- foldM (scanDirectory' (level + 1) startTime)
-                                         (Acum flowAvar [] evacum2)
-                                         (fmap (:revpath) (reverse fords)) -- foldM reverts it again
-         let dirnode = createDirNode revpath lili
-         evacum4 <- emitEvent flowAvar (AfterDir fords lili dirnode) evacum3
-         return $  Acum newFlowAvar ((safeHead "" revpath, dirnode): reslist) evacum4
+      catch (
+        if isDir then do
 
-       else do
-         sz <- getFileSize fullPath
-         evacum2 <- emitEvent flowAvar (BeforeFile (EventFile sz)) evacum
-         result <- createFileNode revpath -- can takes long
-         nowTime <- getCurrentTime
-         let newFlowAvar = updateFlowAvar flowAvar (1, fromIntegral sz) nowTime
-         evacum3 <- emitEvent newFlowAvar (AfterFile (EventFile sz) result) evacum2
-         let newAcum =  Acum newFlowAvar ((head revpath, result): reslist) evacum3
-         return newAcum
+           fords <- sort <$> listDirectory fullPath -- simple names
+            -- fords <- fmap (fmap (path </>)) (listDirectory fullPath)
+           evacum2 <- emitEvent flowAvar (BeforeDir fords) evacum
+           Acum newFlowAvar lili evacum3 <- foldM (scanDirectory' (level + 1) startTime)
+                                           (Acum flowAvar [] evacum2)
+                                           (fmap (:revpath) (reverse fords)) -- foldM reverts it again
+           let dirnode = createDirNode revpath lili
+           evacum4 <- emitEvent flowAvar (AfterDir fords lili dirnode) evacum3
+           return $  Acum newFlowAvar ((safeHead "" revpath, dirnode): reslist) evacum4
+
+         else do
+           sz <- getFileSize fullPath
+           evacum2 <- emitEvent flowAvar (BeforeFile (EventFile sz)) evacum
+           result <- createFileNode revpath -- can takes long
+           nowTime <- getCurrentTime
+           let newFlowAvar = updateFlowAvar flowAvar (1, fromIntegral sz) nowTime
+           evacum3 <- emitEvent newFlowAvar (AfterFile (EventFile sz) result) evacum2
+           let newAcum =  Acum newFlowAvar ((head revpath, result): reslist) evacum3
+           return newAcum
+        )  (\e  -> do
+               let err = show (e :: IOException)
+               evacum2 <- emitEvent flowAvar (Failure e) evacum
+               return $  Acum flowAvar reslist evacum2
+        )
     where emitEvent = emitEvent' revpath
   emitEvent'  revpath flowAvar event evacum =
      eventFce $ EventEnvelop revpath (getCumulative flowAvar) event evacum
@@ -159,6 +167,10 @@ printLog handle (EventEnvelop revpath (Cumulative count' size' countSpeed sizeSp
       when (size > 1024 * 1024 * 100) (do
         hPrintf handle"  ... big file: %10.3f - %s \r" (sizeInMb size) (pth revpath)
         hFlush handle)
+    Failure exc -> do
+      let errstr = "!!!!! ERROR !!!!! " ++ show exc
+      hPutStrLn handle errstr
+      hPutStrLn stderr errstr
     _ -> return ()
   return startTime
   where duration time' = take 6 (show (diffUTCTime time' startTime)) ++ "s "
