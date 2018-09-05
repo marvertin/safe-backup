@@ -40,26 +40,20 @@ buildBackup sliceLodree surceLodree outputDir =
         let find  set = maybe [] fst (M.lookup hash set)
         in Paths (find sourceHashes) (find currentSliceHashes) (find sliceHashes)
 
-      hashing :: FileName -> Lodree -> BackupTree
-      hashing name lodree =
+      bFromLodree :: FileName -> Lodree -> BackupTree
+      bFromLodree name lodree =
         let hash = hashLodree lodree
         in
          case M.lookup hash sliceHashes of
-          Nothing              ->   bFromLodree name lodree
-          Just ((path:_), lodree) -> File name (Link Movel path hash (makePaths hash) lodree)
-
-
-      bFromLodree :: FileName -> Lodree  -> BackupTree
-      --bFromLodree name lodree@(LFile _) = File name (Insert (hashLodree lodree))
-      --bFromLodree name (LDir _ list) = Dir name (map (uncurry bFromLodree) list)
-      -- TODO Také vyřešit hašování
-      bFromLodree name lodree@(LFile _ _) = File name (Insert (hashLodree lodree))
-      bFromLodree name (LDir _ list) = Dir name (map (uncurry hashing) list)
+          Nothing  ->  case lodree of
+                        LFile _ _   -> File name (Insert (hashLodree lodree))
+                        LDir _ list -> Dir name (map (uncurry bFromLodree) list)
+          Just (path: _, lodree) -> File name (Link Movel path hash (makePaths hash) lodree)
 
       bFromDirCompare :: FileName -> DirCompare -> BackupTree
       bFromDirCompare name (QLeft lodree)   = let hash = hashLodree lodree in File name (Delete hash (makePaths hash) lodree)
-      bFromDirCompare name (QRight lodree)  = hashing name lodree
-      bFromDirCompare name (QBoth _ lodree) = hashing name lodree
+      bFromDirCompare name (QRight lodree)  = bFromLodree name lodree
+      bFromDirCompare name (QBoth _ lodree) = bFromLodree name lodree
       bFromDirCompare name (QDir list) =  Dir name (map (uncurry bFromDirCompare) list)
       -- diff = trace ("\n\nsurceLodree: " ++ show surceLodree ++ "\n\ncurrentLodre esliceLodree: " ++ show (currentLodree sliceLodree) ++ "\n\n")
       diff = compareTrees (currentLodree sliceLodree) surceLodree
