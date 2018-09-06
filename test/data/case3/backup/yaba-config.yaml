@@ -5,3 +5,5 @@ forest:
        #- i=NECHATI/nechati11.txt
        # - e~NECHATI
        #- e~[SZ].*
+  #notexists:
+  #   path: ./not-existent-folder

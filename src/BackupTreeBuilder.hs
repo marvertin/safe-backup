@@ -2,6 +2,7 @@
 
 module BackupTreeBuilder (
   buildBackup,
+  BackupTree,
   AnchoredBackupTree,
   Cmd(..),
   Paths(..),
@@ -81,6 +82,7 @@ mustInsert revpath (Paths (itMustInsert:_) _ _) =
 
 
 type MapByHash = M.Map Hash [FileName]
+
 
 
 

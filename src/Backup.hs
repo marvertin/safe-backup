@@ -5,14 +5,22 @@ module Backup (
   backup
 ) where
 
-import           BackupTreeBuilder
-import           Config
 import           Control.Monad
+import           Data.Counter
 import           Data.List
+import qualified Data.Map              as M
 import           Data.Time.Calendar
 import           Data.Time.Clock
 import           Data.Time.Format
 import           Data.Yaml
+import           System.Directory
+import           System.Directory.Tree
+import           System.FilePath
+import           System.IO
+import           Text.Printf
+
+import           BackupTreeBuilder
+import           Config
 import           DirScan
 import           Dump
 import           Ignorances
@@ -22,16 +30,12 @@ import           Slice
 import           SliceScaner
 import           SliceToLodree
 import           SourceTree
-import           System.Directory
-import           System.Directory.Tree
-import           System.FilePath
-import           System.IO
 import           TurboWare
 import           Types
 
-
 isSliceName :: FileName -> Bool
 isSliceName = isSuffixOf yabaSliceSuffix
+
 
 readBackupDir :: EventHandler SliceTree b -> FilePath -> FilePath -> IO Lodree
 readBackupDir eventHanlder backupRoot indexDir = do
@@ -57,10 +61,13 @@ writeBackup loghandle x sourceTrees = do
     -- nasledujici prikaz buh vi proc dlouho trva
     let (base :/ d@(Dir yabadir _)) = x
     putStrLn $ "Writing backup slice: " ++ yabadir
+    forM_ (M.toList $ countCounters d) (\(key, value) -> do
+         printf "%8d: %s\n" value key
+         )
     hFlush stdout
-    mapM ( \(treeName, treePath, _) -> do
-       putStrLn $ "Writing tree: " ++ treePath ++ " ==> " ++ (yabadir </> treeName)
-       putStrLn $ unlines $ dirTreeToStringList (Just . show) d
+    mapM ( \(TreeDef treeName treePath _) -> do
+       --putStrLn $ "Writing tree: " ++ treePath ++ " ==> " ++ (yabadir </> treeName)
+       --putStrLn $ unlines $ dirTreeToStringList (Just . show) d
        -- musíme umazat adresář yaba a také adresář kořene
        let kolikSmazat = 1 + length yabadir + 1 + length treeName + length base
        writeDirectoryWith (writeFileToBackup kolikSmazat treePath) x
@@ -106,6 +113,8 @@ formatInfo (Info hash Paths{..} lodree)  = concat [
     toDump lodree
    ]
 
+countCounters :: BackupTree -> Counter String Int
+countCounters = count . (foldMap (return . yabaFilePrefix))
 
 
 yabaFilePrefix :: Cmd -> String
@@ -113,9 +122,10 @@ yabaFilePrefix (BackupTreeBuilder.Delete (Info _ (Paths {pathsNew=[]}) _ ))= "~D
 yabaFilePrefix (BackupTreeBuilder.Delete _)= "~MOVE-AWAY~"
 yabaFilePrefix (BackupTreeBuilder.Link _ (Info _ (Paths {pathsHistory=[]}) _ ))= "~N-LINK~"
 yabaFilePrefix (BackupTreeBuilder.Link _ _)   = "~LINK~"
-yabaFilePrefix _ = "~IMPOSSIBLE~"
+yabaFilePrefix (BackupTreeBuilder.Insert{})   = "~INSERT~"
+-- yabaFilePrefix _ = "~IMPOSSIBLE~"
 
-backup :: FilePath -> [(FileName, FilePath, IgnoranceDef)] -> IO [AnchoredDirTree ()]
+backup :: FilePath -> ForestDef -> IO [AnchoredDirTree ()]
 backup backupDirRoot  sourceTrees  = do
     createDirectoryIfMissing False dataDir
     createDirectoryIfMissing False indexDir
@@ -132,7 +142,7 @@ backup backupDirRoot  sourceTrees  = do
       encodeFile (indexDir </> newSliceName ++ sliceLogicalTree_suffix) lodreeBackupCurrent
       encodeFile (indexDir </> sliceLogicalTree_suffix) lodreeBackupCurrent
 
-      lodreeSourceAllNodes <- makeLDir <$> forM sourceTrees ( \(treeName, treePath, ignorances) -> do
+      lodreeSourceAllNodes <- makeLDir <$> forM sourceTrees ( \(TreeDef treeName treePath ignorances) -> do
           lodreeSourceOneNode <- readSourceTree logger ignorances treePath
           encodeFile (indexDir </> (treeName ++ sliceSourceTree_suffix)) lodreeSourceOneNode
           return (treeName, lodreeSourceOneNode)

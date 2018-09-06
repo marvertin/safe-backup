@@ -3,39 +3,42 @@
 
 
 module Debug (
-  q, w, p3, mainovec, e, (>:), (<:), (?:), Test(..), ww, cc, ee, qq, yy
+  q, w, p3, mainovec, e, (>:), (<:), (?:), Test(..), ww, cc, ee, qq, yy, t, tt
 ) where
 
-import           Crypto.Hash.SHA1      (hashlazy)
-import qualified Data.ByteString       as Strict
-import qualified Data.ByteString.Lazy  as Lazy
+import           Crypto.Hash.SHA1           (hashlazy)
+import qualified Data.ByteString            as Strict
+import qualified Data.ByteString.Lazy       as Lazy
 import           Data.Maybe
 --import           Filesystem.Path
 import           Backup
 import           BackupTreeBuilder
+import           Config
 import           Control.Monad
+import           Control.Monad.Trans.Either
+import           Control.Monad.Trans.Maybe
 import           DirScan
 import           Dump
-import qualified GHC.IO.Encoding       as GIE
+import qualified GHC.IO.Encoding            as GIE
 import           Hashpairing
 import           Ignorances
 import           Lib
 import           Lodree
-import           SliceScaner           hiding (RegularFile)
+import           SliceScaner                hiding (RegularFile)
 import           SliceToLodree
 import           SourceTree
 import           System.Directory.Tree
 import           System.FilePath.Find
-import           Text.Printf           (printf)
+import           Text.Printf                (printf)
 import           Text.RawString.QQ
 import           Tree
 import           TreeComparator
 import           TurboWare
 
 
-import qualified Data.ByteString.Char8 as B8
+import qualified Data.ByteString.Char8      as B8
 --import qualified Data.HashMap.Strict   as HM
-import qualified Data.Map              as M
+import qualified Data.Map                   as M
 --import           Data.Text
 import           Data.Yaml
 import           GHC.Generics
@@ -240,8 +243,48 @@ cc = do
   let (Right tt :: Either ParseException (Tree Finfo)) = (decodeEither' . encode) xxx
   B8.putStrLn $ encode tt
 
+
 yy = do
    print $ True == makeFilterFce []  ["ahoj"]
    print $ False == makeFilterFce ["e=ahoj"]  ["ahoj"]
    print $ False == makeFilterFce ["e~ahoj.*"]  ["ahojek"]
    print $ True == makeFilterFce ["e~ahoj.*"]  ["ahajek"]
+
+
+readUserName :: EitherT Int IO String
+readUserName = EitherT $ do
+ str <- getLine
+ if length str > 1
+   then return $ Right str
+   else return $ Left 111
+
+readEmail :: EitherT Int IO String
+readEmail = EitherT $ do
+  str <- getLine
+  if length str > 1
+    then return $ Right str
+    else return $ Left 222
+
+readPassword :: IO (Either Int String)
+readPassword = do
+  str <- getLine
+  if length str > 1
+    then return $ Right str
+    else return $ Left 333
+
+login u e p = print (u,e,p)
+t = do
+  maybeCreds <- runEitherT $ do
+    usr <- readUserName
+    email <- readEmail
+    pass <- EitherT readPassword
+    return (usr, email, pass)
+  case maybeCreds of
+    Left x          -> print x
+    Right (u, e, p) -> login u e p
+
+tt = do
+    putStrLn "------------------------------------------------"
+    x  <- readConfig "test/data/jenconfig"
+    putStrLn "-----------------HOTOVO-----------------------"
+    print x
