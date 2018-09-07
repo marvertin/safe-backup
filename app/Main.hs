@@ -8,10 +8,12 @@ import           GHC.IO.Encoding
 import           Backup
 import           Debug
 import           Lib
+import           Log
 import           SliceToLodree
 import           System.Directory.Tree
 import           System.FilePath.Find
 import           System.IO
+import           Text.Printf
 import           TreeComparator
 import           TurboWare
 
@@ -71,6 +73,7 @@ cmdline = Cmdline
 --  test directory: ./test/data/case3/backup
 main = do
   setLocaleEncoding utf8
+
   hSetBuffering stdout LineBuffering
   hGetBuffering stdout >>= print
   putStrLn $ "yaba " ++ showVersion Paths_yaba.version ++ " - yeat another backup"

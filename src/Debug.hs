@@ -3,13 +3,14 @@
 
 
 module Debug (
-  q, w, p3, mainovec, e, (>:), (<:), (?:), Test(..), ww, cc, ee, qq, yy, t, tt
+  q, w, p3, mainovec, e, (>:), (<:), (?:), Test(..), ww, cc, ee, qq, yy, t, tt, l
 ) where
 
 import           Crypto.Hash.SHA1           (hashlazy)
 import qualified Data.ByteString            as Strict
 import qualified Data.ByteString.Lazy       as Lazy
 import           Data.Maybe
+import           Log
 --import           Filesystem.Path
 import           Backup
 import           BackupTreeBuilder
@@ -29,12 +30,12 @@ import           SliceToLodree
 import           SourceTree
 import           System.Directory.Tree
 import           System.FilePath.Find
+import           System.IO
 import           Text.Printf                (printf)
 import           Text.RawString.QQ
 import           Tree
 import           TreeComparator
 import           TurboWare
-
 
 import qualified Data.ByteString.Char8      as B8
 --import qualified Data.HashMap.Strict   as HM
@@ -288,3 +289,15 @@ tt = do
     x  <- readConfig "test/data/jenconfig"
     putStrLn "-----------------HOTOVO-----------------------"
     print x
+
+
+l = do
+
+  putStrLn "------------------------------------------------"
+  let x = 1.14907259 :: Double
+  lo "kolo"
+  lo $ printf "%.2f"  x
+
+  -- loga printf "ah %d oj" 5
+  -- putStrLn .  printf "ah %d oj" 5
+  -- putStrLn ss
