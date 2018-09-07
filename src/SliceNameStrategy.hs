@@ -28,23 +28,18 @@ import           Text.Printf
 
 import           TurboWare
 
-defaultSliceNameStrategy = UtcSeconds
+defaultSliceNameStrategy = Pattern "*-*/*-*"
 
-data SliceNameStrategy = UtcSeconds | UtcSecondsByYear | UtcSecondsByYearMonth | UtcSecondsByMinute |
-                         Numbers4
+data SliceNameStrategy = Pattern String
    deriving (Show, Generic, FromJSON, ToJSON)
 
+numberOfParts :: SliceNameStrategy -> Int
+numberOfParts (Pattern pat) = length (filter (=='/') pat) + 1
 
 listSlices :: SliceNameStrategy -> FilePath -> IO [FilePath]
-listSlices sliceNameStrategy path = fmap replaceSlashesToVertical <$> listSlices' path
+listSlices sns path = fmap replaceSlashesToVertical <$> listSlices' path
  where
-  listSlices' = listDirSortedN $
-     case sliceNameStrategy of
-       UtcSeconds            -> 1
-       UtcSecondsByYear      -> 2
-       UtcSecondsByYearMonth -> 2
-       UtcSecondsByMinute    -> 2
-       Numbers4              -> 2
+  listSlices' = listDirSortedN $ numberOfParts sns
 
 listDirSorted :: FilePath -> IO [FilePath]
 listDirSorted dir = sort <$> listDirectory dir
@@ -64,14 +59,10 @@ lastSliceLatsPartName n root =
     fmap (lastPart . replaceSlashesToVertical ) . listToMaybe . reverse <$> listDirSortedN n root
   where lastPart = reverse . takeWhile (/='|') . reverse
 
-nextSliceName :: FilePath -> SliceNameStrategy -> IO FilePath
-nextSliceName sliceRoot strategy = do
+nextSliceName :: FilePath -> SliceNameStrategy -> IO String
+nextSliceName sliceRoot (Pattern pat) = do
   time <- currentUtcTimeFormatted
-  return $ case strategy of
-             UtcSeconds            -> time
-             UtcSecondsByYear      -> replaceItem 4 '|' time
-             UtcSecondsByYearMonth -> replaceItem 7 '|' time
-             UtcSecondsByMinute    -> replaceItem 16 '|' time
+  return $ replaceSlashesToVertical $ buildSliceName pat time
 
 currentUtcTimeFormatted :: IO String
 currentUtcTimeFormatted = do

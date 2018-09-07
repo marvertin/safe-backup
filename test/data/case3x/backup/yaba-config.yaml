@@ -1,4 +1,4 @@
-sliceNameStrategy: UtcSecondsByMinute
+sliceNameStrategy: "*-*-*X*/**z"
 forest:
   maintree:
      path: ./test/data/case3x/source-of-maintree
