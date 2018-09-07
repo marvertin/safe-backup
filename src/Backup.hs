@@ -9,9 +9,6 @@ import           Control.Monad
 import           Data.Counter
 import           Data.List
 import qualified Data.Map              as M
-import           Data.Time.Calendar
-import           Data.Time.Clock
-import           Data.Time.Format
 import           Data.Yaml
 import           System.Directory
 import           System.Directory.Tree
@@ -27,6 +24,7 @@ import           Ignorances
 import           Lib
 import           Lodree
 import           Slice
+import           SliceNameStrategy
 import           SliceScaner
 import           SliceToLodree
 import           SourceTree
@@ -34,10 +32,9 @@ import           TurboWare
 import           Types
 
 
-readBackupDir :: EventHandler SliceTree b -> FilePath -> FilePath -> IO Lodree
-readBackupDir eventHanlder backupRoot indexDir = do
-  -- TODO strategie
-  sliceNames <-  sort <$> listDirectory backupRoot
+readBackupDir :: SliceNameStrategy -> EventHandler SliceTree b -> FilePath -> FilePath -> IO Lodree
+readBackupDir sliceNameStrategy eventHanlder backupRoot indexDir = do
+  sliceNames <-  listSlices  backupRoot sliceNameStrategy
   putStrLn $ "Reading " ++ show (length sliceNames) ++ " slices allredy backed up"
   yabaDirs <- forM sliceNames (\name -> do
       slice <- readSlice'' eventHanlder (backupRoot </> name)
@@ -123,19 +120,18 @@ yabaFilePrefix (BackupTreeBuilder.Link _ _)   = "~LINK~"
 yabaFilePrefix (BackupTreeBuilder.Insert{})   = "~INSERT~"
 -- yabaFilePrefix _ = "~IMPOSSIBLE~"
 
-backup :: FilePath -> ForestDef -> IO [AnchoredDirTree ()]
-backup backupDirRoot  sourceTrees  = do
+backup :: SliceNameStrategy -> FilePath -> ForestDef -> IO [AnchoredDirTree ()]
+backup sliceNameStrategy backupDirRoot  sourceTrees  = do
     createDirectoryIfMissing False dataDir
     createDirectoryIfMissing False indexDir
     createDirectoryIfMissing False logDir
-    newSliceName <- nextSliceName
+    newSliceName <- nextSliceName dataDir sliceNameStrategy
     withFile (logDir </> newSliceName ++ ".log") WriteMode (\handle -> do
       hSetBuffering handle LineBuffering
       let logger = hLoggingEventHandler handle
-      -- TODO strategie
       let newSliceDirName = newSliceName
       let newSlicePath = dataDir </> newSliceDirName
-      lodreeBackupAll <- readBackupDir logger dataDir indexDir
+      lodreeBackupAll <- readBackupDir sliceNameStrategy logger dataDir indexDir
       let lodreeBackupCurrent = currentLodree lodreeBackupAll
       putStrLn $  "Reading " ++ show (length sourceTrees) ++ " source trees"
       encodeFile (indexDir </> newSliceName ++ sliceLogicalTree_suffix) lodreeBackupCurrent
@@ -163,10 +159,6 @@ backup backupDirRoot  sourceTrees  = do
     logDir = backupDirRoot </> logSubdir
   -- return ()
 
-nextSliceName :: IO String
-nextSliceName = do
-  now <- getCurrentTime
-  return $ formatTime defaultTimeLocale (iso8601DateFormat (Just "%H-%M-%SZ")) now
 
 convertToSliceCmd :: Cmd -> SliceCmd
 convertToSliceCmd (BackupTreeBuilder.Link  x _) = Slice.PhysicalLink x

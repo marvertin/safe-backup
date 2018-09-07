@@ -13,11 +13,13 @@ module TurboWare
       Hexable(..)
     ) where
 
-import qualified Data.ByteString as Strict
+import qualified Data.ByteString  as Strict
 import           Data.Char
 import           Data.Function
-import           Data.List       (sortBy)
-import           Text.Printf     (printf)
+import           Data.List        (sortBy)
+import           System.Directory
+import           System.FilePath
+import           Text.Printf      (printf)
 
 {- | Dump to lines for debug purpures.
 -}
@@ -96,3 +98,9 @@ trim = reverse . dropWhile isSpace . reverse . dropWhile isSpace
 safeHead :: a -> [a] -> a
 safeHead def [] = def
 safeHead _ l    = head l
+
+-- | Create directory witch parent directories but only if not exists
+createDirectories :: FilePath -> IO ()
+createDirectories dir = do
+   createDirectoryIfMissing True (takeDirectory dir)
+   createDirectory dir

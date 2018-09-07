@@ -112,7 +112,7 @@ doBackup (Cmdline backupDir _ False n _) = do
       putStrLn "!!! ERRORS starting backup !!!"
       return $ ExitFailure 1
     Just (Cfg sliceNameStrategy forest empties) -> do
-      results <- backup backupDirAbs forest
+      results <- backup sliceNameStrategy backupDirAbs forest
       let failus = fmap (\(b :/ d) -> (b, failures d)) results
       let failus2 = failus >>= \(b, list)  -> (b,) <$> list
       if null failus2 then do

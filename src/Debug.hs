@@ -25,6 +25,7 @@ import           Hashpairing
 import           Ignorances
 import           Lib
 import           Lodree
+import           SliceNameStrategy
 import           SliceScaner                hiding (RegularFile)
 import           SliceToLodree
 import           SourceTree
@@ -157,7 +158,7 @@ ww  = do
 
 e = do
   putStrLn  " ============ LBACKUP lodreeBackupCurrent 22"
-  lodreeBackupAll <- readBackupDir stdOutLoggingEventHanler "./test/data/case4/backup/data" "./test/data/case4/backup/index"
+  lodreeBackupAll <- readBackupDir defaultSliceNameStrategy stdOutLoggingEventHanler "./test/data/case4/backup/data" "./test/data/case4/backup/index"
   let lodreeBackupCurrent = currentLodree lodreeBackupAll
   dump lodreeBackupCurrent
   putStrLn  " ============ SOURCE lodreeSourceAllNodes"
