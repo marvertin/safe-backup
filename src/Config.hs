@@ -11,7 +11,7 @@ module Config
       readConfig,
       ForestDef,
       TreeDef(..),
-      Cfg,
+      Cfg(..),
     ) where
 
 import           Control.Exception
@@ -29,7 +29,8 @@ import           System.IO
 import           Text.Printf
 
 import           Ignorances
-import           SliceNameStrategy         (SliceNameStrategy)
+import           SliceNameStrategy         (SliceNameStrategy,
+                                            defaultSliceNameStrategy)
 import           Types
 
 data TreeDef = TreeDef { tdName :: String, tdPath :: FilePath, tdPatterns :: IgnoranceDef} deriving (Show)
@@ -43,10 +44,10 @@ data Config = Config {
   }  deriving (Show, Generic, FromJSON )
 
 data Cfg = Cfg {
-     sliceNameStrategy :: SliceNameStrategy,
-     forestDef         :: ForestDef,
-     emptyTrees        :: [String]
-   }
+     sliceNameStrategy' :: SliceNameStrategy,
+     forestDef          :: ForestDef,
+     emptyTrees         :: [String]
+   } deriving (Show)
 
 pickForestDef :: Config -> ForestDef
 pickForestDef = map (\(treename, CfgTree{..}) -> TreeDef treename path (fromMaybe [] filter) )
@@ -54,7 +55,7 @@ pickForestDef = map (\(treename, CfgTree{..}) -> TreeDef treename path (fromMayb
 
 
 
-readConfig :: FilePath -> IO (Maybe (ForestDef, [String]))
+readConfig :: FilePath -> IO (Maybe Cfg)
 readConfig backupDir = do
   runMaybeT $ do
     let configFilePath = backupDir </> configFileName
@@ -63,7 +64,7 @@ readConfig backupDir = do
     _ <- MaybeT $ checkAllIngorancePatterns forestDef
     _ <- MaybeT $ checkDuplicities forestDef
     empties <- MaybeT $ checkSourceDirs forestDef
-    return (forestDef, empties)
+    return $ Cfg (fromMaybe  defaultSliceNameStrategy (sliceNameStrategy config)) forestDef empties
 
 
 
