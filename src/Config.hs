@@ -1,15 +1,17 @@
 
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE TupleSections         #-}
 
 module Config
     (
       readConfig,
       ForestDef,
-      TreeDef(..)
+      TreeDef(..),
+      Cfg,
     ) where
 
 import           Control.Exception
@@ -27,6 +29,7 @@ import           System.IO
 import           Text.Printf
 
 import           Ignorances
+import           SliceNameStrategy         (SliceNameStrategy)
 import           Types
 
 data TreeDef = TreeDef { tdName :: String, tdPath :: FilePath, tdPatterns :: IgnoranceDef} deriving (Show)
@@ -34,7 +37,16 @@ type ForestDef = [TreeDef]
 
 
 data CfgTree = CfgTree { path :: FilePath, filter :: Maybe [String]} deriving (Show, Generic, FromJSON )
-newtype Config = Config { forest :: M.Map String CfgTree }  deriving (Show, Generic, FromJSON )
+data Config = Config {
+     sliceNameStrategy :: Maybe SliceNameStrategy,
+     forest            :: M.Map String CfgTree
+  }  deriving (Show, Generic, FromJSON )
+
+data Cfg = Cfg {
+     sliceNameStrategy :: SliceNameStrategy,
+     forestDef         :: ForestDef,
+     emptyTrees        :: [String]
+   }
 
 pickForestDef :: Config -> ForestDef
 pickForestDef = map (\(treename, CfgTree{..}) -> TreeDef treename path (fromMaybe [] filter) )
@@ -46,7 +58,8 @@ readConfig :: FilePath -> IO (Maybe (ForestDef, [String]))
 readConfig backupDir = do
   runMaybeT $ do
     let configFilePath = backupDir </> configFileName
-    forestDef <- MaybeT $  (fmap pickForestDef) <$> readConfigFile configFilePath
+    config <- MaybeT $ readConfigFile configFilePath
+    let forestDef = pickForestDef config
     _ <- MaybeT $ checkAllIngorancePatterns forestDef
     _ <- MaybeT $ checkDuplicities forestDef
     empties <- MaybeT $ checkSourceDirs forestDef

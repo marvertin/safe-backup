@@ -1,3 +1,4 @@
+# sliceNameStrategy: UtcSeconds
 forest:
   ccase4: 
      path: ./test/data/case4/source-of-maintree

@@ -2,39 +2,39 @@
 
 module Main where
 
-import           Data.Maybe
-import           GHC.IO.Encoding
---import           Filesystem.Path
-import           Backup
-import           Debug
-import           Lib
-import           Log
-import           SliceToLodree
-import           System.Directory.Tree
-import           System.FilePath.Find
-import           System.IO
-import           Text.Printf
-import           TreeComparator
-import           TurboWare
-
---import           Data.Time.Calendar
-import           Config
 import           Control.Monad
 import           Data.Either
+import           Data.Maybe
 import           Data.Semigroup        ((<>))
 import           Data.Time.Clock
 import           Data.Version          (showVersion)
-import           DirScan
+import           GHC.IO.Encoding
 import           Options.Applicative
 import qualified Paths_yaba            (version)
-import           Slice
-import           SourceTree
 import           System.Directory
+import           System.Directory.Tree
 import           System.Environment
 import           System.Exit
+import           System.FilePath.Find
+import           System.IO
 import           System.TimeIt
+import           Text.Printf
+
+import           Backup
+import           Config
+import           Debug
+import           DirScan
+import           Lib
+import           Log
+import           Slice
+import           SliceNameStrategy
+import           SliceToLodree
+import           SourceTree
 import           Tree
+import           TreeComparator
+import           TurboWare
 import           Types
+
 
 
 -- putStrLn "→"
