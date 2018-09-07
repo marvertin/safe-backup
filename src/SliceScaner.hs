@@ -43,6 +43,7 @@ import           Slice
 
 
 
+-- nepouziva se
 readSlice :: FilePath -> IO AnchoredSliceTree
 readSlice rootDir = do
   d <- readSlice'' stdOutLoggingEventHanler rootDir
@@ -50,7 +51,8 @@ readSlice rootDir = do
 
 readSlice'' :: EventHandler SliceTree b -> FilePath -> IO SliceTree
 readSlice'' eventHandler rootDir =
-    fst <$> scanDirectory mkDir filterFilesInRoot readSFile eventHandler rootDir -- >>= ((takeDirectory rootDir ):/)
+    fst <$> scanDirectory mkDir filterFilesInRoot readSFile eventHandler
+        (replaceVerticalToSlashes rootDir) -- >>= ((takeDirectory rootDir ):/)
   where
     -- rootDir1 = (takeFileName . takeDirectory) rootDir ++ "|" ++ takeFileName rootDir -- it os not filename but root directory
     rootDir1 = takeFileName rootDir -- it is not filename but root directory
@@ -67,7 +69,7 @@ readSlice'' eventHandler rootDir =
 loadSliceFile :: FilePath -> RevPath -> IO SliceFile
 loadSliceFile rootPath rp = do
   let path = replaceBacklashesToSlashes (pth rp)
-  let realPath = rootPath </> path
+  let realPath = replaceVerticalToSlashes (rootPath </> path)
   size <- getFileSize realPath
   time <- getModificationTime realPath
   hash <- computeFileHash realPath

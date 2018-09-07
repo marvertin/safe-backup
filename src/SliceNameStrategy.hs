@@ -34,13 +34,15 @@ data SliceNameStrategy = UtcSeconds | UtcSecondsByYear | UtcSecondsByYearMonth |
 
 
 listSlices :: SliceNameStrategy -> FilePath -> IO [FilePath]
-listSlices  sliceNameStrategy = listDirSortedN $
-   case sliceNameStrategy of
-     UtcSeconds            -> 1
-     UtcSecondsByYear      -> 2
-     UtcSecondsByYearMonth -> 2
-     UtcSecondsByMinute    -> 2
-     Numbers4              -> 2
+listSlices sliceNameStrategy path = fmap replaceSlashesToVertical <$> listSlices' path
+ where
+  listSlices' = listDirSortedN $
+     case sliceNameStrategy of
+       UtcSeconds            -> 1
+       UtcSecondsByYear      -> 2
+       UtcSecondsByYearMonth -> 2
+       UtcSecondsByMinute    -> 2
+       Numbers4              -> 2
 
 listDirSorted :: FilePath -> IO [FilePath]
 listDirSorted dir = sort <$> listDirectory dir
@@ -59,9 +61,9 @@ nextSliceName sliceRoot strategy = do
   time <- currentUtcTimeFormatted
   return $ case strategy of
              UtcSeconds            -> time
-             UtcSecondsByYear      -> replaceItem 4 '/' time
-             UtcSecondsByYearMonth -> replaceItem 7 '/' time
-             UtcSecondsByMinute    -> replaceItem 16 '/' time
+             UtcSecondsByYear      -> replaceItem 4 '|' time
+             UtcSecondsByYearMonth -> replaceItem 7 '|' time
+             UtcSecondsByMinute    -> replaceItem 16 '|' time
 
 currentUtcTimeFormatted :: IO String
 currentUtcTimeFormatted = do
@@ -79,3 +81,14 @@ nextn whole@(letter : digits)
       in if length digits2 > length digits
          then (succ letter) : reverse digits2
          else letter : printf ("%0" ++ show (length digits) ++ "d") newNum
+
+buildSliceName :: String -> String -> String
+buildSliceName [] _ = []
+buildSliceName ('?': xs) stime =
+    let (nums, rest) = spanNums stime
+    in nums ++ buildSliceName xs rest
+buildSliceName (char: xs) stime = char : buildSliceName xs stime
+
+spanNums :: String -> (String, String)
+spanNums s = let (x, y) = span isDigit s
+             in (x, dropWhile (not . isDigit) y)

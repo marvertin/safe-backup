@@ -3,6 +3,8 @@ module TurboWare
       tupleMaybeUpFst,
       tupleMaybeUpSnd,
       replaceBacklashesToSlashes,
+      replaceVerticalToSlashes,
+      replaceSlashesToVertical,
       zipMaybe,
       prependToFirst,
       appendToFirst,
@@ -11,7 +13,6 @@ module TurboWare
       safeHead,
       replaceItem,
       createDirectories,
-      replaceVerticalToSlashes,
       Dumpable(..),
       Hexable(..)
     ) where
@@ -68,6 +69,13 @@ replaceVerticalToSlashes = let
       repl '|' = '/'
       repl x   = x
   in map repl
+
+replaceSlashesToVertical :: String -> String
+replaceSlashesToVertical = let
+        repl '/'  = '|'
+        repl '\\' = '|'
+        repl x    = x
+    in map repl
 
 -- | Prepends list to the first list of list of list
 -- | IF list of list is empty return singleton list of first list

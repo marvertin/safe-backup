@@ -19,6 +19,7 @@ module Types (
   indexSubdir,
   dataSubdir,
   logSubdir,
+  sliceLogName,
 
   UTCTime
 ) where
@@ -48,6 +49,7 @@ slicePhysicalTree_suffix = "_physical-tree.yaml"
 sliceLogicalTree_suffix = "_logical-tree.yaml"
 sliceSourceTree_suffix = "_source-tree.yaml"
 
+sliceLogName = "slice-backup.log"
 indexSubdir = "index"
 dataSubdir = "data"
 logSubdir = "log"

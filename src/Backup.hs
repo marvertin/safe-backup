@@ -39,7 +39,7 @@ readBackupDir sliceNameStrategy eventHanlder backupRoot indexDir = do
   putStrLn $ "sliceNames: " ++ show sliceNames
   yabaDirs <- forM sliceNames (\name -> do
       slice <- readSlice'' eventHanlder (backupRoot </> name)
-      encodeFile (indexDir </> replaceVerticalToSlashes (fileNamex slice) ++ slicePhysicalTree_suffix) slice
+      encodeFile (replaceVerticalToSlashes (indexDir </> slicePhysicalTree_suffix)) slice
       return slice
     )
   --forM_ yabaDirs (\x ->
@@ -51,13 +51,14 @@ readBackupDir sliceNameStrategy eventHanlder backupRoot indexDir = do
 --maintree = "maintree"
 
 writeBackup :: Handle -> AnchoredBackupTree -> ForestDef -> IO [AnchoredDirTree ()]
-writeBackup loghandle x sourceTrees = do
+writeBackup loghandle abt' sourceTrees = do
     -- putStrLn $ "jsem v writeBackup"
     -- hFlush stdout
     -- nasledujici prikaz buh vi proc dlouho trva
-    let (base :/ d@(Dir yabadir _)) = x
+    let (base :/ dd@(Dir yabadir subdirlist1)) = abt'
+    let abt = base :/ Dir (replaceVerticalToSlashes yabadir) subdirlist1
     putStrLn $ "Writing backup slice: " ++ yabadir
-    forM_ (M.toList $ countCounters d) (\(key, value) -> do
+    forM_ (M.toList $ countCounters dd) (\(key, value) -> do
          printf "%8d: %s\n" value key
          )
     hFlush stdout
@@ -66,7 +67,7 @@ writeBackup loghandle x sourceTrees = do
        --putStrLn $ unlines $ dirTreeToStringList (Just . show) d
        -- musíme umazat adresář yaba a také adresář kořene
        let kolikSmazat = 1 + length yabadir + 1 + length treeName + length base
-       writeDirectoryWith (writeFileToBackup kolikSmazat treePath) x
+       writeDirectoryWith (writeFileToBackup kolikSmazat treePath) abt
       ) sourceTrees
   where
     writeFileToBackup :: Int -> FilePath -> FilePath -> Cmd -> IO ()
@@ -123,41 +124,41 @@ yabaFilePrefix (BackupTreeBuilder.Insert{})   = "~INSERT~"
 
 backup :: SliceNameStrategy -> FilePath -> ForestDef -> IO [AnchoredDirTree ()]
 backup sliceNameStrategy backupDirRoot  sourceTrees  = do
-    createDirectoryIfMissing False dataDir
-    newSliceName <- nextSliceName dataDir sliceNameStrategy
-    createDirectoryIfMissing True (takeDirectory $ logDir </> newSliceName)
-    createDirectoryIfMissing True (takeDirectory $ indexDir </> newSliceName)
-    withFile (logDir </> newSliceName ++ ".log") WriteMode (\handle -> do
+    createDirectoryIfMissing False dataRoot
+    newSliceName <- nextSliceName dataRoot sliceNameStrategy
+    let slicedDirName dname = replaceVerticalToSlashes (dname </> newSliceName)
+    let logDirx = slicedDirName logRoot
+    let indexDirx = slicedDirName indexRoot
+    createDirectoryIfMissing True logDirx
+    createDirectoryIfMissing True indexDirx
+    withFile (logDirx </> sliceLogName) WriteMode (\handle -> do
       hSetBuffering handle LineBuffering
       let logger = hLoggingEventHandler handle
-      let newSliceDirName = newSliceName
-      let newSlicePath = dataDir </> newSliceDirName
-      lodreeBackupAll <- readBackupDir sliceNameStrategy logger dataDir indexDir
+      lodreeBackupAll <- readBackupDir sliceNameStrategy logger dataRoot indexDirx
       let lodreeBackupCurrent = currentLodree lodreeBackupAll
       putStrLn $  "Reading " ++ show (length sourceTrees) ++ " source trees"
-      encodeFile (indexDir </> newSliceName ++ sliceLogicalTree_suffix) lodreeBackupCurrent
-      encodeFile (indexDir </> sliceLogicalTree_suffix) lodreeBackupCurrent
+      encodeFile (indexDirx </> sliceLogicalTree_suffix) lodreeBackupCurrent
 
       lodreeSourceAllNodes <- makeLDir <$> forM sourceTrees ( \(TreeDef treeName treePath ignorances) -> do
           lodreeSourceOneNode <- readSourceTree logger ignorances treePath
-          encodeFile (indexDir </> (treeName ++ sliceSourceTree_suffix)) lodreeSourceOneNode
+          encodeFile (indexRoot </> (treeName ++ sliceSourceTree_suffix)) lodreeSourceOneNode
           return (treeName, lodreeSourceOneNode)
          )
       --lodreeSourceOneNode <- readSourceTree sourceOfMainTreeDir
       -- let lodreeSourceAllNodes = LDir emptyDRee [(maintree, lodreeSourceOneNode)]
       putStrLn $ "Building new backup slice: " ++ newSliceName
-      case buildBackup lodreeBackupAll lodreeSourceAllNodes newSliceDirName of
+      case buildBackup lodreeBackupAll lodreeSourceAllNodes newSliceName of
         Nothing -> do
            putStrLn "NOTHING to backup: "
            return []
         Just backupDirTree -> do
-           putStrLn $ "Writing backup to: " ++ dataDir
-           writeBackup handle (dataDir :/ backupDirTree) sourceTrees
+           putStrLn $ "Writing backup to: " ++ dataRoot
+           writeBackup handle (dataRoot :/ backupDirTree) sourceTrees
      )
   where
-    dataDir = backupDirRoot </> dataSubdir
-    indexDir = backupDirRoot </> indexSubdir
-    logDir = backupDirRoot </> logSubdir
+    dataRoot = backupDirRoot </> dataSubdir
+    indexRoot = backupDirRoot </> indexSubdir
+    logRoot = backupDirRoot </> logSubdir
   -- return ()
 
 
