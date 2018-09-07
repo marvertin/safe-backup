@@ -12,7 +12,6 @@ module Types (
   FilePath,
   ErrMsg,
   yabaSuffix,
-  yabaSliceSuffix,
   configFileName,
   slicePhysicalTree_suffix,
   sliceLogicalTree_suffix,
@@ -42,8 +41,6 @@ type Hash = BS.ByteString
 type ErrMsg = String
 
 yabaSuffix = ".yaba"
-
-yabaSliceSuffix = ".yaba-slice"
 
 configFileName = "yaba-config.yaml" :: FileName
 

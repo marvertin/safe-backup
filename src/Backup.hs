@@ -33,16 +33,14 @@ import           SourceTree
 import           TurboWare
 import           Types
 
-isSliceName :: FileName -> Bool
-isSliceName = isSuffixOf yabaSliceSuffix
-
 
 readBackupDir :: EventHandler SliceTree b -> FilePath -> FilePath -> IO Lodree
 readBackupDir eventHanlder backupRoot indexDir = do
-  sliceNames <-  (map takeBaseName . sort . filter isSliceName) <$> listDirectory backupRoot
+  -- TODO strategie
+  sliceNames <-  sort <$> listDirectory backupRoot
   putStrLn $ "Reading " ++ show (length sliceNames) ++ " slices allredy backed up"
   yabaDirs <- forM sliceNames (\name -> do
-      slice <- readSlice'' eventHanlder (backupRoot </> name ++ yabaSliceSuffix)
+      slice <- readSlice'' eventHanlder (backupRoot </> name)
       encodeFile (indexDir </> takeBaseName (fileNamex slice) ++ slicePhysicalTree_suffix) slice
       return slice
     )
@@ -134,7 +132,8 @@ backup backupDirRoot  sourceTrees  = do
     withFile (logDir </> newSliceName ++ ".log") WriteMode (\handle -> do
       hSetBuffering handle LineBuffering
       let logger = hLoggingEventHandler handle
-      let newSliceDirName = newSliceName ++ yabaSliceSuffix
+      -- TODO strategie
+      let newSliceDirName = newSliceName
       let newSlicePath = dataDir </> newSliceDirName
       lodreeBackupAll <- readBackupDir logger dataDir indexDir
       let lodreeBackupCurrent = currentLodree lodreeBackupAll
