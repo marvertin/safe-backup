@@ -1,7 +1,7 @@
 sliceNameStrategy: UtcSecondsByMinute
 forest:
   maintree:
-     path: ./test/data/case3/source-of-maintree
+     path: ./test/data/case3x/source-of-maintree
      filter:
        #- i=NECHATI/nechati11.txt
        # - e~NECHATI

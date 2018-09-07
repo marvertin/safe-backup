@@ -122,7 +122,7 @@ isPhysicalLink (PhysicalLink _) = True
 isPhysicalLink _                = False
 
 findTarget :: SliceCmd -> Lodree -> Maybe Lodree
-findTarget content = findLodreeNode $ getLinkTarget content
+findTarget cmd = findLodreeNode $ getLinkTarget cmd
 
 getLinkTarget :: SliceCmd -> FilePath
 getLinkTarget (LogicalLink target)  = target

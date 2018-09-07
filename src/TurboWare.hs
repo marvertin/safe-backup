@@ -11,6 +11,7 @@ module TurboWare
       safeHead,
       replaceItem,
       createDirectories,
+      replaceVerticalToSlashes,
       Dumpable(..),
       Hexable(..)
     ) where
@@ -54,10 +55,18 @@ tupleMaybeUpSnd :: (a, Maybe b) -> Maybe (a, b)
 tupleMaybeUpSnd (_, Nothing) = Nothing
 tupleMaybeUpSnd (a, Just b)  = Just (a, b)
 
+
 replaceBacklashesToSlashes :: String -> String
 replaceBacklashesToSlashes = let
       repl '\\' = '/'
       repl x    = x
+  in map repl
+
+
+replaceVerticalToSlashes :: String -> String
+replaceVerticalToSlashes = let
+      repl '|' = '/'
+      repl x   = x
   in map repl
 
 -- | Prepends list to the first list of list of list

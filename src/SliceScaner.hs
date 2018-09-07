@@ -52,7 +52,8 @@ readSlice'' :: EventHandler SliceTree b -> FilePath -> IO SliceTree
 readSlice'' eventHandler rootDir =
     fst <$> scanDirectory mkDir filterFilesInRoot readSFile eventHandler rootDir -- >>= ((takeDirectory rootDir ):/)
   where
-    rootDir1 = takeFileName rootDir -- it os not filename but root directory
+    -- rootDir1 = (takeFileName . takeDirectory) rootDir ++ "|" ++ takeFileName rootDir -- it os not filename but root directory
+    rootDir1 = takeFileName rootDir -- it is not filename but root directory
     readSFile :: RevPath -> IO SliceTree
     readSFile rp = File (head rp) <$> loadSliceFile rootDir rp
 

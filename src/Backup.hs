@@ -39,7 +39,7 @@ readBackupDir sliceNameStrategy eventHanlder backupRoot indexDir = do
   putStrLn $ "sliceNames: " ++ show sliceNames
   yabaDirs <- forM sliceNames (\name -> do
       slice <- readSlice'' eventHanlder (backupRoot </> name)
-      encodeFile (indexDir </> takeBaseName (fileNamex slice) ++ slicePhysicalTree_suffix) slice
+      encodeFile (indexDir </> replaceVerticalToSlashes (fileNamex slice) ++ slicePhysicalTree_suffix) slice
       return slice
     )
   --forM_ yabaDirs (\x ->
