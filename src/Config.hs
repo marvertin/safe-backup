@@ -12,6 +12,7 @@ module Config
       ForestDef,
       TreeDef(..),
       Cfg(..),
+      checkSliceNamePattern,
     ) where
 
 import           Control.Exception
@@ -27,6 +28,7 @@ import           System.Directory
 import           System.FilePath
 import           System.IO
 import           Text.Printf
+import           Text.Regex.Posix
 
 import           Ignorances
 import           SliceNameStrategy         (SliceNameStrategy,
@@ -106,6 +108,8 @@ checkIngorancePatterns (tree, pattern) =
        return  Nothing
      )
 
+checkSliceNamePattern :: String -> Bool
+checkSliceNamePattern pattern = pattern =~ ("^[^/|\\0-9]+(/[^/|\\0-9]+)*(/[0-9]+)?$" :: String)
 
 checkSourceDirs :: ForestDef -> IO (Maybe [String])
 checkSourceDirs forest = do

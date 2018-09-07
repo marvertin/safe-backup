@@ -9,11 +9,13 @@ module SliceNameStrategy (
   nextSliceName,
   listDirSortedN,
   nextn,
+  lastSliceLatsPartName,
 ) where
 
 import           Control.Monad
 import           Data.Char
 import           Data.List
+import           Data.Maybe
 import           Data.Time.Calendar
 import           Data.Time.Clock
 import           Data.Time.Format
@@ -56,6 +58,12 @@ listDirSortedN n rootDir = fmap replaceBacklashesToSlashes <$> listd n ""
         names <- listDirSorted (rootDir </> dir)
         concat <$> mapM (listd (n - 1) . (dir </>)) names
 
+-- | lastSliceLatPartName 3 ["aa/xx/11", "bb/yy/222"] = Just "222"
+lastSliceLatsPartName :: Int -> FilePath -> IO (Maybe String)
+lastSliceLatsPartName n root =
+    fmap (lastPart . replaceSlashesToVertical ) . listToMaybe . reverse <$> listDirSortedN n root
+  where lastPart = reverse . takeWhile (/='|') . reverse
+
 nextSliceName :: FilePath -> SliceNameStrategy -> IO FilePath
 nextSliceName sliceRoot strategy = do
   time <- currentUtcTimeFormatted
@@ -82,9 +90,10 @@ nextn whole@(letter : digits)
          then (succ letter) : reverse digits2
          else letter : printf ("%0" ++ show (length digits) ++ "d") newNum
 
+-- | "y*M*/*-*xx/0001" "2042-12-17T23-15-47" = "y2042M12/17-23xx/0001"
 buildSliceName :: String -> String -> String
 buildSliceName [] _ = []
-buildSliceName ('?': xs) stime =
+buildSliceName ('*': xs) stime =
     let (nums, rest) = spanNums stime
     in nums ++ buildSliceName xs rest
 buildSliceName (char: xs) stime = char : buildSliceName xs stime
