@@ -8,9 +8,11 @@ module SliceNameStrategy (
   listSlices,
   nextSliceName,
   listDirSortedN,
+  nextn,
 ) where
 
 import           Control.Monad
+import           Data.Char
 import           Data.List
 import           Data.Time.Calendar
 import           Data.Time.Clock
@@ -20,6 +22,7 @@ import           GHC.Generics
 import           System.Directory
 import           System.FilePath
 import           System.FilePath.Find
+import           Text.Printf
 
 import           TurboWare
 
@@ -64,3 +67,15 @@ currentUtcTimeFormatted :: IO String
 currentUtcTimeFormatted = do
   now <- getCurrentTime
   return $ formatTime defaultTimeLocale (iso8601DateFormat (Just "%H-%M-%SZ")) now
+
+
+-- | next number with numerical and lexicoraphical order
+nextn :: String -> String
+nextn whole@(letter : digits)
+  | isDigit letter = dropWhile (== pred 'a') . nextn $ pred 'a' : whole
+  | otherwise =
+      let newNum = 1 + read digits :: Int
+          digits2 = show newNum
+      in if length digits2 > length digits
+         then (succ letter) : reverse digits2
+         else letter : printf ("%0" ++ show (length digits) ++ "d") newNum
