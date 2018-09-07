@@ -1,0 +1,10 @@
+sliceNameStrategy: UtcSecondsByMinute
+forest:
+  maintree:
+     path: ./test/data/case3/source-of-maintree
+     filter:
+       #- i=NECHATI/nechati11.txt
+       # - e~NECHATI
+       #- e~[SZ].*
+  #notexists:
+  #   path: ./not-existent-folder

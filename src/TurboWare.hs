@@ -9,6 +9,8 @@ module TurboWare
       dropPrefixSlashes,
       trim,
       safeHead,
+      replaceItem,
+      createDirectories,
       Dumpable(..),
       Hexable(..)
     ) where
@@ -104,3 +106,9 @@ createDirectories :: FilePath -> IO ()
 createDirectories dir = do
    createDirectoryIfMissing True (takeDirectory dir)
    createDirectory dir
+
+replaceItem :: Int -> a -> [a] ->[a]
+replaceItem index item list =
+    let (pref, suf) = splitAt index list
+    in if null suf then list
+                   else pref ++ [item] ++ tail suf

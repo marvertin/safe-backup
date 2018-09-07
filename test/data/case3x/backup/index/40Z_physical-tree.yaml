@@ -1,0 +1,72 @@
+maintree:
+  ~MOVE-AWAY~ZKOPÍROVATII-DO-NOVĚHO.yaba: MetaFile Delete
+  NOVÝ-ADRESÁŘ:
+    novy2: RegularFile (Ree {rcount = 1, rsize = 49, rtime = 2018-09-07 08:35:40.6507815
+      UTC, rhash = "\138\SOH\151\&4\213\153\248\FS!\DLE\135\139}\195)Od6\136?"}) "/40Z/maintree/NOV\221-ADRES\193\344/novy2"
+    ~N-LINK~prvni exemplar souboru.yaba: MetaFile (PhysicalLink "/2018-09-07T08-35/40Z/maintree/treti
+      exemplar souboru")
+    ~LINK~ZKOPÍROVATII-DO-NOVĚHO.yaba: MetaFile (PhysicalLink "/00/maintree/ZKOP\205ROVATII-DO-NOV\282HO")
+    novy4:
+      ~N-LINK~druhy exemplar souboru.yaba: MetaFile (PhysicalLink "/2018-09-07T08-35/40Z/maintree/treti
+        exemplar souboru")
+    novy3: RegularFile (Ree {rcount = 1, rsize = 46, rtime = 2018-09-07 08:35:40.6557858
+      UTC, rhash = "R^R\135\246\ESC(\225\151\179>\194X\152\171^\218\172\137W"}) "/40Z/maintree/NOV\221-ADRES\193\344/novy3"
+    ~LINK~PŘESUNOUTI-DO-NOVĚHO.yaba: MetaFile (PhysicalLink "/00/maintree/P\344ESUNOUTI-DO-NOV\282HO")
+    ~LINK~přesunout-do-noveho.yaba: MetaFile (PhysicalLink "/00/maintree/p\345esunout-do-noveho")
+    ~LINK~zkopirovat-do-nového.yaba: MetaFile (PhysicalLink "/00/maintree/zkopirovat-do-nov\233ho")
+    ~N-LINK~ddddruhy exemplar souboru.yaba: MetaFile (PhysicalLink "/2018-09-07T08-35/40Z/maintree/treti
+      exemplar souboru")
+  ~DELETE~smazat.yaba: MetaFile Delete
+  SEM-SE-TO-ZKOPIRUJE:
+    ~LINK~ZKOPÍIROVATI-DO-EXISTUJÍCÍHO.yaba: MetaFile (PhysicalLink "/00/maintree/ZKOP\205IROVATI-DO-EXISTUJ\205C\205HO")
+    ~LINK~zkopirovat-do-existujiciho.yaba: MetaFile (PhysicalLink "/00/maintree/zkopirovat-do-existujiciho")
+  změnit: RegularFile (Ree {rcount = 1, rsize = 19, rtime = 2018-09-07 08:35:40.7618598
+    UTC, rhash = "\137\241Gn\180\156p\160\&7\DLEw\239\198W\210P\189\192Dc"}) "/40Z/maintree/zm\283nit"
+  ~MOVE-AWAY~zkopirovat-do-nového.yaba: MetaFile Delete
+  přejmenovat-a-nahradit: RegularFile (Ree {rcount = 1, rsize = 64, rtime = 2018-09-07
+    08:35:40.7288367 UTC, rhash = "\192\254\a\254\223\250p\247W~{5\202\173b3\183 7a"})
+    "/40Z/maintree/p\345ejmenovat-a-nahradit"
+  ~LINK~bude-zastíněn.yaba: MetaFile (PhysicalLink "/00/maintree/bude-zasti\328ovat")
+  treti exemplar souboru: RegularFile (Ree {rcount = 1, rsize = 45, rtime = 2018-09-07
+    08:35:40.7518533 UTC, rhash = "4\217\150^\175=\NAK\SI\180\EOT.\144Lz\223\211\EM\t\145\143"})
+    "/40Z/maintree/treti exemplar souboru"
+  ~MOVE-AWAY~přejmenovat-souborinek.yaba: MetaFile Delete
+  ~MOVE-AWAY~zkopirovat-do-existujiciho.yaba: MetaFile Delete
+  SEM-SE-TO-PŘESUNE:
+    ~LINK~PŘESUNOUTI-DO-EXISTUJÍCÍHO.yaba: MetaFile (PhysicalLink "/00/maintree/P\344ESUNOUTI-DO-EXISTUJ\205C\205HO")
+    ~LINK~přesunout-do-existujiciho.yaba: MetaFile (PhysicalLink "/00/maintree/p\345esunout-do-existujiciho")
+  ~LINK~přejmenováno-a-nahrazeno.yaba: MetaFile (PhysicalLink "/00/maintree/p\345ejmenovat-a-nahradit")
+  NOVÁČEK:
+    novace1.txt: RegularFile (Ree {rcount = 1, rsize = 17, rtime = 2018-09-07 08:35:40.6387748
+      UTC, rhash = "\144!\141\f\242&\170\171\&0U\157=\142JK\173\216\t\159\ESC"}) "/40Z/maintree/NOV\193\268EK/novace1.txt"
+  novy: RegularFile (Ree {rcount = 1, rsize = 30, rtime = 2018-09-07 08:35:40.7248339
+    UTC, rhash = "q\228\b\221\182\&5\n\134\&9\128C\f\SIS\169\242\223B\DEL\r"}) "/40Z/maintree/novy"
+  NOVY-ADRESAR EXEMPLAR 2:
+    1-soubor: RegularFile (Ree {rcount = 1, rsize = 39, rtime = 2018-09-07 08:35:40.6207604
+      UTC, rhash = "#\235W\189!|\191\224$\140\187\195\242ya!vE\198\234"}) "/40Z/maintree/NOVY-ADRESAR
+      EXEMPLAR 2/1-soubor"
+    2-soubor: RegularFile (Ree {rcount = 1, rsize = 44, rtime = 2018-09-07 08:35:40.6277646
+      UTC, rhash = ">\213U\241\151\ESCh~\227\151\&7\252\242\242}\137\165v\202\&7"})
+      "/40Z/maintree/NOVY-ADRESAR EXEMPLAR 2/2-soubor"
+  ~LINK~přejmenováno-souborinek.yaba: MetaFile (PhysicalLink "/00/maintree/p\345ejmenovat-souborinek")
+  ~MOVE-AWAY~PŘEJMENOVATI.yaba: MetaFile Delete
+  ~MOVE-AWAY~PŘESUNOUTI-DO-NOVĚHO.yaba: MetaFile Delete
+  ~DELETE~PREJMENOVATI A NECO SEM PRIDATI.yaba: MetaFile Delete
+  ~N-LINK~NOVY-ADRESAR EXEMPLAR 1.yaba: MetaFile (PhysicalLink "/2018-09-07T08-35/40Z/maintree/NOVY-ADRESAR
+    EXEMPLAR 2")
+  soubor-nulove-delky: RegularFile (Ree {rcount = 1, rsize = 0, rtime = 2018-09-07
+    08:35:40.7478504 UTC, rhash = "\218\&9\163\238^kK\r2U\191\239\149`\CAN\144\175\216\a\t"})
+    "/40Z/maintree/soubor-nulove-delky"
+  ~MOVE-AWAY~přesunout-do-existujiciho.yaba: MetaFile Delete
+  ~DELETE~SMAZATI.yaba: MetaFile Delete
+  PREJMENOVANO A NECO SEM PRIDANO:
+    ~LINK~prejmenovati-adresar-a-pridati-soubor.yaba: MetaFile (PhysicalLink "/00/maintree/PREJMENOVATI
+      A NECO SEM PRIDATI/prejmenovati-adresar-a-pridati-soubor")
+    pridano do prejmenovane slozky: RegularFile (Ree {rcount = 1, rsize = 33, rtime
+      = 2018-09-07 08:35:40.6768037 UTC, rhash = "\"\GS\235|\188\204\DC4\FS?\193\t\159\186\n\168\tV\GSf\239"})
+      "/40Z/maintree/PREJMENOVANO A NECO SEM PRIDANO/pridano do prejmenovane slozky"
+  ~MOVE-AWAY~přesunout-do-noveho.yaba: MetaFile Delete
+  ~MOVE-AWAY~bude-zastiňovat.yaba: MetaFile Delete
+  ~LINK~PŘEJMENOVÁNO.yaba: MetaFile (PhysicalLink "/00/maintree/P\344EJMENOVATI")
+  ~MOVE-AWAY~ZKOPÍIROVATI-DO-EXISTUJÍCÍHO.yaba: MetaFile Delete
+  ~MOVE-AWAY~PŘESUNOUTI-DO-EXISTUJÍCÍHO.yaba: MetaFile Delete

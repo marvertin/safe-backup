@@ -34,8 +34,9 @@ import           Types
 
 readBackupDir :: SliceNameStrategy -> EventHandler SliceTree b -> FilePath -> FilePath -> IO Lodree
 readBackupDir sliceNameStrategy eventHanlder backupRoot indexDir = do
-  sliceNames <-  listSlices  backupRoot sliceNameStrategy
+  sliceNames <-  listSlices  sliceNameStrategy backupRoot
   putStrLn $ "Reading " ++ show (length sliceNames) ++ " slices allredy backed up"
+  putStrLn $ "sliceNames: " ++ show sliceNames
   yabaDirs <- forM sliceNames (\name -> do
       slice <- readSlice'' eventHanlder (backupRoot </> name)
       encodeFile (indexDir </> takeBaseName (fileNamex slice) ++ slicePhysicalTree_suffix) slice
@@ -123,9 +124,9 @@ yabaFilePrefix (BackupTreeBuilder.Insert{})   = "~INSERT~"
 backup :: SliceNameStrategy -> FilePath -> ForestDef -> IO [AnchoredDirTree ()]
 backup sliceNameStrategy backupDirRoot  sourceTrees  = do
     createDirectoryIfMissing False dataDir
-    createDirectoryIfMissing False indexDir
-    createDirectoryIfMissing False logDir
     newSliceName <- nextSliceName dataDir sliceNameStrategy
+    createDirectoryIfMissing True (takeDirectory $ logDir </> newSliceName)
+    createDirectoryIfMissing True (takeDirectory $ indexDir </> newSliceName)
     withFile (logDir </> newSliceName ++ ".log") WriteMode (\handle -> do
       hSetBuffering handle LineBuffering
       let logger = hLoggingEventHandler handle

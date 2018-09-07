@@ -1,0 +1,119 @@
+=========================================================================
+Start scanning: I:\zoje\safe-backup\test\data\case3\backup\data\2018-02-03T00-00-00Z.yaba-slice at 2018-09-07 06:08:06.0118728 UTC
+0.0010s 2018-09-07 06:08:06      1 #      0.000 MB    999.10 #/s    0.017 MB/s      0.000 maintree\změnit
+0.0020s 2018-09-07 06:08:06      2 #      0.000 MB    999.00 #/s    0.029 MB/s      0.000 maintree\zkopirovat-do-nového
+0.0060s 2018-09-07 06:08:06      3 #      0.000 MB    499.59 #/s    0.018 MB/s      0.000 maintree\zkopirovat-do-existujiciho
+0.0070s 2018-09-07 06:08:06      4 #      0.000 MB    570.81 #/s    0.025 MB/s      0.000 maintree\smazat
+0.0080s 2018-09-07 06:08:06      5 #      0.000 MB    622.16 #/s    0.033 MB/s      0.000 maintree\přesunout-do-noveho
+0.0090s 2018-09-07 06:08:06      6 #      0.000 MB    665.01 #/s    0.039 MB/s      0.000 maintree\přesunout-do-existujiciho
+0.0100s 2018-09-07 06:08:06      7 #      0.000 MB    698.33 #/s    0.040 MB/s      0.000 maintree\přejmenovat-souborinek
+0.0100s 2018-09-07 06:08:06      8 #      0.000 MB    798.09 #/s    0.045 MB/s      0.000 maintree\přejmenovat-a-nahradit
+0.0110s 2018-09-07 06:08:06      9 #      0.000 MB    817.56 #/s    0.045 MB/s      0.000 maintree\nechat
+0.0120s 2018-09-07 06:08:06     10 #      0.001 MB    831.58 #/s    0.042 MB/s      0.000 maintree\bude-zastíněn
+0.0130s 2018-09-07 06:08:06     11 #      0.001 MB    844.47 #/s    0.041 MB/s      0.000 maintree\bude-zastiňovat
+0.0140s 2018-09-07 06:08:06     12 #      0.001 MB    856.46 #/s    0.042 MB/s      0.000 maintree\ZKOPÍROVATII-DO-NOVĚHO\zkopirovati-s-adresarem-do-noveho-22
+0.0140s 2018-09-07 06:08:06     13 #      0.001 MB    927.83 #/s    0.046 MB/s      0.000 maintree\ZKOPÍROVATII-DO-NOVĚHO\zkopirovati-s-adresarem-do-noveho-11
+0.0150s 2018-09-07 06:08:06     14 #      0.001 MB    932.60 #/s    0.048 MB/s      0.000 maintree\ZKOPÍIROVATI-DO-EXISTUJÍCÍHO\zkopirovati-s-adresarem-do-existujícího-11
+0.0160s 2018-09-07 06:08:06     15 #      0.001 MB    936.76 #/s    0.049 MB/s      0.000 maintree\ZKOPÍIROVATI-DO-EXISTUJÍCÍHO\zkopirovati-s-adresarem-do-existujiciho-22
+0.0170s 2018-09-07 06:08:06     16 #      0.001 MB    940.43 #/s    0.047 MB/s      0.000 maintree\SMAZATI\smazati22
+0.0180s 2018-09-07 06:08:06     17 #      0.001 MB    943.71 #/s    0.046 MB/s      0.000 maintree\SMAZATI\smazati11
+0.0190s 2018-09-07 06:08:06     18 #      0.001 MB    946.61 #/s    0.045 MB/s      0.000 maintree\SEM-SE-TO-ZKOPIRUJE\sem-se-něco-zkopíruje
+0.0210s 2018-09-07 06:08:06     19 #      0.001 MB    904.06 #/s    0.042 MB/s      0.000 maintree\SEM-SE-TO-PŘESUNE\sem-se-něco-přesune
+0.0220s 2018-09-07 06:08:06     20 #      0.001 MB    908.41 #/s    0.043 MB/s      0.000 maintree\PŘESUNOUTI-DO-NOVĚHO\přesunouti22
+0.0230s 2018-09-07 06:08:06     21 #      0.001 MB    912.25 #/s    0.043 MB/s      0.000 maintree\PŘESUNOUTI-DO-NOVĚHO\přesunouti-s-adresarem-do-noveho-22
+0.0240s 2018-09-07 06:08:06     22 #      0.001 MB    915.96 #/s    0.044 MB/s      0.000 maintree\PŘESUNOUTI-DO-NOVĚHO\přesunouti-s-adresarem-do-noveho-11
+0.0260s 2018-09-07 06:08:06     23 #      0.001 MB    883.98 #/s    0.043 MB/s      0.000 maintree\PŘESUNOUTI-DO-EXISTUJÍCÍHO\přesunouti-s-adresarem-do-existujícího-11
+0.0270s 2018-09-07 06:08:06     24 #      0.001 MB    888.20 #/s    0.044 MB/s      0.000 maintree\PŘESUNOUTI-DO-EXISTUJÍCÍHO\přesunouti-s-adresarem-do-existujiciho-22
+0.0280s 2018-09-07 06:08:06     25 #      0.001 MB    891.86 #/s    0.044 MB/s      0.000 maintree\PŘEJMENOVATI\přejmenovati22
+0.0290s 2018-09-07 06:08:06     26 #      0.001 MB    895.88 #/s    0.044 MB/s      0.000 maintree\PŘEJMENOVATI\přejmenovati11
+0.0320s 2018-09-07 06:08:06     27 #      0.001 MB    843.10 #/s    0.041 MB/s      0.000 maintree\PREJMENOVATI A NECO SEM PRIDATI\prejmenovati-adresar-a-pridati-soubor
+0.0350s 2018-09-07 06:08:06     28 #      0.001 MB    799.38 #/s    0.038 MB/s      0.000 maintree\NECHATI\nechati22.txt
+0.0360s 2018-09-07 06:08:06     29 #      0.001 MB    804.93 #/s    0.038 MB/s      0.000 maintree\NECHATI\nechati11.txt
+End scanning at 2018-09-07 06:08:06.0479009 UTC, duration="0.0360s "; total: 
+    29#      0.001 MB |    804.93 #/s       0.038 MB/s  
+=========================================================================
+Start scanning: ./test/data/case3/source-of-maintree at 2018-09-07 06:08:06.0609085 UTC
+0ss 2018-09-07 06:08:06      1 #      0.000 MB  Infinity #/s  Infinity MB/s      0.000 změnit
+0.0020s 2018-09-07 06:08:06      2 #      0.000 MB    999.15 #/s    0.030 MB/s      0.000 treti exemplar souboru
+0.0030s 2018-09-07 06:08:06      3 #      0.000 MB    999.47 #/s    0.020 MB/s      0.000 soubor-nulove-delky
+0.0040s 2018-09-07 06:08:06      4 #      0.000 MB    999.30 #/s    0.027 MB/s      0.000 přejmenováno-souborinek
+0.0050s 2018-09-07 06:08:06      5 #      0.000 MB    999.26 #/s    0.032 MB/s      0.000 přejmenováno-a-nahrazeno
+0.0060s 2018-09-07 06:08:06      6 #      0.000 MB    999.23 #/s    0.037 MB/s      0.000 přejmenovat-a-nahradit
+0.0060s 2018-09-07 06:08:06      7 #      0.000 MB   1165.77 #/s    0.042 MB/s      0.000 novy
+0.0070s 2018-09-07 06:08:06      8 #      0.000 MB   1142.07 #/s    0.042 MB/s      0.000 nechat
+0.0070s 2018-09-07 06:08:06      9 #      0.000 MB   1284.83 #/s    0.046 MB/s      0.000 bude-zastíněn
+0.0090s 2018-09-07 06:08:06     10 #      0.000 MB   1110.35 #/s    0.042 MB/s      0.000 SEM-SE-TO-ZKOPIRUJE\zkopirovat-do-existujiciho
+0.0100s 2018-09-07 06:08:06     11 #      0.000 MB   1098.70 #/s    0.040 MB/s      0.000 SEM-SE-TO-ZKOPIRUJE\sem-se-něco-zkopíruje
+0.0110s 2018-09-07 06:08:06     12 #      0.000 MB   1090.12 #/s    0.043 MB/s      0.000 SEM-SE-TO-ZKOPIRUJE\ZKOPÍIROVATI-DO-EXISTUJÍCÍHO\zkopirovati-s-adresarem-do-existujícího-11
+0.0110s 2018-09-07 06:08:06     13 #      0.001 MB   1180.96 #/s    0.049 MB/s      0.000 SEM-SE-TO-ZKOPIRUJE\ZKOPÍIROVATI-DO-EXISTUJÍCÍHO\zkopirovati-s-adresarem-do-existujiciho-22
+0.0120s 2018-09-07 06:08:06     14 #      0.001 MB   1165.90 #/s    0.047 MB/s      0.000 SEM-SE-TO-PŘESUNE\sem-se-něco-přesune
+0.0130s 2018-09-07 06:08:06     15 #      0.001 MB   1249.18 #/s    0.054 MB/s      0.000 SEM-SE-TO-PŘESUNE\přesunout-do-existujiciho
+0.0130s 2018-09-07 06:08:06     16 #      0.001 MB   1229.94 #/s    0.055 MB/s      0.000 SEM-SE-TO-PŘESUNE\PŘESUNOUTI-DO-EXISTUJÍCÍHO\přesunouti-s-adresarem-do-existujícího-11
+0.0140s 2018-09-07 06:08:06     17 #      0.001 MB   1213.45 #/s    0.056 MB/s      0.000 SEM-SE-TO-PŘESUNE\PŘESUNOUTI-DO-EXISTUJÍCÍHO\přesunouti-s-adresarem-do-existujiciho-22
+0.0150s 2018-09-07 06:08:06     18 #      0.001 MB   1199.18 #/s    0.055 MB/s      0.000 PŘEJMENOVÁNO\přejmenovati22
+0.0150s 2018-09-07 06:08:06     19 #      0.001 MB   1265.81 #/s    0.058 MB/s      0.000 PŘEJMENOVÁNO\přejmenovati11
+0.0160s 2018-09-07 06:08:06     20 #      0.001 MB   1249.13 #/s    0.057 MB/s      0.000 PREJMENOVANO A NECO SEM PRIDANO\pridano do prejmenovane slozky
+0.0170s 2018-09-07 06:08:06     21 #      0.001 MB   1234.41 #/s    0.056 MB/s      0.000 PREJMENOVANO A NECO SEM PRIDANO\prejmenovati-adresar-a-pridati-soubor
+0.0170s 2018-09-07 06:08:06     22 #      0.001 MB   1293.19 #/s    0.058 MB/s      0.000 NOVÝ-ADRESÁŘ\zkopirovat-do-nového
+0.0180s 2018-09-07 06:08:06     23 #      0.001 MB   1276.85 #/s    0.060 MB/s      0.000 NOVÝ-ADRESÁŘ\přesunout-do-noveho
+0.0190s 2018-09-07 06:08:06     24 #      0.001 MB   1261.55 #/s    0.059 MB/s      0.000 NOVÝ-ADRESÁŘ\prvni exemplar souboru
+0.0200s 2018-09-07 06:08:06     25 #      0.001 MB   1249.17 #/s    0.058 MB/s      0.000 NOVÝ-ADRESÁŘ\novy4\druhy exemplar souboru
+0.0200s 2018-09-07 06:08:06     26 #      0.001 MB   1299.14 #/s    0.060 MB/s      0.000 NOVÝ-ADRESÁŘ\novy3
+0.0210s 2018-09-07 06:08:06     27 #      0.001 MB   1284.83 #/s    0.060 MB/s      0.000 NOVÝ-ADRESÁŘ\novy2
+0.0220s 2018-09-07 06:08:06     28 #      0.001 MB   1271.86 #/s    0.059 MB/s      0.000 NOVÝ-ADRESÁŘ\ddddruhy exemplar souboru
+0.0230s 2018-09-07 06:08:06     29 #      0.001 MB   1260.01 #/s    0.059 MB/s      0.000 NOVÝ-ADRESÁŘ\ZKOPÍROVATII-DO-NOVĚHO\zkopirovati-s-adresarem-do-noveho-22
+0.0230s 2018-09-07 06:08:06     30 #      0.001 MB   1303.46 #/s    0.061 MB/s      0.000 NOVÝ-ADRESÁŘ\ZKOPÍROVATII-DO-NOVĚHO\zkopirovati-s-adresarem-do-noveho-11
+0.0240s 2018-09-07 06:08:06     31 #      0.001 MB   1290.78 #/s    0.061 MB/s      0.000 NOVÝ-ADRESÁŘ\PŘESUNOUTI-DO-NOVĚHO\přesunouti22
+0.0250s 2018-09-07 06:08:06     32 #      0.002 MB   1279.13 #/s    0.061 MB/s      0.000 NOVÝ-ADRESÁŘ\PŘESUNOUTI-DO-NOVĚHO\přesunouti-s-adresarem-do-noveho-22
+0.0250s 2018-09-07 06:08:06     33 #      0.002 MB   1319.10 #/s    0.063 MB/s      0.000 NOVÝ-ADRESÁŘ\PŘESUNOUTI-DO-NOVĚHO\přesunouti-s-adresarem-do-noveho-11
+0.0260s 2018-09-07 06:08:06     34 #      0.002 MB   1306.78 #/s    0.061 MB/s      0.000 NOVÁČEK\novace1.txt
+0.0270s 2018-09-07 06:08:06     35 #      0.002 MB   1295.38 #/s    0.061 MB/s      0.000 NOVY-ADRESAR EXEMPLAR 2\2-soubor
+0.0270s 2018-09-07 06:08:06     36 #      0.002 MB   1332.39 #/s    0.062 MB/s      0.000 NOVY-ADRESAR EXEMPLAR 2\1-soubor
+0.0290s 2018-09-07 06:08:06     37 #      0.002 MB   1274.97 #/s    0.059 MB/s      0.000 NOVY-ADRESAR EXEMPLAR 1\2-soubor
+0.0290s 2018-09-07 06:08:06     38 #      0.002 MB   1309.43 #/s    0.061 MB/s      0.000 NOVY-ADRESAR EXEMPLAR 1\1-soubor
+0.0300s 2018-09-07 06:08:06     39 #      0.002 MB   1299.09 #/s    0.060 MB/s      0.000 NECHATI\nechati22.txt
+0.0310s 2018-09-07 06:08:06     40 #      0.002 MB   1289.42 #/s    0.059 MB/s      0.000 NECHATI\nechati11.txt
+End scanning at 2018-09-07 06:08:06.0919301 UTC, duration="0.0310s "; total: 
+    40#      0.002 MB |   1289.42 #/s       0.059 MB/s  
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~N-LINK~NOVY-ADRESAR EXEMPLAR 1.yaba
+copy file: ./test/data/case3/source-of-maintree\NOVY-ADRESAR EXEMPLAR 2\1-soubor --> I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\NOVY-ADRESAR EXEMPLAR 2\1-soubor
+copy file: ./test/data/case3/source-of-maintree\NOVY-ADRESAR EXEMPLAR 2\2-soubor --> I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\NOVY-ADRESAR EXEMPLAR 2\2-soubor
+copy file: ./test/data/case3/source-of-maintree\NOVÁČEK\novace1.txt --> I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\NOVÁČEK\novace1.txt
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\NOVÝ-ADRESÁŘ\~LINK~PŘESUNOUTI-DO-NOVĚHO.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\NOVÝ-ADRESÁŘ\~LINK~ZKOPÍROVATII-DO-NOVĚHO.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\NOVÝ-ADRESÁŘ\~N-LINK~ddddruhy exemplar souboru.yaba
+copy file: ./test/data/case3/source-of-maintree\NOVÝ-ADRESÁŘ\novy2 --> I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\NOVÝ-ADRESÁŘ\novy2
+copy file: ./test/data/case3/source-of-maintree\NOVÝ-ADRESÁŘ\novy3 --> I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\NOVÝ-ADRESÁŘ\novy3
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\NOVÝ-ADRESÁŘ\novy4\~N-LINK~druhy exemplar souboru.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\NOVÝ-ADRESÁŘ\~N-LINK~prvni exemplar souboru.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\NOVÝ-ADRESÁŘ\~LINK~přesunout-do-noveho.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\NOVÝ-ADRESÁŘ\~LINK~zkopirovat-do-nového.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\PREJMENOVANO A NECO SEM PRIDANO\~LINK~prejmenovati-adresar-a-pridati-soubor.yaba
+copy file: ./test/data/case3/source-of-maintree\PREJMENOVANO A NECO SEM PRIDANO\pridano do prejmenovane slozky --> I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\PREJMENOVANO A NECO SEM PRIDANO\pridano do prejmenovane slozky
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~DELETE~PREJMENOVATI A NECO SEM PRIDATI.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~MOVE-AWAY~PŘEJMENOVATI.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~LINK~PŘEJMENOVÁNO.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~MOVE-AWAY~PŘESUNOUTI-DO-EXISTUJÍCÍHO.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~MOVE-AWAY~PŘESUNOUTI-DO-NOVĚHO.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\SEM-SE-TO-PŘESUNE\~LINK~PŘESUNOUTI-DO-EXISTUJÍCÍHO.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\SEM-SE-TO-PŘESUNE\~LINK~přesunout-do-existujiciho.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\SEM-SE-TO-ZKOPIRUJE\~LINK~ZKOPÍIROVATI-DO-EXISTUJÍCÍHO.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\SEM-SE-TO-ZKOPIRUJE\~LINK~zkopirovat-do-existujiciho.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~DELETE~SMAZATI.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~MOVE-AWAY~ZKOPÍIROVATI-DO-EXISTUJÍCÍHO.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~MOVE-AWAY~ZKOPÍROVATII-DO-NOVĚHO.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~MOVE-AWAY~bude-zastiňovat.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~LINK~bude-zastíněn.yaba
+copy file: ./test/data/case3/source-of-maintree\novy --> I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\novy
+copy file: ./test/data/case3/source-of-maintree\přejmenovat-a-nahradit --> I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\přejmenovat-a-nahradit
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~MOVE-AWAY~přejmenovat-souborinek.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~LINK~přejmenováno-a-nahrazeno.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~LINK~přejmenováno-souborinek.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~MOVE-AWAY~přesunout-do-existujiciho.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~MOVE-AWAY~přesunout-do-noveho.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~DELETE~smazat.yaba
+copy file: ./test/data/case3/source-of-maintree\soubor-nulove-delky --> I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\soubor-nulove-delky
+copy file: ./test/data/case3/source-of-maintree\treti exemplar souboru --> I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\treti exemplar souboru
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~MOVE-AWAY~zkopirovat-do-existujiciho.yaba
+create meta: I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\~MOVE-AWAY~zkopirovat-do-nového.yaba
+copy file: ./test/data/case3/source-of-maintree\změnit --> I:\zoje\safe-backup\test\data\case3\backup\data\2018-09-07T06-08-06Z\maintree\změnit
