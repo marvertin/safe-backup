@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TupleSections         #-}
@@ -32,6 +33,7 @@ import           Text.Regex.Posix
 
 import           Ignorances
 import           SliceNameStrategy         (SliceNameStrategy,
+                                            checkSliceNamePattern,
                                             defaultSliceNameStrategy)
 import           Types
 
@@ -65,6 +67,7 @@ readConfig backupDir = do
     let forestDef = pickForestDef config
     _ <- MaybeT $ checkAllIngorancePatterns forestDef
     _ <- MaybeT $ checkDuplicities forestDef
+    _ <- MaybeT $ checkSliceNamePatternInCfg config
     empties <- MaybeT $ checkSourceDirs forestDef
     return $ Cfg (fromMaybe  defaultSliceNameStrategy (sliceNameStrategy config)) forestDef empties
 
@@ -84,6 +87,15 @@ readConfigFile configFilePath =
                          print warns
                          return Nothing
   )
+
+checkSliceNamePatternInCfg :: Config -> IO (Maybe ())
+checkSliceNamePatternInCfg Config{sliceNameStrategy=Nothing} = return $ Just()
+checkSliceNamePatternInCfg Config{sliceNameStrategy=(Just strategy)} =
+  if checkSliceNamePattern strategy then  return $ Just()
+     else do
+       hPutStrLn stderr $ "!!! Bad sliceNameStrategy pattern: " ++ show (strategy)
+       return Nothing
+
 
 checkDuplicities :: ForestDef -> IO (Maybe ())
 checkDuplicities forest = do
@@ -108,8 +120,6 @@ checkIngorancePatterns (tree, pattern) =
        return  Nothing
      )
 
-checkSliceNamePattern :: String -> Bool
-checkSliceNamePattern pattern = pattern =~ ("^[^/|\\0-9]+(/[^/|\\0-9]+)*(/[0-9]+)?$" :: String)
 
 checkSourceDirs :: ForestDef -> IO (Maybe [String])
 checkSourceDirs forest = do

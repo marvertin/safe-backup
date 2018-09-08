@@ -1,4 +1,4 @@
-sliceNameStrategy: "*-*-*X*/**z"
+sliceNameStrategy: "*-*-*/01"
 forest:
   maintree:
      path: ./test/data/case3x/source-of-maintree
