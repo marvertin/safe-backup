@@ -292,12 +292,25 @@ tt = do
     print x
 
 
+funa :: Log -> IO ()
+funa lo = lo Debug "FUNA"
+
+x = 1.14907259 :: Double
+
 l = do
 
   putStrLn "------------------------------------------------"
-  let x = 1.14907259 :: Double
-  lo "kolo"
-  lo $ printf "%.2f"  x
+  withLogger "pokusn-logik.log" funa
+  withLogger "pokusn-logik.log" (\lo -> do
+      putStrLn "uvnitr logu 1"
+      lo Summary " tak tobychm meli"
+      lo Summary $ printf "%.2f"  x
+      putStrLn "uvnitr logu 2"
+   )
+
+  -- let x = 1.14907259 :: Double
+  -- lo "kolo"
+  -- lo $ printf "%.2f"  x
 
   -- loga printf "ah %d oj" 5
   -- putStrLn .  printf "ah %d oj" 5
