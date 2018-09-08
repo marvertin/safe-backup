@@ -121,7 +121,8 @@ backup backupDirRoot = do
       createDirectoryIfMissing True logDirx
       createDirectoryIfMissing True indexDirx
       let logFileName = logDirx </> sliceLogName
-      withLogger (logFileName) $ \lo -> do
+      let yabaLogFilePath = logRoot </> yabaLogName
+      withLogger yabaLogFilePath logFileName $ \lo -> do
         startTime <- getCurrentTime
         exitCode <- do
           lo Inf $ printf  "Detail log is: \"%s\"" logFileName
@@ -188,7 +189,7 @@ backup backupDirRoot = do
                      lo Error $ "!!!!!!!!!!!! " ++ show (length failus2) ++ " ERRORS !!!!!!!!!"
                      return $ ExitFailure 2
         endTime <- getCurrentTime
-        lo Inf  $ "Total time: " ++ show (diffUTCTime endTime startTime)
+        lo Summary  $ "Total time: " ++ show (diffUTCTime endTime startTime)
         return exitCode
    where
     dataRoot = backupDirRoot </> dataSubdir

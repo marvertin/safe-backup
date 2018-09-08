@@ -20,6 +20,7 @@ module Types (
   dataSubdir,
   logSubdir,
   sliceLogName,
+  yabaLogName,
 
   UTCTime
 ) where
@@ -50,6 +51,7 @@ sliceLogicalTree_suffix = "_logical-tree.yaml"
 sliceSourceTree_suffix = "_source-tree.yaml"
 
 sliceLogName = "slice-backup.log"
+yabaLogName = "yaba.log"
 indexSubdir = "index"
 dataSubdir = "data"
 logSubdir = "log"

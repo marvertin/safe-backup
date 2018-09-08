@@ -24,21 +24,30 @@ data Level
   | Error -- to stderr and to log file
   deriving (Show)
 
-withLogger :: FilePath -> (Log -> IO a) -> IO a
-withLogger path fce =
-  withFile path WriteMode (\handle ->
-    fce (doLog handle)
-  )
+withLogger :: FilePath ->  FilePath -> (Log -> IO a) -> IO a
+withLogger yabaLogPath sliceLogPath fce =
+  withFile yabaLogPath AppendMode (\yhandle ->
+    withFile sliceLogPath WriteMode (\shandle ->
+      fce (doLog yhandle shandle)
+     )
+   )
 
 -- fmap ((show l ++ ": "):) .
-doLog :: Handle -> Level -> String -> IO()
-doLog h l s = do
+doLog :: Handle -> Handle -> Level -> String -> IO()
+doLog yh sh l s = do
     let ss = show l ++ ": " ++ s
     case l of
-      Debug -> hPutStrLn h $ ss
+      Debug -> hPutStrLn sh $ ss
+      Summary -> do
+        putStrLn $ ss
+        hPutStrLn sh $ ss
+        hPutStrLn yh $ ss
+      Error -> do
+        hPutStrLn stderr $ ss
+        hPutStrLn sh $ ss
       _ -> do
         putStrLn $ ss
-        hPutStrLn h $ ss
+        hPutStrLn sh $ ss
 
 loa :: String -> IO ()
 loa xx = do
