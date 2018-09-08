@@ -9,12 +9,14 @@ import           Control.Monad
 import           Data.Counter
 import           Data.List
 import qualified Data.Map              as M
+import           Data.Time.Clock
 import           Data.Yaml
 import           System.Directory
 import           System.Directory.Tree
 import           System.FilePath
 import           System.IO
 import           Text.Printf
+
 
 import           BackupTreeBuilder
 import           Config
@@ -23,6 +25,7 @@ import           Dump
 import           Ignorances
 import           Lib
 import           Lodree
+import           Log
 import           Slice
 import           SliceNameStrategy
 import           SliceScaner
@@ -31,14 +34,15 @@ import           SourceTree
 import           TurboWare
 import           Types
 
+getEventHandler lo  = (logInScan lo, getCurrentTime)
 
-readBackupDir :: SliceNameStrategy -> EventHandler SliceTree b -> FilePath -> FilePath -> IO Lodree
-readBackupDir sliceNameStrategy eventHanlder backupRoot indexDir = do
+readBackupDir :: SliceNameStrategy -> Log -> FilePath -> FilePath -> IO Lodree
+readBackupDir sliceNameStrategy lo backupRoot indexDir = do
   sliceNames <-  listSlices  sliceNameStrategy backupRoot
   putStrLn $ "Reading " ++ show (length sliceNames) ++ " slices allredy backed up"
   putStrLn $ "sliceNames: " ++ show sliceNames
   yabaDirs <- forM sliceNames (\name -> do
-      slice <- readSlice'' eventHanlder (backupRoot </> name)
+      slice <- readSlice''(getEventHandler lo) (backupRoot </> name)
       encodeFile (replaceVerticalToSlashes (indexDir </> slicePhysicalTree_suffix)) slice
       return slice
     )
@@ -50,8 +54,8 @@ readBackupDir sliceNameStrategy eventHanlder backupRoot indexDir = do
 
 --maintree = "maintree"
 
-writeBackup :: Handle -> AnchoredBackupTree -> ForestDef -> IO [AnchoredDirTree ()]
-writeBackup loghandle abt' sourceTrees = do
+writeBackup :: Log -> AnchoredBackupTree -> ForestDef -> IO [AnchoredDirTree ()]
+writeBackup lo abt' sourceTrees = do
     -- putStrLn $ "jsem v writeBackup"
     -- hFlush stdout
     -- nasledujici prikaz buh vi proc dlouho trva
@@ -74,12 +78,12 @@ writeBackup loghandle abt' sourceTrees = do
     writeFileToBackup kolikSmazat sourceOfMainTreeDir path Insert  =
        let odkud = sourceOfMainTreeDir ++ drop kolikSmazat path
        in do
-        hPutStrLn loghandle ("copy file: " ++ odkud ++ " --> " ++ path)
+        lo Debug ("copy file: " ++ odkud ++ " --> " ++ path)
         copyFile odkud path
     writeFileToBackup _ _ path cmd = do
         let (dir, file) = splitFileName path
         let cesta = dir </> (yabaFilePrefix cmd ++ file) ++ ".yaba"
-        hPutStrLn loghandle $ "create meta: " ++ cesta
+        lo Debug $ "create meta: " ++ cesta
             -- ++ unJabaContent (convertToJabaContent cmd)
         writeFile cesta (formatCmd cmd)
 
@@ -131,16 +135,14 @@ backup sliceNameStrategy backupDirRoot  sourceTrees  = do
     let indexDirx = slicedDirName indexRoot
     createDirectoryIfMissing True logDirx
     createDirectoryIfMissing True indexDirx
-    withFile (logDirx </> sliceLogName) WriteMode (\handle -> do
-      hSetBuffering handle LineBuffering
-      let logger = hLoggingEventHandler handle
-      lodreeBackupAll <- readBackupDir sliceNameStrategy logger dataRoot indexDirx
+    withLogger (logDirx </> sliceLogName) (\lo -> do
+      lodreeBackupAll <- readBackupDir sliceNameStrategy lo dataRoot indexDirx
       let lodreeBackupCurrent = currentLodree lodreeBackupAll
       putStrLn $  "Reading " ++ show (length sourceTrees) ++ " source trees"
       encodeFile (indexDirx </> sliceLogicalTree_suffix) lodreeBackupCurrent
 
       lodreeSourceAllNodes <- makeLDir <$> forM sourceTrees ( \(TreeDef treeName treePath ignorances) -> do
-          lodreeSourceOneNode <- readSourceTree logger ignorances treePath
+          lodreeSourceOneNode <- readSourceTree lo ignorances treePath
           encodeFile (indexRoot </> (treeName ++ sliceSourceTree_suffix)) lodreeSourceOneNode
           return (treeName, lodreeSourceOneNode)
          )
@@ -153,7 +155,7 @@ backup sliceNameStrategy backupDirRoot  sourceTrees  = do
            return []
         Just backupDirTree -> do
            putStrLn $ "Writing backup to: " ++ dataRoot
-           writeBackup handle (dataRoot :/ backupDirTree) sourceTrees
+           writeBackup lo (dataRoot :/ backupDirTree) sourceTrees
      )
   where
     dataRoot = backupDirRoot </> dataSubdir

@@ -10,8 +10,11 @@ module DirScan (
   emptyEventHandler,
   stdOutLoggingEventHanler,
   hLoggingEventHandler,
-  EventHandler,
-  Event(..)
+  EventHandler(..),
+  Event(..),
+  Cumulative(..),
+  EventEnvelop(..),
+  EventFile(..)
 ) where
 
 import           Control.Exception
@@ -23,6 +26,7 @@ import           System.FilePath
 import           System.IO
 import           Text.Printf
 
+import           Lib
 
 type FlowAvar = [(UTCTime, Int, Integer, UTCTime)] -- timce, count, size, header has latest
 data Acum a b = Acum FlowAvar [(FilePath, a)] b deriving (Show)
@@ -202,9 +206,6 @@ averageSpeed' (time1, count1, size1, _) (time2, count2, size2, _) =
         timeDiff :: Double = realToFrac  $ diffUTCTime time2 time1
     in (fromIntegral (count2 - count1) / timeDiff,
         fromIntegral (size2 - size1) / timeDiff / 1024 / 1024  )
-
-sizeInMb :: Integer -> Double
-sizeInMb x =  fromIntegral x / 1024 / 1024
 
 safeHead :: a -> [a] -> a
 safeHead def [] = def

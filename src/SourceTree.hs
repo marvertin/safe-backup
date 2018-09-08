@@ -15,28 +15,34 @@ import qualified Data.ByteString.UTF8  as BSU
 import           Data.Function
 import           Data.List
 import           Data.Maybe
-import           DirScan
-import           Ignorances
-import           Lib
-import           Lodree
-import           SliceScaner
-import           SliceToLodree
+import           Data.Time.Clock
 import           System.Directory.Tree (AnchoredDirTree (..),
                                         DirTree (Dir, File), FileName)
 import           System.FilePath
 import           System.IO
+
+import           DirScan
+import           Ignorances
+import           Lib
+import           Lodree
+import           Log
+import           SliceScaner
+import           SliceToLodree
 import           TurboWare
 import           Types
 
 
 import qualified Data.ByteString.Lazy  as Lazy
 
-readSourceTree :: EventHandler Lodree b -> IgnoranceDef -> FilePath -> IO Lodree
-readSourceTree eventHandler ignorance rootDir =
+getEventHandler lo  = (logInScan lo, getCurrentTime)
+
+-- EventHandler Lodree b
+readSourceTree :: Log -> IgnoranceDef -> FilePath -> IO Lodree
+readSourceTree lo ignorance rootDir =
      fst <$> scanDirectory (const makeLDir)
                      (makeFilterFce ignorance)
                      readLFile
-                     eventHandler
+                     (getEventHandler lo)
                      rootDir
   where
     readLFile :: RevPath -> IO Lodree

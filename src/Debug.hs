@@ -3,7 +3,7 @@
 
 
 module Debug (
-  q, w, p3, mainovec, e, (>:), (<:), (?:), Test(..), ww, cc, ee, qq, yy, t, tt, l
+--  q, w, p3, mainovec, e, (>:), (<:), (?:), Test(..), ww, cc, ee, qq, yy, t, tt, l
 ) where
 
 import           Crypto.Hash.SHA1           (hashlazy)
@@ -155,7 +155,7 @@ ww  = do
   putStrLn  " ============ COMPARE"
   let diff = compareTrees (currentLodree lodree2a) (currentLodree lodree2b)
   dump (fromJust diff)
-
+{-
 e = do
   putStrLn  " ============ LBACKUP lodreeBackupCurrent 22"
   lodreeBackupAll <- readBackupDir defaultSliceNameStrategy stdOutLoggingEventHanler "./test/data/case4/backup/data" "./test/data/case4/backup/index"
@@ -168,7 +168,6 @@ e = do
   putStrLn  " ============ COMPARE"
   let diff = compareTrees lodreeBackupCurrent lodreeSourceAllNodes
   dump (fromJust diff)
-
 
   putStrLn  " ============ HASHPAIRS - logical - lodreeBackupAll"
   dump $ createMapOfHashes lodreeBackupAll
@@ -315,3 +314,4 @@ l = do
   -- loga printf "ah %d oj" 5
   -- putStrLn .  printf "ah %d oj" 5
   -- putStrLn ss
+-}

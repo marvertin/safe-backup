@@ -6,7 +6,8 @@ module Lib
       deAnchore,
       splitByChar,
       computeFileHash,
-      loadFileRee
+      loadFileRee,
+      sizeInMb
 
     ) where
 
@@ -70,3 +71,6 @@ computeFileHash = (fmap Cr.hashlazy . Lazy.readFile)  >=> evaluate
 
 loadFileRee :: FilePath -> IO Ree
 loadFileRee f = Ree 1 <$> getFileSize f <*> getModificationTime f <*> computeFileHash f
+
+sizeInMb :: Integer -> Double
+sizeInMb x =  fromIntegral x / 1024 / 1024
