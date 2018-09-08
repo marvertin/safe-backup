@@ -106,33 +106,7 @@ doBackup (Cmdline _ True _ _ False) = do
 doBackup (Cmdline backupDir _ False n _) = do
   backupDirAbs <- makeAbsolute backupDir
   putStrLn $ "Backing up to \"" ++ backupDirAbs ++ "\" using definition in \"" ++ configFileName ++ "\""
-  maybeForestDef <- readConfig backupDirAbs
-  case maybeForestDef of
-    Nothing -> do
-      putStrLn "!!! ERRORS starting backup !!!"
-      return $ ExitFailure 1
-    Just (Cfg sliceNameStrategy forest empties) -> do
-      results <- backup sliceNameStrategy backupDirAbs forest
-      let failus = fmap (\(b :/ d) -> (b, failures d)) results
-      let failus2 = failus >>= \(b, list)  -> (b,) <$> list
-      if null failus2 then do
-                          if null empties then do
-                             putStrLn "**** SUCCESS **** - backup has finished"
-                             return ExitSuccess
-                            else do
-                               putStrLn $ "**** success, BUT some trees are empty or unaccessible: " ++ (show empties)
-                               return $ ExitFailure 7
-                      else do
-                          putStrLn "!!!!!!!!!!!!!!!!!!! ERROR LIST !!!!!!!!!!!!"
-                          forM_ failus (\(b, list) -> do
-                              putStrLn b
-                              forM_ list (\x -> do
-                                putStr "    "
-                                print x
-                               )
-                            )
-                          putStrLn $ "!!!!!!!!!!!! " ++ show (length failus2) ++ " ERRORS !!!!!!!!!"
-                          return $ ExitFailure 2
+  backup backupDirAbs
 
 
   --let sourceOfMainTree = "./test/data/case3/source-of-maintree"
