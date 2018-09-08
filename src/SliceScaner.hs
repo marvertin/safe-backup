@@ -10,7 +10,6 @@
 module SliceScaner
     (
     readSlice,
-    readSlice''
     ) where
 
 import           Control.Exception
@@ -42,15 +41,8 @@ import           GHC.Generics
 import           Slice
 
 
-
--- nepouziva se
-readSlice :: FilePath -> IO AnchoredSliceTree
-readSlice rootDir = do
-  d <- readSlice'' stdOutLoggingEventHanler rootDir
-  return (takeDirectory rootDir :/ d)
-
-readSlice'' :: EventHandler SliceTree b -> FilePath -> IO SliceTree
-readSlice'' eventHandler rootDir =
+readSlice :: EventHandler SliceTree b -> FilePath -> IO SliceTree
+readSlice eventHandler rootDir =
     fst <$> scanDirectory mkDir filterFilesInRoot readSFile eventHandler
         (replaceVerticalToSlashes rootDir) -- >>= ((takeDirectory rootDir ):/)
   where

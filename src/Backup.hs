@@ -36,13 +36,15 @@ import           Types
 
 getEventHandler lo  = (logInScan lo, getCurrentTime)
 
-readBackupDir :: SliceNameStrategy -> Log -> FilePath -> FilePath -> IO Lodree
-readBackupDir sliceNameStrategy lo backupRoot indexDir = do
+readBackupDir ::  Log -> SliceNameStrategy -> FilePath -> FilePath -> IO Lodree
+readBackupDir lo sliceNameStrategy backupRoot indexDir = do
   sliceNames <-  listSlices  sliceNameStrategy backupRoot
-  putStrLn $ "Reading " ++ show (length sliceNames) ++ " slices allredy backed up"
-  putStrLn $ "sliceNames: " ++ show sliceNames
+  lo Inf $ if null sliceNames
+              then "    no slices was backed up yet"
+              else printf "    %d slices: %s ... %s" (length sliceNames) (head sliceNames) (last sliceNames)
+  forM_  (zip [1 :: Int ..] sliceNames) (\(n, slicen) -> lo Debug $ printf "%6d. %s" n slicen )
   yabaDirs <- forM sliceNames (\name -> do
-      slice <- readSlice''(getEventHandler lo) (backupRoot </> name)
+      slice <- readSlice (getEventHandler lo) (backupRoot </> name)
       encodeFile (replaceVerticalToSlashes (indexDir </> slicePhysicalTree_suffix)) slice
       return slice
     )
@@ -59,13 +61,8 @@ writeBackup lo abt' sourceTrees = do
     -- putStrLn $ "jsem v writeBackup"
     -- hFlush stdout
     -- nasledujici prikaz buh vi proc dlouho trva
-    let (base :/ dd@(Dir yabadir subdirlist1)) = abt'
+    let (base :/ (Dir yabadir subdirlist1)) = abt'
     let abt = base :/ Dir (replaceVerticalToSlashes yabadir) subdirlist1
-    putStrLn $ "Writing backup slice: " ++ yabadir
-    forM_ (M.toList $ countCounters dd) (\(key, value) -> do
-         printf "%8d: %s\n" value key
-         )
-    hFlush stdout
     mapM ( \(TreeDef treeName treePath _) -> do
        --putStrLn $ "Writing tree: " ++ treePath ++ " ==> " ++ (yabadir </> treeName)
        --putStrLn $ unlines $ dirTreeToStringList (Just . show) d
@@ -127,7 +124,7 @@ yabaFilePrefix (BackupTreeBuilder.Insert{})   = "~INSERT~"
 -- yabaFilePrefix _ = "~IMPOSSIBLE~"
 
 backup :: SliceNameStrategy -> FilePath -> ForestDef -> IO [AnchoredDirTree ()]
-backup sliceNameStrategy backupDirRoot  sourceTrees  = do
+backup sliceNameStrategy backupDirRoot  forest  = do
     createDirectoryIfMissing False dataRoot
     newSliceName <- nextSliceName dataRoot sliceNameStrategy
     let slicedDirName dname = replaceVerticalToSlashes (dname </> newSliceName)
@@ -136,26 +133,37 @@ backup sliceNameStrategy backupDirRoot  sourceTrees  = do
     createDirectoryIfMissing True logDirx
     createDirectoryIfMissing True indexDirx
     withLogger (logDirx </> sliceLogName) (\lo -> do
-      lodreeBackupAll <- readBackupDir sliceNameStrategy lo dataRoot indexDirx
+      lo Inf "Phase 1/4 - reading slices backed up before"
+      lodreeBackupAll <- readBackupDir lo sliceNameStrategy dataRoot indexDirx
       let lodreeBackupCurrent = currentLodree lodreeBackupAll
-      putStrLn $  "Reading " ++ show (length sourceTrees) ++ " source trees"
       encodeFile (indexDirx </> sliceLogicalTree_suffix) lodreeBackupCurrent
 
-      lodreeSourceAllNodes <- makeLDir <$> forM sourceTrees ( \(TreeDef treeName treePath ignorances) -> do
+      lo Inf "Phase 2/4 - reading source forest for backup"
+      lo Inf $ printf "    %d trees in forest " (length forest)
+      lodreeSourceAllNodes <- makeLDir <$> forM forest ( \(TreeDef treeName treePath ignorances) -> do
+          lo Inf $ printf "    scaning %-15s- \"%s\"" treeName treePath
+          lo Debug $ "ignorance patterns: " ++ (show ignorances)
           lodreeSourceOneNode <- readSourceTree lo ignorances treePath
           encodeFile (indexRoot </> (treeName ++ sliceSourceTree_suffix)) lodreeSourceOneNode
           return (treeName, lodreeSourceOneNode)
          )
       --lodreeSourceOneNode <- readSourceTree sourceOfMainTreeDir
       -- let lodreeSourceAllNodes = LDir emptyDRee [(maintree, lodreeSourceOneNode)]
-      putStrLn $ "Building new backup slice: " ++ newSliceName
-      case buildBackup lodreeBackupAll lodreeSourceAllNodes newSliceName of
+      lo Inf $ "Phase 3/4 - comparing slices and source forest"
+      let resulta = buildBackup lodreeBackupAll lodreeSourceAllNodes newSliceName
+
+      case resulta of
         Nothing -> do
-           putStrLn "NOTHING to backup: "
+           lo Inf $ "Phase 4/4 - no differencies, NO backup: "
            return []
         Just backupDirTree -> do
-           putStrLn $ "Writing backup to: " ++ dataRoot
-           writeBackup lo (dataRoot :/ backupDirTree) sourceTrees
+           forM_ (M.toList $ countCounters backupDirTree) (\(key, value) ->
+               lo Inf $ printf "%8d: %s" value key
+               )
+
+           lo Inf $ "Phase 4/4 - copying files to new slice"
+           lo Inf $ "    Writing new slice to: " ++ slicedDirName dataRoot
+           writeBackup lo (dataRoot :/ backupDirTree) forest
      )
   where
     dataRoot = backupDirRoot </> dataSubdir

@@ -45,6 +45,8 @@ import qualified Data.Map                   as M
 import           Data.Yaml
 import           GHC.Generics
 
+{-
+
 hashFile :: FilePath -> IO Strict.ByteString
 hashFile = fmap hashlazy . Lazy.readFile
 
@@ -155,7 +157,6 @@ ww  = do
   putStrLn  " ============ COMPARE"
   let diff = compareTrees (currentLodree lodree2a) (currentLodree lodree2b)
   dump (fromJust diff)
-{-
 e = do
   putStrLn  " ============ LBACKUP lodreeBackupCurrent 22"
   lodreeBackupAll <- readBackupDir defaultSliceNameStrategy stdOutLoggingEventHanler "./test/data/case4/backup/data" "./test/data/case4/backup/index"
