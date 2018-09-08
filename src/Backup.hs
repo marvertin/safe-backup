@@ -36,25 +36,6 @@ import           Types
 
 getEventHandler lo  = (logInScan lo, getCurrentTime)
 
-readBackupDir ::  Log -> SliceNameStrategy -> FilePath -> FilePath -> IO Lodree
-readBackupDir lo sliceNameStrategy backupRoot indexDir = do
-  sliceNames <-  listSlices  sliceNameStrategy backupRoot
-  lo Inf $ if null sliceNames
-              then "    no slices was backed up yet"
-              else printf "    %d slices: %s ... %s" (length sliceNames) (head sliceNames) (last sliceNames)
-  forM_  (zip [1 :: Int ..] sliceNames) (\(n, slicen) -> lo Debug $ printf "%6d. %s" n slicen )
-  yabaDirs <- forM sliceNames (\name -> do
-      slice <- readSlice (getEventHandler lo) (backupRoot </> name)
-      encodeFile (replaceVerticalToSlashes (indexDir </> slicePhysicalTree_suffix)) slice
-      return slice
-    )
-  --forM_ yabaDirs (\x ->
-    --  encodeFile (indexDir </> takeBaseName (fileNamex x) ++ slicePhysicalTree_suffix) x
-    --)
-  let rootLodree = mergesToLodree emptyLodree yabaDirs
-  return rootLodree
-
---maintree = "maintree"
 
 writeBackup :: Log -> AnchoredBackupTree -> ForestDef -> IO [AnchoredDirTree ()]
 writeBackup lo abt' sourceTrees = do
@@ -132,10 +113,22 @@ backup sliceNameStrategy backupDirRoot  forest  = do
     let indexDirx = slicedDirName indexRoot
     createDirectoryIfMissing True logDirx
     createDirectoryIfMissing True indexDirx
-    withLogger (logDirx </> sliceLogName) (\lo -> do
+    let logFileName = logDirx </> sliceLogName
+    withLogger (logFileName) (\lo -> do
+      lo Inf $ printf  "Detail log is: \"%s\"" logFileName
       lo Inf "Phase 1/4 - reading slices backed up before"
-      lodreeBackupAll <- readBackupDir lo sliceNameStrategy dataRoot indexDirx
-      let lodreeBackupCurrent = currentLodree lodreeBackupAll
+      sliceNames <-  listSlices  sliceNameStrategy dataRoot
+      lo Inf $ if null sliceNames
+                  then "    no slices was backed up yet"
+                  else printf "    %d slices: %s ... %s" (length sliceNames) (head sliceNames) (last sliceNames)
+      forM_  (zip [1 :: Int ..] sliceNames) (\(n, slicen) -> lo Debug $ printf "%6d. %s" n slicen )
+      slices <- forM sliceNames (\name -> do
+          slice <- readSlice (getEventHandler lo) (dataRoot </> name)
+          encodeFile (replaceVerticalToSlashes (indexDirx </> slicePhysicalTree_suffix)) slice
+          return slice
+        )
+      let rootLodree = mergesToLodree emptyLodree slices
+      let lodreeBackupCurrent = currentLodree rootLodree
       encodeFile (indexDirx </> sliceLogicalTree_suffix) lodreeBackupCurrent
 
       lo Inf "Phase 2/4 - reading source forest for backup"
@@ -150,7 +143,7 @@ backup sliceNameStrategy backupDirRoot  forest  = do
       --lodreeSourceOneNode <- readSourceTree sourceOfMainTreeDir
       -- let lodreeSourceAllNodes = LDir emptyDRee [(maintree, lodreeSourceOneNode)]
       lo Inf $ "Phase 3/4 - comparing slices and source forest"
-      let resulta = buildBackup lodreeBackupAll lodreeSourceAllNodes newSliceName
+      let resulta = buildBackup rootLodree lodreeSourceAllNodes newSliceName
 
       case resulta of
         Nothing -> do
