@@ -121,72 +121,76 @@ backup backupDirRoot = do
       createDirectoryIfMissing True logDirx
       createDirectoryIfMissing True indexDirx
       let logFileName = logDirx </> sliceLogName
-      withLogger (logFileName) (\lo -> do
-        lo Inf $ printf  "Detail log is: \"%s\"" logFileName
-        lo Inf "Phase 1/4 - reading slices backed up before"
-        sliceNames <-  listSlices  sliceNameStrategy dataRoot
-        lo Inf $ if null sliceNames
-                    then "    no slices was backed up yet"
-                    else printf "    %d slices: %s ... %s" (length sliceNames) (head sliceNames) (last sliceNames)
-        forM_  (zip [1 :: Int ..] sliceNames) (\(n, slicen) -> lo Debug $ printf "%6d. %s" n slicen )
-        slices <- forM sliceNames (\name -> do
-            slice <- readSlice (getEventHandler lo) (dataRoot </> name)
-            encodeFile (replaceVerticalToSlashes (indexDirx </> slicePhysicalTree_suffix)) slice
-            return slice
-          )
-        let rootLodree = mergesToLodree emptyLodree slices
-        let lodreeBackupCurrent = currentLodree rootLodree
-        encodeFile (indexDirx </> sliceLogicalTree_suffix) lodreeBackupCurrent
+      withLogger (logFileName) $ \lo -> do
+        startTime <- getCurrentTime
+        exitCode <- do
+          lo Inf $ printf  "Detail log is: \"%s\"" logFileName
+          lo Inf "Phase 1/4 - reading slices backed up before"
+          sliceNames <-  listSlices  sliceNameStrategy dataRoot
+          lo Inf $ if null sliceNames
+                      then "    no slices was backed up yet"
+                      else printf "    %d slices: %s ... %s" (length sliceNames) (head sliceNames) (last sliceNames)
+          forM_  (zip [1 :: Int ..] sliceNames) (\(n, slicen) -> lo Debug $ printf "%6d. %s" n slicen )
+          slices <- forM sliceNames (\name -> do
+              slice <- readSlice (getEventHandler lo) (dataRoot </> name)
+              encodeFile (replaceVerticalToSlashes (indexDirx </> slicePhysicalTree_suffix)) slice
+              return slice
+            )
+          let rootLodree = mergesToLodree emptyLodree slices
+          let lodreeBackupCurrent = currentLodree rootLodree
+          encodeFile (indexDirx </> sliceLogicalTree_suffix) lodreeBackupCurrent
 
-        lo Inf "Phase 2/4 - reading source forest for backup"
-        lo Inf $ printf "    %d trees in forest " (length forest)
-        lodreeSourceAllNodes <- makeLDir <$> forM forest ( \(TreeDef treeName treePath ignorances) -> do
-            lo Inf $ printf "    scaning %-15s- \"%s\"" treeName treePath
-            lo Debug $ "ignorance patterns: " ++ (show ignorances)
-            lodreeSourceOneNode <- readSourceTree lo ignorances treePath
-            encodeFile (indexRoot </> (treeName ++ sliceSourceTree_suffix)) lodreeSourceOneNode
-            return (treeName, lodreeSourceOneNode)
-           )
-        --lodreeSourceOneNode <- readSourceTree sourceOfMainTreeDir
-        -- let lodreeSourceAllNodes = LDir emptyDRee [(maintree, lodreeSourceOneNode)]
-        lo Inf $ "Phase 3/4 - comparing slices and source forest"
-        let resulta = buildBackup rootLodree lodreeSourceAllNodes newSliceName
+          lo Inf "Phase 2/4 - reading source forest for backup"
+          lo Inf $ printf "    %d trees in forest " (length forest)
+          lodreeSourceAllNodes <- makeLDir <$> forM forest ( \(TreeDef treeName treePath ignorances) -> do
+              lo Inf $ printf "    scaning %-15s- \"%s\"" treeName treePath
+              lo Debug $ "ignorance patterns: " ++ (show ignorances)
+              lodreeSourceOneNode <- readSourceTree lo ignorances treePath
+              encodeFile (indexRoot </> (treeName ++ sliceSourceTree_suffix)) lodreeSourceOneNode
+              return (treeName, lodreeSourceOneNode)
+             )
+          --lodreeSourceOneNode <- readSourceTree sourceOfMainTreeDir
+          -- let lodreeSourceAllNodes = LDir emptyDRee [(maintree, lodreeSourceOneNode)]
+          lo Inf $ "Phase 3/4 - comparing slices and source forest"
+          let resulta = buildBackup rootLodree lodreeSourceAllNodes newSliceName
 
-        case resulta of
-          Nothing -> do
-             lo Inf $ "Phase 4/4 - no differencies, NO backup: "
-             return ExitSuccess
-          Just backupDirTree -> do
-             forM_ (M.toList $ countCounters backupDirTree) (\(key, value) ->
-                 lo Inf $ printf "%8d: %s" value key
-                 )
+          case resulta of
+            Nothing -> do
+               lo Inf $ "Phase 4/4 - no differencies, NO backup: "
+               return ExitSuccess
+            Just backupDirTree -> do
+               forM_ (M.toList $ countCounters backupDirTree) (\(key, value) ->
+                   lo Inf $ printf "%8d: %s" value key
+                   )
 
-             lo Inf $ "Phase 4/4 - copying files to new slice"
-             lo Inf $ "    Writing new slice to: " ++ slicedDirName dataRoot
-             results <- writeBackup lo (dataRoot :/ backupDirTree) forest
-             let failus = fmap (\(b :/ d) -> (b, failures d)) results
-             let failus2 = failus >>= \(b, list)  -> (b,) <$> list
-             if null failus2
-               then do
-                   if null empties then do
-                      putStrLn "**** SUCCESS **** - backup has finished"
-                      return ExitSuccess
-                     else do
-                       putStrLn $ "**** success, BUT some trees are empty or unaccessible: " ++ (show empties)
-                       return $ ExitFailure 7
-               else do
-                   putStrLn "!!!!!!!!!!!!!!!!!!! ERROR LIST !!!!!!!!!!!!"
-                   forM_ failus (\(b, list) -> do
-                       putStrLn b
-                       forM_ list (\x -> do
-                         putStr "    "
-                         print x
-                        )
-                     )
-                   putStrLn $ "!!!!!!!!!!!! " ++ show (length failus2) ++ " ERRORS !!!!!!!!!"
-                   return $ ExitFailure 2
-       )
-  where
+               lo Inf $ "Phase 4/4 - copying files to new slice"
+               lo Inf $ "    Writing new slice to: " ++ slicedDirName dataRoot
+               results <- writeBackup lo (dataRoot :/ backupDirTree) forest
+               let failus = fmap (\(b :/ d) -> (b, failures d)) results
+               let failus2 = failus >>= \(b, list)  -> (b,) <$> list
+               if null failus2
+                 then do
+                     if null empties then do
+                        lo Inf $ "**** SUCCESS **** - backup has finished"
+                        return ExitSuccess
+                       else do
+                         lo Inf $  "**** success, BUT some trees are empty or unaccessible: " ++ (show empties)
+                         return $ ExitFailure 7
+                 else do
+                     lo Error "!!!!!!!!!!!!!!!!!!! ERROR LIST !!!!!!!!!!!!"
+                     forM_ failus (\(b, list) -> do
+                         putStrLn b
+                         forM_ list (\x -> do
+                           putStr "    "
+                           print x
+                          )
+                       )
+                     lo Error $ "!!!!!!!!!!!! " ++ show (length failus2) ++ " ERRORS !!!!!!!!!"
+                     return $ ExitFailure 2
+        endTime <- getCurrentTime
+        lo Inf  $ "Total time: " ++ show (diffUTCTime endTime startTime)
+        return exitCode
+   where
     dataRoot = backupDirRoot </> dataSubdir
     indexRoot = backupDirRoot </> indexSubdir
     logRoot = backupDirRoot </> logSubdir

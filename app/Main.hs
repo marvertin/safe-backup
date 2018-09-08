@@ -73,17 +73,8 @@ cmdline = Cmdline
 --  test directory: ./test/data/case3/backup
 main = do
   setLocaleEncoding utf8
-
-  hSetBuffering stdout LineBuffering
-  hGetBuffering stdout >>= print
   putStrLn $ "yaba " ++ showVersion Paths_yaba.version ++ " - yeat another backup"
-  startTime <- getCurrentTime
-  -- getLocaleEncoding >>= print
-  -- now <- getCurrentTime
-  -- print now
   exitCode <- timeIt  main'
-  endTime <- getCurrentTime
-  putStrLn $ "Total time: " ++ show (diffUTCTime endTime startTime)
   exitWith exitCode
 
 main' :: IO ExitCode
@@ -105,7 +96,7 @@ doBackup (Cmdline _ True _ _ False) = do
   return ExitSuccess
 doBackup (Cmdline backupDir _ False n _) = do
   backupDirAbs <- makeAbsolute backupDir
-  putStrLn $ "Backing up to \"" ++ backupDirAbs ++ "\" using definition in \"" ++ configFileName ++ "\""
+  putStrLn $ "Backing up to \"" ++ backupDirAbs
   backup backupDirAbs
 
 
