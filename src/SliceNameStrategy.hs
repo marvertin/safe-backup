@@ -32,7 +32,7 @@ import           TurboWare
 data SliceNameStrategy = Pattern String
    deriving (Show, Generic, FromJSON, ToJSON)
 
-defaultSliceNameStrategy = Pattern "*-*/*-*"
+defaultSliceNameStrategy = Pattern "*-*/001"
 
 currentUtcTimeFormatted :: IO String
 currentUtcTimeFormatted = do
