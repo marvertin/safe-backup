@@ -140,19 +140,20 @@ backup backupDirRoot = do
           let rootLodree = mergesToLodree emptyLodree slices
           let lodreeBackupCurrent = currentLodree rootLodree
           encodeFile (indexDirx </> sliceLogicalTree_suffix) lodreeBackupCurrent
+          lo Inf $ "    " ++ formatRee (ree rootLodree)
 
           lo Inf "Phase 2/4 - reading source forest for backup"
           lo Inf $ printf "    %d trees in forest " (length forest)
           lodreeSourceAllNodes <- makeLDir <$> forM forest ( \(TreeDef treeName treePath ignorances) -> do
-              lo Inf $ printf "    scaning %-15s- \"%s\"" treeName treePath
+              lo Inf $ printf "       scaning %-15s- \"%s\"" treeName treePath
               lo Debug $ "ignorance patterns: " ++ (show ignorances)
               lodreeSourceOneNode <- readSourceTree lo ignorances treePath
               encodeFile (indexRoot </> (treeName ++ sliceSourceTree_suffix)) lodreeSourceOneNode
               return (treeName, lodreeSourceOneNode)
              )
-          --lodreeSourceOneNode <- readSourceTree sourceOfMainTreeDir
-          -- let lodreeSourceAllNodes = LDir emptyDRee [(maintree, lodreeSourceOneNode)]
-          lo Inf $ "Phase 3/4 - comparing slices and source forest"
+          lo Inf $ "    " ++ formatRee (ree lodreeSourceAllNodes)
+
+          lo Inf "Phase 3/4 - comparing slices and source forest"
           let resulta = buildBackup rootLodree lodreeSourceAllNodes newSliceName
 
           case resulta of

@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Lib
     (
       HasFileName(..),
@@ -7,7 +9,8 @@ module Lib
       splitByChar,
       computeFileHash,
       loadFileRee,
-      sizeInMb
+      sizeInMb,
+      formatRee
 
     ) where
 
@@ -74,3 +77,6 @@ loadFileRee f = Ree 1 <$> getFileSize f <*> getModificationTime f <*> computeFil
 
 sizeInMb :: Integer -> Double
 sizeInMb x =  fromIntegral x / 1024 / 1024
+
+formatRee :: Ree -> String
+formatRee Ree{..} = printf "%d files, %6.3f MB" rcount (sizeInMb rsize)
