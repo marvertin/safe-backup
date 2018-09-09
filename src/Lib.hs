@@ -10,7 +10,8 @@ module Lib
       computeFileHash,
       loadFileRee,
       sizeInMb,
-      formatRee
+      formatRee,
+      showSz
 
     ) where
 
@@ -80,3 +81,9 @@ sizeInMb x =  fromIntegral x / 1024 / 1024
 
 formatRee :: Ree -> String
 formatRee Ree{..} = printf "%d files, %6.3f MB" rcount (sizeInMb rsize)
+
+showSz ::  Integral a  => a -> String
+showSz sz = let (x, m) = head . dropWhile (\(q, _) ->  q > 1024.0)
+                         $ zip (qs (fromIntegral sz)) ["B", "KiB", "MiB", "GiB", "TiB", "PiB"]
+            in printf "%4.3f %s" (x :: Double) m
+  where qs size = size : qs (size / 1024.0)
