@@ -32,6 +32,7 @@ import           SliceNameStrategy
 import           SliceScaner
 import           SliceToLodree
 import           SourceTree
+import           TreeComparator
 import           TurboWare
 import           Types
 
@@ -160,7 +161,8 @@ backup backupDirRoot = do
             Nothing -> do
                lo Inf $ "Phase 4/4 - no differencies, NO backup: "
                return ExitSuccess
-            Just backupDirTree -> do
+            Just (comareResult, backupDirTree) -> do
+               lo Inf $ formatDiffResult comareResult
                forM_ (M.toList $ countCounters backupDirTree) (\(key, value) ->
                    lo Inf $ printf "%8d: %s" value key
                    )
@@ -202,3 +204,9 @@ backup backupDirRoot = do
 convertToSliceCmd :: Cmd -> SliceCmd
 convertToSliceCmd (BackupTreeBuilder.Link  x _) = Slice.PhysicalLink x
 convertToSliceCmd (BackupTreeBuilder.Delete _ ) = Slice.Delete
+
+formatDiffResult :: DirCompare -> String
+formatDiffResult  compareResult =
+  let (cl, sl, cr, sr) = diffCountAndSizes compareResult
+  in printf "    deleted (%d #, %4.3f MB), inserted (%d #, %4.3f MB), diff (%d #, %4.3f MB)"
+                  cl (sizeInMb sl) cr (sizeInMb sr) (cr - cl) (sizeInMb (sr - sl))

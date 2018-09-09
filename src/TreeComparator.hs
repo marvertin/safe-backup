@@ -2,7 +2,8 @@
 
 module TreeComparator (
   compareTrees,
-  DirCompare(..)
+  DirCompare(..),
+  diffCountAndSizes
 ) where
 
 
@@ -33,7 +34,10 @@ compareTrees (LDir _ ls) (LDir _ rs) = let
      compareDirs (Just l) (Just r) = compareTrees l r
 compareTrees l r = Just $ QBoth l r
 
-
+-- | dirrenence coune and sizeSpeed
+-- | return left count, left size, right count, right size
+diffCountAndSizes :: DirCompare -> (Int, Integer, Int, Integer)
+diffCountAndSizes _ = (17, 5000000, 23, 8000000)
 -------------------------------------------------------------------
 -- The rest of this modul is for DEBUGING purpose only - it is dump
 --

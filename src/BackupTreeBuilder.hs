@@ -37,7 +37,7 @@ mapCall :: (RevPath -> a -> BackupTree ) -> RevPath -> [(FileName, a)] -> [Backu
 mapCall fce revpath = map (uncurry fce . (first (:revpath)))
 
 
-buildBackup :: Lodree -> Lodree ->  FileName -> Maybe BackupTree
+buildBackup :: Lodree -> Lodree ->  FileName -> Maybe (DirCompare, BackupTree)
 buildBackup sliceLodree surceLodree outputDir =
   let
       sliceHashes = createMapOfHashes' sliceLodree
@@ -68,10 +68,11 @@ buildBackup sliceLodree surceLodree outputDir =
       bFromDirCompare revpath (QRight lodree)  = bFromLodree revpath lodree
       bFromDirCompare revpath (QBoth _ lodree) = bFromLodree revpath lodree
       bFromDirCompare revpath@(name:_) (QDir list) = Dir name (mapCall bFromDirCompare  revpath list)
-      -- diff = trace ("\n\nsurceLodree: " ++ show surceLodree ++ "\n\ncurrentLodre esliceLodree: " ++ show (currentLodree sliceLodree) ++ "\n\n")
+
+      diff :: Maybe DirCompare
       diff = compareTrees (currentLodree sliceLodree) surceLodree
 
-  in  (bFromDirCompare [outputDir]) <$> diff
+  in  fmap (\di -> (di, bFromDirCompare [outputDir] di)) diff
 
 mustInsert :: RevPath -> Paths -> Maybe FilePath
 mustInsert _ (Paths [] _ _) = Nothing -- impossible
