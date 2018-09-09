@@ -10,8 +10,9 @@ module Lib
       computeFileHash,
       loadFileRee,
       sizeInMb,
-      formatRee,
-      showSz
+      showRee,
+      showSz,
+      showDiffTm
 
     ) where
 
@@ -27,9 +28,11 @@ import           Data.Function
 import           Data.List             (intercalate, nub, sortBy)
 import           Data.List.Unique
 import           Data.Maybe
+import           Data.Time.Clock
 import           System.Directory
 import           System.Directory.Tree
 import           Text.Printf           (printf)
+
 import           TurboWare
 import           Types
 
@@ -79,11 +82,14 @@ loadFileRee f = Ree 1 <$> getFileSize f <*> getModificationTime f <*> computeFil
 sizeInMb :: Integer -> Double
 sizeInMb x =  fromIntegral x / 1024 / 1024
 
-formatRee :: Ree -> String
-formatRee Ree{..} = printf "%d files, %6.3f MB" rcount (sizeInMb rsize)
+showRee :: Ree -> String
+showRee Ree{..} = printf "%d files, %s" rcount (showSz rsize)
 
 showSz ::  Integral a  => a -> String
 showSz sz = let (x, m) = head . dropWhile (\(q, _) ->  q > 1024.0)
                          $ zip (qs (fromIntegral sz)) ["B", "KiB", "MiB", "GiB", "TiB", "PiB"]
             in printf "%4.3f %s" (x :: Double) m
   where qs size = size : qs (size / 1024.0)
+
+showDiffTm :: UTCTime -> UTCTime -> String
+showDiffTm endTime startTime = show (diffUTCTime endTime startTime)

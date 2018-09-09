@@ -2,6 +2,8 @@
 
 module BackupTreeBuilder (
   buildBackup,
+  sizeToBackup,
+  countsToBackup,
   BackupTree,
   AnchoredBackupTree,
   Cmd(..),
@@ -27,7 +29,7 @@ import           TurboWare
 import           Types
 
 data Info = Info Hash Paths Lodree  deriving (Show) -- gives information only to peaple, not processed by machine
-data Cmd = Insert | Delete Info | Link FilePath Info  deriving (Show)
+data Cmd = Insert Integer | Delete Info | Link FilePath Info  deriving (Show)
 data Paths = Paths { pathsNew :: [FilePath], pathsLast:: [FilePath], pathsHistory :: [FilePath] }  deriving (Show)
 
 type BackupTree = DirTree Cmd
@@ -58,7 +60,7 @@ buildBackup sliceLodree surceLodree outputDir =
                       in  case mustInsert revpath paths of
                             Nothing ->
                               case lodree of
-                                LFile _ _   ->  File name Insert
+                                LFile _ _   ->  File name (Insert . rsize . ree $ lodree)
                                 LDir _ list -> Dir name (mapCall bFromLodree revpath list)  -- Dir name (map (uncurry bFromLodree) list)
                             Just pathToLink -> File name $ Link ("/" ++ outputDir ++ pathToLink) $ Info hash paths lodree
           Just (path: _, lodree2) -> File name $ Link path $ Info hash (makePaths hash) lodree2
@@ -81,6 +83,15 @@ mustInsert revpath (Paths (itMustInsert:_) _ _) =
     in if path == itMustInsert then Nothing
                                else Just itMustInsert
 
+sizeToBackup :: BackupTree -> Integer
+sizeToBackup bt = sum $ fmap mapa bt
+   where mapa (Insert sz) = sz
+         mapa _           = 0
+
+countsToBackup :: BackupTree -> Integer
+countsToBackup bt = sum $ fmap mapa bt
+  where mapa (Insert _) = 1
+        mapa _          = 0
 
 type MapByHash = M.Map Hash [FileName]
 
@@ -92,8 +103,8 @@ instance Dumpable Cmd where
     toDump x = [ "**" ++ show x ]
     toDumpS = tostra
       where
-          tostra (Insert ) = "Insert"
-          tostra x         = show x
+          tostra (Insert size) = "Insert " ++ (showSz size)
+          tostra x             = show x
 
 {-
     toDump x = [tostr x]

@@ -39,9 +39,9 @@ doLog yh sh l s = do
     case l of
       Debug -> hPutStrLn sh $ ss
       Summary -> do
-        putStrLn $ ss
+        time <- getCurrentTime
         hPutStrLn sh $ ss
-        hPutStrLn yh $ ss
+        hPutStrLn yh $ (take 19 . show $ time) ++ ": " ++ s
       Error -> do
         hPutStrLn stderr $ ss
         hPutStrLn sh $ ss

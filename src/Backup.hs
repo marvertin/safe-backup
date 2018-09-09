@@ -10,7 +10,9 @@ import           Data.Counter
 import           Data.List
 import qualified Data.Map              as M
 import           Data.Time.Clock
+import           Data.Version          (showVersion)
 import           Data.Yaml
+import qualified Paths_yaba            (version)
 import           System.Directory
 import           System.Directory.Tree
 import           System.Exit
@@ -55,9 +57,10 @@ writeBackup lo abt' sourceTrees = do
       ) sourceTrees
   where
     writeFileToBackup :: Int -> FilePath -> FilePath -> Cmd -> IO ()
-    writeFileToBackup kolikSmazat sourceOfMainTreeDir path Insert  =
+    writeFileToBackup kolikSmazat sourceOfMainTreeDir path (Insert _)  =
        let odkud = sourceOfMainTreeDir ++ drop kolikSmazat path
        in do
+        -- putStrLn $ show kolikSmazat ++ "* " ++ path ++ " | " ++ odkud ++ " --> " ++ path
         lo Debug ("copy file: " ++ odkud ++ " --> " ++ path)
         copyFile odkud path
     writeFileToBackup _ _ path cmd = do
@@ -126,6 +129,8 @@ backup backupDirRoot = do
       withLogger yabaLogFilePath logFileName $ \lo -> do
         startTime <- getCurrentTime
         exitCode <- do
+          lo Summary $ "Start yaba " ++  showVersion Paths_yaba.version
+          tmStart <- getCurrentTime
           lo Inf $ printf  "Detail log is: \"%s\"" logFileName
           lo Inf "Phase 1/4 - reading slices backed up before"
           sliceNames <-  listSlices  sliceNameStrategy dataRoot
@@ -141,30 +146,39 @@ backup backupDirRoot = do
           let rootLodree = mergesToLodree emptyLodree slices
           let lodreeBackupCurrent = currentLodree rootLodree
           encodeFile (indexDirx </> sliceLogicalTree_suffix) lodreeBackupCurrent
-          lo Inf $ "    " ++ formatRee (ree rootLodree)
+          lo Inf $ "    " ++ showRee (ree rootLodree)
+          tmPhase1 <- getCurrentTime
+          lo Summary $ printf "scaned %d slices - %s (%s)" (length sliceNames) (showRee (ree rootLodree)) (showDiffTm tmPhase1 tmStart)
 
           lo Inf "Phase 2/4 - reading source forest for backup"
           lo Inf $ printf "    %d trees in forest " (length forest)
           lodreeSourceAllNodes <- makeLDir <$> forM forest ( \(TreeDef treeName treePath ignorances) -> do
               lo Inf $ printf "       scaning %-15s- \"%s\"" treeName treePath
               lo Debug $ "ignorance patterns: " ++ (show ignorances)
+              tmSourceStart <- getCurrentTime
               lodreeSourceOneNode <- readSourceTree lo ignorances treePath
               encodeFile (indexRoot </> (treeName ++ sliceSourceTree_suffix)) lodreeSourceOneNode
+              tmSourceEnd <- getCurrentTime
+              lo Summary $ printf "source %-15s-%s \"%s\" (%s)" treeName (showRee (ree lodreeSourceOneNode)) treePath (showDiffTm tmSourceEnd tmSourceStart)
               return (treeName, lodreeSourceOneNode)
              )
-          lo Inf $ "    " ++ formatRee (ree lodreeSourceAllNodes)
+          lo Inf $ "    " ++ showRee (ree lodreeSourceAllNodes)
+          tmPhase2 <- getCurrentTime
+          lo Summary $ printf "forest of %d trees %s (%s)" (length forest) (showRee (ree lodreeSourceAllNodes)) (showDiffTm tmPhase2 tmPhase1)
 
           lo Inf "Phase 3/4 - comparing slices and source forest"
           let resulta = buildBackup rootLodree lodreeSourceAllNodes newSliceName
 
+          tmPhase3 <- getCurrentTime
           case resulta of
             Nothing -> do
                lo Inf $ "Phase 4/4 - no differencies, NO backup: "
+               lo Summary $ printf "********* NO BACKUP NEEDED ********** total time: %s" (showDiffTm tmPhase3 tmStart)
                return ExitSuccess
             Just (comareResult, backupDirTree) -> do
                lo Inf $ formatDiffResult comareResult
                forM_ (M.toList $ countCounters backupDirTree) (\(key, value) ->
-                   lo Inf $ printf "%8d: %s" value key
+                   forM_ [lo Inf, lo Summary] ($ printf "%8d: %s" value key)
                    )
 
                lo Inf $ "Phase 4/4 - copying files to new slice"
@@ -172,13 +186,17 @@ backup backupDirRoot = do
                results <- writeBackup lo (dataRoot :/ backupDirTree) forest
                let failus = fmap (\(b :/ d) -> (b, failures d)) results
                let failus2 = failus >>= \(b, list)  -> (b,) <$> list
+               tmPhase4 <- getCurrentTime
                if null failus2
                  then do
                      if null empties then do
                         lo Inf $ "**** SUCCESS **** - backup has finished"
+                        lo Summary $ printf "**** SUCCESS **** created new slice %s with  %d %s (%s)" newSliceName (countsToBackup backupDirTree) (showSz . sizeToBackup $ backupDirTree) (showDiffTm tmPhase4 tmPhase3)
                         return ExitSuccess
                        else do
                          lo Inf $  "**** success, BUT some trees are empty or unaccessible: " ++ (show empties)
+                         lo Summary $ printf "created new slice %s with %d %s (%s) **** success, BUT some trees are empty or unaccessible: %s\n"
+                            newSliceName (countsToBackup backupDirTree) (showSz . sizeToBackup $ backupDirTree) (showDiffTm tmPhase4 tmPhase3) (show empties)
                          return $ ExitFailure 7
                  else do
                      lo Error "!!!!!!!!!!!!!!!!!!! ERROR LIST !!!!!!!!!!!!"
@@ -192,7 +210,7 @@ backup backupDirRoot = do
                      lo Error $ "!!!!!!!!!!!! " ++ show (length failus2) ++ " ERRORS !!!!!!!!!"
                      return $ ExitFailure 2
         endTime <- getCurrentTime
-        lo Summary  $ "Total time: " ++ show (diffUTCTime endTime startTime)
+        forM_ [lo Inf, lo Summary] ($ "Total time: " ++ showDiffTm endTime startTime ++ "\n")
         return exitCode
    where
     dataRoot = backupDirRoot </> dataSubdir
