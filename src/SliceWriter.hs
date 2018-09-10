@@ -10,6 +10,7 @@ module SliceWriter (
 import           Control.Arrow
 import           Control.Monad
 import           Data.Counter
+import           Data.IORef
 import           Data.List
 import qualified Data.Map              as M
 import           Data.Time.Clock
@@ -23,15 +24,11 @@ import           Text.Printf
 
 import           BackupTreeBuilder
 import           Config
---  import           DirScan
+import qualified Data.ByteString.Lazy  as BS
 import           Dump
---  import           Ignorances
 import           Lib
---  import           Lodree
 import           Log
 import           Slice
---  import           SliceNameStrategy
-import qualified Data.ByteString.Lazy  as BS
 import           TurboWare
 import           Types
 
@@ -39,7 +36,8 @@ import           Types
 writeBackup :: Log -> AnchoredBackupTree -> ForestDef ->  IO (AnchoredDirTree (Int, Integer, Int))
 writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
         let (Dir _ subdirs) = (first replaceWithSorucePath) <$> zipPaths ("" :/ bt)
-        writeDirectoryWith writeFileToBackup (base :/ (Dir (replaceVerticalToSlashes newSliceName) subdirs))
+        counters <- newIORef mempty
+        writeDirectoryWith (writeFileToBackup counters) (base :/ (Dir (replaceVerticalToSlashes newSliceName) subdirs))
     where
       replaceWithSorucePath :: FilePath -> FilePath
       replaceWithSorucePath fp = let
@@ -49,17 +47,22 @@ writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
              Just root -> root ++ path
 
       --writeFileToBackup :: Int -> FilePath -> FilePath -> Cmd -> IO ()
-      writeFileToBackup :: FilePath -> (FilePath, Cmd) -> IO (Int, Integer, Int)
-      writeFileToBackup destPath (sourcePath, (Insert _))  = do
+      writeFileToBackup :: IORef (MonoidPlus3 Int Integer Int) -> FilePath -> (FilePath, Cmd) -> IO (Int, Integer, Int)
+      writeFileToBackup  counters destPath (sourcePath, (Insert _))  = do
            lo Debug $ printf "copy file: \"%s\" --> \"%s\"" sourcePath destPath
            BS.readFile sourcePath >>= BS.writeFile destPath
-           (1,,0) <$> getFileSize destPath
+           fsize <- getFileSize destPath
+           modifyIORef' counters (mappend (MonoidPlus3 (1, fsize, 0)))
+           show <$> readIORef counters >>= lo Debug
+           return (1, fsize, 0)
 
-      writeFileToBackup path (_, cmd) = do
+      writeFileToBackup counters path (_, cmd) = do
            let (dir, file) = splitFileName path
            let cesta = dir </> (yabaFilePrefix cmd ++ file) ++ ".yaba"
            lo Debug $ printf  "create meta: \"%s\": %s" cesta (showCmd cmd )
            writeFile cesta (formatCmd cmd)
+           modifyIORef' counters (mappend (MonoidPlus3 (0, 0, 1)))
+           show <$> readIORef counters >>= lo Debug
            return (0,0,1)
 
 showCmd :: Cmd ->  String

@@ -28,7 +28,7 @@ import           Text.Printf      (printf)
 
 
 -- (Num a, Num b, Num c) =>
-data  MonoidPlus3 a b c = MonoidPlus3 (a, b, c)
+data  MonoidPlus3 a b c = MonoidPlus3 (a, b, c) deriving (Show)
 
 instance (Num a, Num b, Num c) => Monoid (MonoidPlus3 a b c) where
   mempty = MonoidPlus3 (0, 0, 0)
