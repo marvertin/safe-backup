@@ -115,7 +115,7 @@ logInScan lo (EventEnvelop revpath (Cumulative count' size' countSpeed sizeSpeed
        forM_ [lo Debug, lo Progress] ($ printf "  ... big file: %10.3f - %s" (sizeInMb size) (pth revpath))
        )
    Failure exc -> do
-     let errstr = "!!!!! ERROR !!!!! " ++ show exc
+     let errstr = "    !!!!! ERROR !!!!! " ++ show exc
      lo Error $ errstr
    _ -> return ()
  return startTime
