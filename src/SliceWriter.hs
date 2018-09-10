@@ -50,10 +50,12 @@ writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
       writeFileToBackup :: IORef (MonoidPlus3 Int Integer Int) -> FilePath -> (FilePath, Cmd) -> IO (Int, Integer, Int)
       writeFileToBackup  counters destPath (sourcePath, (Insert _))  = do
            lo Debug $ printf "copy file: \"%s\" --> \"%s\"" sourcePath destPath
+           lo Progress $ printf "copy file: \"%s\" --> \"%s\"" sourcePath destPath
            BS.readFile sourcePath >>= BS.writeFile destPath
            fsize <- getFileSize destPath
            modifyIORef' counters (mappend (MonoidPlus3 (1, fsize, 0)))
            show <$> readIORef counters >>= lo Debug
+
            return (1, fsize, 0)
 
       writeFileToBackup counters path (_, cmd) = do

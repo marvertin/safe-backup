@@ -7,6 +7,7 @@ module Log (
 ) where
 
 import           Control.Monad
+import           Data.IORef
 import           Data.Time.Clock
 import           System.IO
 import           Text.Printf
@@ -25,23 +26,29 @@ data Level
   deriving (Show)
 
 withLogger :: FilePath ->  FilePath -> (Log -> IO a) -> IO a
-withLogger yabaLogPath sliceLogPath fce =
+withLogger yabaLogPath sliceLogPath fce = do
+  charOnLineCounter <- newIORef 0
   withFile yabaLogPath AppendMode (\yhandle ->
     withFile sliceLogPath WriteMode (\shandle ->
-      fce (doLog yhandle shandle)
+      fce (doLog charOnLineCounter yhandle shandle)
      )
    )
 
 -- fmap ((show l ++ ": "):) .
-doLog :: Handle -> Handle -> Level -> String -> IO()
-doLog yh sh l s = do
+doLog :: IORef Int -> Handle -> Handle -> Level -> String -> IO()
+doLog charOnLineCounter yh sh l s = do
     let ss = show l ++ ": " ++ s
     case l of
       Debug -> hPutStrLn sh $ ss
       Inf -> do
+        cleanLine
         putStrLn s
         hFlush stdout
         hPutStrLn sh $ ss
+      Progress -> do
+        cleanLine
+        writeIORef charOnLineCounter (length s)
+        putStr $ '\r' : s ++ "\r"
       Summary -> do
         time <- getCurrentTime
         hPutStrLn yh $ (take 19 . show $ time) ++ ": " ++ s
@@ -50,9 +57,11 @@ doLog yh sh l s = do
       Error -> do
         hPutStrLn stderr $ ss
         hPutStrLn sh $ ss
-      _ -> do
-        putStrLn $ ss
-        hPutStrLn sh $ ss
+  where
+    cleanLine = do -- cleaneng line of progress
+       charsToClean <- readIORef charOnLineCounter
+       putStr $ replicate charsToClean ' ' ++ "\r"
+       writeIORef charOnLineCounter 0
 
 loa :: String -> IO ()
 loa xx = do
