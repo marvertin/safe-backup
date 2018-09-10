@@ -45,6 +45,7 @@ dependencies:
 - transformers
 - counter
 - raw-strings-qq
+- terminal-size
 
 
 # - derive
