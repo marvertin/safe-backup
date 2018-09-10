@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 module Log (
   withLogger,
   Level(..),
@@ -9,8 +10,10 @@ module Log (
 import           Control.Monad
 import           Data.IORef
 import           Data.Time.Clock
+import qualified System.Console.Terminal.Size as Terminal
 import           System.IO
 import           Text.Printf
+
 
 import           DirScan
 import           Lib
@@ -28,15 +31,16 @@ data Level
 withLogger :: FilePath ->  FilePath -> (Log -> IO a) -> IO a
 withLogger yabaLogPath sliceLogPath fce = do
   charOnLineCounter <- newIORef 0
+  bufan <- hGetBuffering stdout
   withFile yabaLogPath AppendMode (\yhandle ->
     withFile sliceLogPath WriteMode (\shandle ->
-      fce (doLog charOnLineCounter yhandle shandle)
+      fce (doLog (LineBuffering == bufan) charOnLineCounter yhandle shandle)
      )
    )
 
 -- fmap ((show l ++ ": "):) .
-doLog :: IORef Int -> Handle -> Handle -> Level -> String -> IO()
-doLog charOnLineCounter yh sh l s = do
+doLog :: Bool -> IORef Int -> Handle -> Handle -> Level -> String -> IO()
+doLog isTerminal charOnLineCounter yh sh l s = do
     let ss = show l ++ ": " ++ s
     case l of
       Debug -> hPutStrLn sh $ ss
@@ -46,9 +50,16 @@ doLog charOnLineCounter yh sh l s = do
         hFlush stdout
         hPutStrLn sh $ ss
       Progress -> do
-        cleanLine
-        writeIORef charOnLineCounter (length s)
-        putStr $ '\r' : s ++ "\r"
+        when isTerminal $ do
+          with <-  termWidth
+          case with of
+            Nothing -> return ()
+            Just width -> do
+              cleanLine
+              let txt = take (width - 1) s
+              writeIORef charOnLineCounter (length txt)
+              putStr $ '\r' : txt ++ "\r"
+              hFlush stdout
       Summary -> do
         time <- getCurrentTime
         hPutStrLn yh $ (take 19 . show $ time) ++ ": " ++ s
@@ -59,9 +70,19 @@ doLog charOnLineCounter yh sh l s = do
         hPutStrLn sh $ ss
   where
     cleanLine = do -- cleaneng line of progress
+      when isTerminal $ do
        charsToClean <- readIORef charOnLineCounter
-       putStr $ replicate charsToClean ' ' ++ "\r"
-       writeIORef charOnLineCounter 0
+       when (charsToClean > 0) $ do
+           width <-  termWidth
+           case width of
+              Nothing -> return ()
+              Just width -> do
+                 putStr $ replicate (min charsToClean (width - 1)) ' ' ++ "\r"
+                 writeIORef charOnLineCounter 0
+
+termWidth :: IO (Maybe Int)
+termWidth = fmap (fmap Terminal.width) Terminal.size
+--termWidth = return (Just 100)
 
 loa :: String -> IO ()
 loa xx = do
@@ -87,11 +108,11 @@ logInScan lo (EventEnvelop revpath (Cumulative count' size' countSpeed sizeSpeed
    AfterFile (EventFile size)  _ -> do
      time' <- getCurrentTime
      -- lo Debug $  duration time'
-     lo Debug $ printf "%s %6d # %10.3f MB %9.2f #/s  %7.3f MB/s %10.3f %s"
-         (take 19 $ show time') count' (sizeInMb size') countSpeed sizeSpeed (sizeInMb size) (pth revpath)
+     forM_ [lo Debug, lo Progress] ($  printf "%s %6d # %10.3f MB %9.2f #/s  %7.3f MB/s %10.3f %s"
+         (take 19 $ show time') count' (sizeInMb size') countSpeed sizeSpeed (sizeInMb size) (pth revpath))
    BeforeFile (EventFile size) ->
      when (size > 1024 * 1024 * 100) (do
-       lo Debug $ printf "  ... big file: %10.3f - %s" (sizeInMb size) (pth revpath)
+       forM_ [lo Debug, lo Progress] ($ printf "  ... big file: %10.3f - %s" (sizeInMb size) (pth revpath))
        )
    Failure exc -> do
      let errstr = "!!!!! ERROR !!!!! " ++ show exc

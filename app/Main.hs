@@ -5,13 +5,12 @@ module Main where
 import           Control.Monad
 import           Data.Either
 import           Data.Maybe
-import           Data.Semigroup               ((<>))
+import           Data.Semigroup        ((<>))
 import           Data.Time.Clock
-import           Data.Version                 (showVersion)
+import           Data.Version          (showVersion)
 import           GHC.IO.Encoding
 import           Options.Applicative
-import qualified Paths_yaba                   (version)
-import qualified System.Console.Terminal.Size as Terminal
+import qualified Paths_yaba            (version)
 import           System.Directory
 import           System.Directory.Tree
 import           System.Environment
@@ -73,7 +72,6 @@ cmdline = Cmdline
 
 --  test directory: ./test/data/case3/backup
 main = do
-  Terminal.size >>= print
   setLocaleEncoding utf8
   putStrLn $ "yaba " ++ showVersion Paths_yaba.version ++ " - yeat another backup"
   exitCode <- timeIt  main'
