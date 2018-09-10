@@ -116,7 +116,9 @@ backup backupDirRoot = do
 
                lo Inf $ "Phase 4/4 - copying files to new slice"
                lo Inf $ "    Writing new slice to: " ++ slicedDirName dataRoot
-               results <- writeBackup lo (dataRoot :/ backupDirTree) forest
+               -- writeBackup2 lo (dataRoot :/ backupDirTree) forest
+               results <- writeBackup2 lo (dataRoot :/ backupDirTree) forest
+               -- results <- return Nothing
                let failus = fmap (\(b :/ d) -> (b, failures d)) results
                let failus2 = failus >>= \(b, list)  -> (b,) <$> list
                tmPhase4 <- getCurrentTime
@@ -151,10 +153,6 @@ backup backupDirRoot = do
     logRoot = backupDirRoot </> logSubdir
   -- return ()
 
-
-convertToSliceCmd :: Cmd -> SliceCmd
-convertToSliceCmd (BackupTreeBuilder.Link  x _) = Slice.PhysicalLink x
-convertToSliceCmd (BackupTreeBuilder.Delete _ ) = Slice.Delete
 
 formatDiffResult :: DirCompare -> String
 formatDiffResult  compareResult =

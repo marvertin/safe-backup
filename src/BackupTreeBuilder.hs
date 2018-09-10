@@ -1,4 +1,6 @@
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE NamedFieldPuns       #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 module BackupTreeBuilder (
   buildBackup,
@@ -19,6 +21,7 @@ import           Data.Maybe
 import           Debug.Trace
 import           Debug.Trace
 import           DirScan               (RevPath, pth)
+import           Dump
 import           Hashpairing
 import           Lib
 import           Lodree
@@ -105,6 +108,15 @@ instance Dumpable Cmd where
       where
           tostra (Insert size) = "Insert " ++ (showSz size)
           tostra x             = show x
+
+
+instance Dumpable BackupTree where
+  toDump = dirTreeToStringList printCmd
+
+printCmd :: Cmd ->  Maybe String
+printCmd (Insert {}) = Just "<insert>"
+printCmd (Delete {}) = Just "<delete>"
+printCmd (Link fp _) = Just $ "<link \"" ++ fp ++  "\" >"
 
 {-
     toDump x = [tostr x]
