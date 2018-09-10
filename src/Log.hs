@@ -38,10 +38,15 @@ doLog yh sh l s = do
     let ss = show l ++ ": " ++ s
     case l of
       Debug -> hPutStrLn sh $ ss
+      Inf -> do
+        putStrLn s
+        hFlush stdout
+        hPutStrLn sh $ ss
       Summary -> do
         time <- getCurrentTime
-        hPutStrLn sh $ ss
         hPutStrLn yh $ (take 19 . show $ time) ++ ": " ++ s
+        hFlush yh
+        hPutStrLn sh $ ss
       Error -> do
         hPutStrLn stderr $ ss
         hPutStrLn sh $ ss

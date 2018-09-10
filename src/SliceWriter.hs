@@ -35,15 +35,11 @@ import qualified Data.ByteString.Lazy  as BS
 import           TurboWare
 import           Types
 
-writeBackup :: Log -> AnchoredBackupTree -> ForestDef ->  IO (AnchoredDirTree ())
+-- | Write backu. returns (count of copies files, sizue of set files, count of metafiles)
+writeBackup :: Log -> AnchoredBackupTree -> ForestDef ->  IO (AnchoredDirTree (Int, Integer, Int))
 writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
-  putStrLn $ "########### " ++ base ++ "###################"
-  dump bt
-  putStrLn $ "###################################"
-  let xx@(Dir _ subdirs) = (first replaceWithSorucePath) <$> zipPaths ("" :/ bt)
-  forM_ xx (putStrLn . show . fmap printCmd)
-  writeDirectoryWith writeFileToBackup (base :/ (Dir (replaceVerticalToSlashes newSliceName) subdirs))
-
+        let (Dir _ subdirs) = (first replaceWithSorucePath) <$> zipPaths ("" :/ bt)
+        writeDirectoryWith writeFileToBackup (base :/ (Dir (replaceVerticalToSlashes newSliceName) subdirs))
     where
       replaceWithSorucePath :: FilePath -> FilePath
       replaceWithSorucePath fp = let
@@ -53,54 +49,23 @@ writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
              Just root -> root ++ path
 
       --writeFileToBackup :: Int -> FilePath -> FilePath -> Cmd -> IO ()
-      writeFileToBackup :: FilePath -> (FilePath, Cmd) -> IO ()
+      writeFileToBackup :: FilePath -> (FilePath, Cmd) -> IO (Int, Integer, Int)
       writeFileToBackup destPath (sourcePath, (Insert _))  = do
-           -- putStrLn $ show kolikSmazat ++ "* " ++ path ++ " | " ++ odkud ++ " --> " ++ path
-           lo Inf ("copy file: " ++ sourcePath ++ " --> " ++ destPath)
+           lo Debug $ printf "copy file: \"%s\" --> \"%s\"" sourcePath destPath
            BS.readFile sourcePath >>= BS.writeFile destPath
-           --createDirectory $ "BOR:|DEL2" ++ sourcePath
-           -- copyFile odkud path
+           (1,,0) <$> getFileSize destPath
+
       writeFileToBackup path (_, cmd) = do
            let (dir, file) = splitFileName path
            let cesta = dir </> (yabaFilePrefix cmd ++ file) ++ ".yaba"
-           lo Debug $ "create meta: " ++ cesta
-               -- ++ unJabaContent (convertToJabaContent cmd)
+           lo Debug $ printf  "create meta: \"%s\": %s" cesta (showCmd cmd )
            writeFile cesta (formatCmd cmd)
+           return (0,0,1)
 
-printCmd :: Cmd ->  String
-printCmd (BackupTreeBuilder.Insert {}) = "<insert>"
-printCmd (BackupTreeBuilder.Delete {}) = "<delete>"
-printCmd (BackupTreeBuilder.Link fp _) = "<link \"" ++ fp ++  "\" >"
-
-
-writeBackupOld :: Log -> AnchoredBackupTree -> ForestDef -> IO [AnchoredDirTree ()]
-writeBackupOld lo abt' sourceTrees = do
-    -- putStrLn $ "jsem v writeBackup"
-    -- hFlush stdout
-    -- nasledujici prikaz buh vi proc dlouho trva
-    let (base :/ (Dir yabadir subdirlist1)) = abt'
-    let abt = base :/ Dir (replaceVerticalToSlashes yabadir) subdirlist1
-    mapM ( \(TreeDef treeName treePath _) -> do
-       --putStrLn $ "Writing tree: " ++ treePath ++ " ==> " ++ (yabadir </> treeName)
-       --putStrLn $ unlines $ dirTreeToStringList (Just . show) d
-       -- musíme umazat adresář yaba a také adresář kořene
-       let kolikSmazat = 1 + length yabadir + 1 + length treeName + length base
-       writeDirectoryWith (writeFileToBackup kolikSmazat treePath) abt
-      ) sourceTrees
-  where
-    writeFileToBackup :: Int -> FilePath -> FilePath -> Cmd -> IO ()
-    writeFileToBackup kolikSmazat sourceOfMainTreeDir path (Insert _)  =
-       let odkud = sourceOfMainTreeDir ++ drop kolikSmazat path
-       in do
-        -- putStrLn $ show kolikSmazat ++ "* " ++ path ++ " | " ++ odkud ++ " --> " ++ path
-        lo Debug ("copy file: " ++ odkud ++ " --> " ++ path)
-        copyFile odkud path
-    writeFileToBackup _ _ path cmd = do
-        let (dir, file) = splitFileName path
-        let cesta = dir </> (yabaFilePrefix cmd ++ file) ++ ".yaba"
-        lo Debug $ "create meta: " ++ cesta
-            -- ++ unJabaContent (convertToJabaContent cmd)
-        writeFile cesta (formatCmd cmd)
+showCmd :: Cmd ->  String
+showCmd (BackupTreeBuilder.Insert {}) = "<insert>"
+showCmd (BackupTreeBuilder.Delete {}) = "<delete>"
+showCmd (BackupTreeBuilder.Link fp _) = "<link \"" ++ fp ++  "\" >"
 
 title x = ["", "----- " ++ x ++ " ---------------------------"]
 
