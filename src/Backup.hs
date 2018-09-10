@@ -116,13 +116,10 @@ backup backupDirRoot = do
 
                lo Inf $ "Phase 4/4 - copying files to new slice"
                lo Inf $ "    Writing new slice to: " ++ slicedDirName dataRoot
-               -- writeBackup2 lo (dataRoot :/ backupDirTree) forest
-               results <- writeBackup2 lo (dataRoot :/ backupDirTree) forest
-               -- results <- return Nothing
-               let failus = fmap (\(b :/ d) -> (b, failures d)) results
-               let failus2 = failus >>= \(b, list)  -> (b,) <$> list
+               (_  :/ resultOfCopy) <- writeBackup lo (dataRoot :/ backupDirTree) forest
+               let failus = failures resultOfCopy
                tmPhase4 <- getCurrentTime
-               if null failus2
+               if null failus
                  then do
                      if null empties then do
                         lo Inf $ "**** SUCCESS **** - backup has finished"
@@ -135,14 +132,11 @@ backup backupDirRoot = do
                          return $ ExitFailure 7
                  else do
                      lo Error "!!!!!!!!!!!!!!!!!!! ERROR LIST !!!!!!!!!!!!"
-                     forM_ failus (\(b, list) -> do
-                         putStrLn b
-                         forM_ list (\x -> do
-                           putStr "    "
-                           print x
-                          )
+                     forM_ failus (\oneFail -> do
+                         -- putStrLn b
+                           lo Error $ show oneFail
                        )
-                     lo Error $ "!!!!!!!!!!!! " ++ show (length failus2) ++ " ERRORS !!!!!!!!!"
+                     lo Error $ "!!!!!!!!!!!! " ++ show (length failus) ++ " ERRORS !!!!!!!!!"
                      return $ ExitFailure 2
         endTime <- getCurrentTime
         forM_ [lo Inf, lo Summary] ($ "Total time: " ++ showDiffTm endTime startTime ++ "\n")

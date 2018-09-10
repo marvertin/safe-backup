@@ -3,7 +3,6 @@
 
 module SliceWriter (
   writeBackup,
-  writeBackup2,
   countCounters
 )  where
 
@@ -32,18 +31,19 @@ import           Lib
 import           Log
 import           Slice
 --  import           SliceNameStrategy
+import qualified Data.ByteString.Lazy  as BS
 import           TurboWare
 import           Types
 
-writeBackup2 :: Log -> AnchoredBackupTree -> ForestDef ->  IO [AnchoredDirTree ()]
-writeBackup2 lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
+writeBackup :: Log -> AnchoredBackupTree -> ForestDef ->  IO (AnchoredDirTree ())
+writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
   putStrLn $ "########### " ++ base ++ "###################"
   dump bt
   putStrLn $ "###################################"
   let xx@(Dir _ subdirs) = (first replaceWithSorucePath) <$> zipPaths ("" :/ bt)
   forM_ xx (putStrLn . show . fmap printCmd)
-  sss <- writeDirectoryWith writeFileToBackup (base :/ (Dir (replaceVerticalToSlashes newSliceName) subdirs))
-  return [sss]
+  writeDirectoryWith writeFileToBackup (base :/ (Dir (replaceVerticalToSlashes newSliceName) subdirs))
+
     where
       replaceWithSorucePath :: FilePath -> FilePath
       replaceWithSorucePath fp = let
@@ -54,9 +54,11 @@ writeBackup2 lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
 
       --writeFileToBackup :: Int -> FilePath -> FilePath -> Cmd -> IO ()
       writeFileToBackup :: FilePath -> (FilePath, Cmd) -> IO ()
-      writeFileToBackup destPath (sourcePath, (Insert _))  =
+      writeFileToBackup destPath (sourcePath, (Insert _))  = do
            -- putStrLn $ show kolikSmazat ++ "* " ++ path ++ " | " ++ odkud ++ " --> " ++ path
            lo Inf ("copy file: " ++ sourcePath ++ " --> " ++ destPath)
+           BS.readFile sourcePath >>= BS.writeFile destPath
+           --createDirectory $ "BOR:|DEL2" ++ sourcePath
            -- copyFile odkud path
       writeFileToBackup path (_, cmd) = do
            let (dir, file) = splitFileName path
@@ -71,8 +73,8 @@ printCmd (BackupTreeBuilder.Delete {}) = "<delete>"
 printCmd (BackupTreeBuilder.Link fp _) = "<link \"" ++ fp ++  "\" >"
 
 
-writeBackup :: Log -> AnchoredBackupTree -> ForestDef -> IO [AnchoredDirTree ()]
-writeBackup lo abt' sourceTrees = do
+writeBackupOld :: Log -> AnchoredBackupTree -> ForestDef -> IO [AnchoredDirTree ()]
+writeBackupOld lo abt' sourceTrees = do
     -- putStrLn $ "jsem v writeBackup"
     -- hFlush stdout
     -- nasledujici prikaz buh vi proc dlouho trva
