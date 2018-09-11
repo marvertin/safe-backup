@@ -34,15 +34,17 @@ import           Types
 
 import qualified Data.ByteString.Lazy  as Lazy
 
-getEventHandler lo  = (logInScan lo, getCurrentTime)
+getEventHandler :: UTCTime -> Log -> (EventEnvelop a () -> IO (), ())
+getEventHandler time lo  = (logInScan time lo, ())
 
 -- EventHandler Lodree b
 readSourceTree :: Log -> IgnoranceDef -> FilePath -> IO Lodree
-readSourceTree lo ignorance rootDir =
+readSourceTree lo ignorance rootDir = do
+     startTime <- getCurrentTime
      fst <$> scanDirectory (const makeLDir)
                      (makeFilterFce ignorance)
                      readLFile
-                     (getEventHandler lo)
+                     (getEventHandler startTime lo)
                      rootDir
   where
     readLFile :: RevPath -> IO Lodree
@@ -52,9 +54,10 @@ readSourceTree lo ignorance rootDir =
 scanDirectoryTest :: FilePath -> IO ()
 -- scanDirectory = scanDirectory'' (\y b -> ()) (const True) (return . const ())
 scanDirectoryTest path = do
+   startTime <- getCurrentTime
    result <- scanDirectory (\rp list -> sum $ fmap snd list) (\rp -> True)
                 readAndCountBytes
-                stdOutLoggingEventHanler
+                (stdOutLoggingEventHanler startTime)
                 path
    putStrLn "Hotovo"
    where

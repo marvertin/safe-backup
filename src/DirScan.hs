@@ -35,7 +35,7 @@ type RevPath = [String] -- it is reverse list of path items: ["myfile.txt", "mya
 
 data EventEnvelop a b = EventEnvelop RevPath Cumulative (Event a) b
 
-type EventHandler a b =   (EventEnvelop a b -> IO b, IO b)
+type EventHandler a b =   (EventEnvelop a b -> IO b, b)
 
 data Event a
       = BeforeFile {
@@ -74,10 +74,10 @@ flowAvarEmpty :: UTCTime -> FlowAvar
 flowAvarEmpty startTime = [(startTime, 0, 0, startTime), (startTime, 0, 0, startTime)]
 
 emptyEventHandler :: EventHandler a ()
-emptyEventHandler = (\x -> return (), return ())
+emptyEventHandler = (\x -> return (), ())
 
 stdOutLoggingEventHanler = hLoggingEventHandler stdout
-hLoggingEventHandler handle = (printLog handle, getCurrentTime)
+hLoggingEventHandler handle startTime = (printLog startTime handle, ())
 
 scanDirectory :: Show a =>
         (RevPath -> [(FilePath, a)] -> a) -> -- directory node creator
@@ -89,9 +89,8 @@ scanDirectory :: Show a =>
 scanDirectory createDirNode predicate createFileNode (eventFce, eventStart) rootPath = do
     startTime <- getCurrentTime
     let nula = 0 :: Int
-    evStart <- eventStart
     let startFlowAvar = flowAvarEmpty startTime
-    evacum2 <- emitEvent' [] startFlowAvar (Start rootPath) evStart
+    evacum2 <- emitEvent' [] startFlowAvar (Start rootPath) eventStart
     Acum flowAvar ((_, result) : _) evacum
       <- scanDirectory' 0 startTime (Acum startFlowAvar [] evacum2) []
     endTime <- getCurrentTime
@@ -150,8 +149,8 @@ pth :: RevPath -> FilePath
 pth = foldl (flip (</>)) []
 
 
-printLog :: Handle -> EventEnvelop a UTCTime -> IO UTCTime
-printLog handle (EventEnvelop revpath (Cumulative count' size' countSpeed sizeSpeed) event startTime) = do
+printLog :: UTCTime -> Handle -> EventEnvelop a () -> IO ()
+printLog startTime handle (EventEnvelop revpath (Cumulative count' size' countSpeed sizeSpeed) event _) = do
   case event of
     Ignore ->
       hPutStrLn handle $ "IGNORE: " ++ pth revpath
@@ -176,7 +175,7 @@ printLog handle (EventEnvelop revpath (Cumulative count' size' countSpeed sizeSp
       hPutStrLn handle errstr
       hPutStrLn stderr errstr
     _ -> return ()
-  return startTime
+  return ()
   where duration time' = take 6 (show (diffUTCTime time' startTime)) ++ "s "
 
 

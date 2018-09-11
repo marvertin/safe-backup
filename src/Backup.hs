@@ -41,7 +41,8 @@ import           TreeComparator
 import           TurboWare
 import           Types
 
-getEventHandler lo  = (logInScan lo, getCurrentTime)
+getEventHandler :: UTCTime -> Log -> (EventEnvelop a () -> IO (), ())
+getEventHandler time lo  = (logInScan time lo, ())
 
 
 backup :: FilePath -> IO ExitCode
@@ -77,7 +78,7 @@ backup backupDirRoot = do
                            in printf "    %d slices: %s ... %s" (length sliceNames) (decorate head sliceNames) (decorate last sliceNames)
           forM_  (zip [1 :: Int ..] sliceNames) (\(n, slicen) -> lo Debug $ printf "%6d. %s" n slicen )
           slices <- forM sliceNames (\name -> do
-              slice <- readSlice (getEventHandler lo) (dataRoot </> name)
+              slice <- readSlice (getEventHandler tmStart lo) (dataRoot </> name)
               encodeFile (replaceVerticalToSlashes (indexDirx </> slicePhysicalTree_suffix)) slice
               return slice
             )

@@ -42,13 +42,19 @@ withLogger yabaLogPath sliceLogPath fce = do
 doLog :: Bool -> IORef Int -> Handle -> Handle -> Level -> String -> IO()
 doLog isTerminal charOnLineCounter yh sh l s = do
     let ss = show l ++ ": " ++ s
+        printToDebugLog = do
+          time' <- getCurrentTime
+          hPutStrLn sh $ (take 19 $ show time') ++ ": " ++ ss
+          return ()
     case l of
-      Debug -> hPutStrLn sh $ ss
+      Debug -> do
+        time' <- getCurrentTime
+        printToDebugLog
       Inf -> do
         cleanLine
         putStrLn s
         hFlush stdout
-        hPutStrLn sh $ ss
+        printToDebugLog
       Progress -> do
         when isTerminal $ do
           with <-  termWidth
@@ -64,10 +70,10 @@ doLog isTerminal charOnLineCounter yh sh l s = do
         time <- getCurrentTime
         hPutStrLn yh $ (take 19 . show $ time) ++ ": " ++ s
         hFlush yh
-        hPutStrLn sh $ ss
+        printToDebugLog
       Error -> do
         hPutStrLn stderr $ ss
-        hPutStrLn sh $ ss
+        printToDebugLog
   where
     cleanLine = do -- cleaneng line of progress
       when isTerminal $ do
@@ -92,8 +98,8 @@ loa xx = do
    putStrLn xx
    hPutStrLn stderr xx
 
-logInScan :: Log -> EventEnvelop a UTCTime -> IO UTCTime
-logInScan lo (EventEnvelop revpath (Cumulative count' size' countSpeed sizeSpeed) event startTime) = do
+logInScan :: UTCTime -> Log -> EventEnvelop a () -> IO ()
+logInScan startTime lo (EventEnvelop revpath (Cumulative count' size' countSpeed sizeSpeed) event _) = do
  case event of
    Ignore ->
      lo Debug $ "IGNORE: " ++ pth revpath
@@ -109,7 +115,7 @@ logInScan lo (EventEnvelop revpath (Cumulative count' size' countSpeed sizeSpeed
      time' <- getCurrentTime
      -- lo Debug $  duration time'
      forM_ [lo Debug, lo Progress] ($  printf "%s %6d # %10.3f MB %9.2f #/s  %7.3f MB/s %10.3f %s"
-         (take 19 $ show time') count' (sizeInMb size') countSpeed sizeSpeed (sizeInMb size) (pth revpath))
+         (duration time' ) count' (sizeInMb size') countSpeed sizeSpeed (sizeInMb size) (pth revpath))
    BeforeFile (EventFile size) ->
      when (size > 1024 * 1024 * 100) (do
        forM_ [lo Debug, lo Progress] ($ printf "  ... big file: %10.3f - %s" (sizeInMb size) (pth revpath))
@@ -118,5 +124,7 @@ logInScan lo (EventEnvelop revpath (Cumulative count' size' countSpeed sizeSpeed
      let errstr = "    !!!!! ERROR !!!!! " ++ show exc
      lo Error $ errstr
    _ -> return ()
- return startTime
+ return ()
  where duration time' = take 6 (show (diffUTCTime time' startTime)) ++ "s "
+
+-- getEventHandler lo  = (logInScan lo, getCurrentTime)
