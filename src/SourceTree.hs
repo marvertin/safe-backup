@@ -34,14 +34,14 @@ import           Types
 
 import qualified Data.ByteString.Lazy  as Lazy
 
-getEventHandler :: UTCTime -> Log -> (EventEnvelop a () -> IO (), ())
-getEventHandler time lo  = (logInScan time lo, ())
+getEventHandler :: UTCTime -> Log -> (EventEnvelop a ErrList -> IO ErrList, ErrList)
+getEventHandler time lo  = (logInScan time lo, ErrList [])
 
 -- EventHandler Lodree b
-readSourceTree :: Log -> IgnoranceDef -> FilePath -> IO Lodree
+readSourceTree :: Log -> IgnoranceDef -> FilePath -> IO (Lodree, ErrList)
 readSourceTree lo ignorance rootDir = do
      startTime <- getCurrentTime
-     fst <$> scanDirectory (const makeLDir)
+     scanDirectory (const makeLDir)
                      (makeFilterFce ignorance)
                      readLFile
                      (getEventHandler startTime lo)

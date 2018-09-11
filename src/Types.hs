@@ -11,6 +11,7 @@ module Types (
   FileName,
   FilePath,
   ErrMsg,
+  ErrList(..),
   yabaSuffix,
   configFileName,
   slicePhysicalTree_suffix,
@@ -41,6 +42,8 @@ data Ree = Ree { rcount :: Int, rsize :: FileSize, rtime :: UTCTime, rhash :: BS
 type Hash = BS.ByteString
 
 type ErrMsg = String
+
+newtype ErrList = ErrList { getErrList :: [String] } deriving (Show)
 
 yabaSuffix = ".yaba"
 

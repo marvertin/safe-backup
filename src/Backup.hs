@@ -8,6 +8,7 @@ module Backup (
 ) where
 
 import           Control.Monad
+import           Data.Bifunctor
 import           Data.Counter
 import           Data.List
 import qualified Data.Map              as M
@@ -41,8 +42,8 @@ import           TreeComparator
 import           TurboWare
 import           Types
 
-getEventHandler :: UTCTime -> Log -> (EventEnvelop a () -> IO (), ())
-getEventHandler time lo  = (logInScan time lo, ())
+getEventHandler :: UTCTime -> Log -> (EventEnvelop a ErrList -> IO ErrList, ErrList)
+getEventHandler time lo  = (logInScan time lo, ErrList [])
 
 
 backup :: FilePath -> IO ExitCode
@@ -92,15 +93,16 @@ backup backupDirRoot = do
         ---------------------
           lo Inf "Phase 2/4 - reading source forest for backup"
           lo Inf $ printf "    %d trees in forest " (length forest)
-          lodreeSourceAllNodes <- makeLDir <$> forM forest ( \(TreeDef treeName treePath ignorances) -> do
-              lo Inf $ printf "       scaning %-15s- \"%s\"" treeName treePath
-              lo Debug $ "ignorance patterns: " ++ (show ignorances)
-              tmSourceStart <- getCurrentTime
-              lodreeSourceOneNode <- readSourceTree lo ignorances treePath
-              encodeFile (indexRoot </> (treeName ++ sliceSourceTree_suffix)) lodreeSourceOneNode
-              tmSourceEnd <- getCurrentTime
-              lo Summary $ printf "source %-15s-%s \"%s\" (%s)" treeName (showRee (ree lodreeSourceOneNode)) treePath (showDiffTm tmSourceEnd tmSourceStart)
-              return (treeName, lodreeSourceOneNode)
+          (lodreeSourceAllNodes, failusSurces) <- bimap makeLDir (>>= getErrList) . unzip <$>
+               forM forest ( \(TreeDef treeName treePath ignorances) -> do
+                  lo Inf $ printf "       scaning %-15s- \"%s\"" treeName treePath
+                  lo Debug $ "ignorance patterns: " ++ (show ignorances)
+                  tmSourceStart <- getCurrentTime
+                  (lodreeSourceOneNode, errList) <- readSourceTree lo ignorances treePath
+                  encodeFile (indexRoot </> (treeName ++ sliceSourceTree_suffix)) lodreeSourceOneNode
+                  tmSourceEnd <- getCurrentTime
+                  lo Summary $ printf "source %-15s-%s \"%s\" (%s)" treeName (showRee (ree lodreeSourceOneNode)) treePath (showDiffTm tmSourceEnd tmSourceStart)
+                  return ((treeName, lodreeSourceOneNode), errList)
              )
           lo Inf $ "    " ++ showRee (ree lodreeSourceAllNodes)
           tmPhase2 <- getCurrentTime
@@ -112,7 +114,7 @@ backup backupDirRoot = do
 
           tmPhase3 <- getCurrentTime
         ---------------------
-          case resulta of
+          exitCode <- case resulta of
             Nothing -> do
                lo Inf $ "    no differences"
                lo Inf $ showPhaseTime tmPhase3 tmPhase2
@@ -133,10 +135,11 @@ backup backupDirRoot = do
                (_  :/ resultOfCopy) <- writeBackup lo (dataRoot :/ backupDirTree) forest
                let MonoidPlus3 (copiedFiles, copiedSize, createdMetas) = foldMap MonoidPlus3  resultOfCopy
                lo Inf $ printf "    copied %d files of %s, created %d metafiles into \"%s\"" copiedFiles (showSz copiedSize) createdMetas (replaceVerticalToSlashes newSliceName)
-               let failus = failures resultOfCopy
+               let failus :: [DirTree (Int, Integer, Int)]
+                   failus = failures resultOfCopy
                tmPhase4 <- getCurrentTime
                lo Inf $ showPhaseTime tmPhase4 tmPhase3
-               if null failus
+               if null failus && null failusSurces
                  then do
                      let msg = printf "created %d files of %s in slice \"%s\" (%s)"
                              (countsToBackup backupDirTree) (showSz . sizeToBackup $ backupDirTree) (replaceVerticalToSlashes newSliceName) (showDiffTm tmPhase4 tmPhase3) :: String
@@ -149,13 +152,20 @@ backup backupDirRoot = do
                          lo Summary $  printf "**** success **** %s but some trees are empty or unaccessible: %s\n" msg (show empties)
                          return $ ExitFailure 7
                  else do
-                     lo Error "!!!!! ERRORS while coping files !!!!!"
+                     when (not . null $ failus) $
+                       lo Error "    !!!!! ERRORS while coping files !!!!!"
                      forM_ failus (\oneFail -> do
                          -- putStrLn b
                            lo Error $ show oneFail
                        )
-                     lo Error $ "!!!!! " ++ show (length failus) ++ " ERRORS totally !!!!!"
+                     lo Error $ "!!!!! " ++ show (length failus + length failusSurces) ++ " ERRORS totally !!!!!"
                      return $ ExitFailure 2
+          when (not . null $ failusSurces) $
+            lo Error "    !!!!! ERRORS while scaning sources !!!!!"
+          forM_ failusSurces (\msg -> do
+               lo Error $  msg
+            )
+          return exitCode
         endTime <- getCurrentTime
         forM_ [lo Inf, lo Summary] ($ "Total time: " ++ showDiffTm endTime startTime ++ "\n")
         return exitCode

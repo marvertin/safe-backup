@@ -34,6 +34,7 @@ data Acum a b = Acum FlowAvar [(FilePath, a)] b deriving (Show)
 type RevPath = [String] -- it is reverse list of path items: ["myfile.txt", "myaccount", "home", "opt"]
 
 data EventEnvelop a b = EventEnvelop RevPath Cumulative (Event a) b
+    deriving (Show)
 
 type EventHandler a b =   (EventEnvelop a b -> IO b, b)
 
@@ -57,18 +58,18 @@ data Event a
             }
       | Ignore
       | Failure IOException
-
+    deriving (Show)
 
 
 newtype EventFile = EventFile {
      efileSize :: Integer
-   }
+   } deriving (Show)
 data Cumulative = Cumulative {
       etotalCount       :: Int,
       etotalSize        :: Integer,
       avarageCountSpeed :: Double,
       avarageMbSpeed    :: Double
-    }
+    } deriving (Show)
 
 flowAvarEmpty :: UTCTime -> FlowAvar
 flowAvarEmpty startTime = [(startTime, 0, 0, startTime), (startTime, 0, 0, startTime)]
@@ -91,13 +92,13 @@ scanDirectory createDirNode predicate createFileNode (eventFce, eventStart) root
     let nula = 0 :: Int
     let startFlowAvar = flowAvarEmpty startTime
     evacum2 <- emitEvent' [] startFlowAvar (Start rootPath) eventStart
-    Acum flowAvar ((_, result) : _) evacum
+    Acum flowAvar ((_, result) : _) evacum3
       <- scanDirectory' 0 startTime (Acum startFlowAvar [] evacum2) []
     endTime <- getCurrentTime
-    evacum3 <- emitEvent' [] [head flowAvar, last startFlowAvar]  (End rootPath result) evacum2
+    evacum4 <- emitEvent' [] [head flowAvar, last startFlowAvar]  (End rootPath result) evacum3
     --putStrLn $ "End scanning at " ++ show endTime ++ ", duration=" ++ show duration ++ "; total: "
     --printf "%6d# %10.3f MB | %9.2f #/s  %10.3f MB/s  \n" count (sizeInMb size) countSpeed sizeSpeed
-    return (result, evacum3)
+    return (result, evacum4)
  where
   -- scanDirectory' :: Show a => Int -> Acum a -> RevPath -> IO (Acum a)
   scanDirectory' level startTime acum@(Acum flowAvar reslist evacum) revpath =

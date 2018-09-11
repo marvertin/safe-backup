@@ -17,6 +17,7 @@ import           Text.Printf
 
 import           DirScan
 import           Lib
+import           Types
 
 type Log = Level -> String -> IO ()
 
@@ -72,7 +73,7 @@ doLog isTerminal charOnLineCounter yh sh l s = do
         hFlush yh
         printToDebugLog
       Error -> do
-        hPutStrLn stderr $ ss
+        hPutStrLn stderr $ s
         printToDebugLog
   where
     cleanLine = do -- cleaneng line of progress
@@ -98,33 +99,39 @@ loa xx = do
    putStrLn xx
    hPutStrLn stderr xx
 
-logInScan :: UTCTime -> Log -> EventEnvelop a () -> IO ()
-logInScan startTime lo (EventEnvelop revpath (Cumulative count' size' countSpeed sizeSpeed) event _) = do
+logInScan :: UTCTime -> Log -> EventEnvelop a ErrList -> IO ErrList
+logInScan startTime lo (EventEnvelop revpath (Cumulative count' size' countSpeed sizeSpeed) event errList) = do
  case event of
-   Ignore ->
+   Ignore -> do
      lo Debug $ "IGNORE: " ++ pth revpath
+     return errList
    Start rootPath -> do
      lo Debug $  "========================================================================="
      lo Debug $ "Start scanning: " ++ rootPath ++ " at " ++ show startTime
+     return errList
    End _ _ -> do
      endTime <- getCurrentTime
      lo Debug $ "End scanning at " ++ show endTime ++ ", duration=" ++ show (duration endTime) ++ "; total: "
      -- not LN
      lo Debug $ printf "%6d# %10.3f MB | %9.2f #/s  %10.3f MB/s  " count' (sizeInMb size') countSpeed sizeSpeed
+     return errList
    AfterFile (EventFile size)  _ -> do
      time' <- getCurrentTime
      -- lo Debug $  duration time'
      forM_ [lo Debug, lo Progress] ($  printf "%s %6d # %10.3f MB %9.2f #/s  %7.3f MB/s %10.3f %s"
          (duration time' ) count' (sizeInMb size') countSpeed sizeSpeed (sizeInMb size) (pth revpath))
-   BeforeFile (EventFile size) ->
+     return errList
+   BeforeFile (EventFile size) -> do
      when (size > 1024 * 1024 * 100) (do
        forM_ [lo Debug, lo Progress] ($ printf "  ... big file: %10.3f - %s" (sizeInMb size) (pth revpath))
        )
+     return errList
    Failure exc -> do
      let errstr = "    !!!!! ERROR !!!!! " ++ show exc
      lo Error $ errstr
-   _ -> return ()
- return ()
+     return  $ ErrList (errstr: getErrList errList)
+   _ -> return errList
+
  where duration time' = take 6 (show (diffUTCTime time' startTime)) ++ "s "
 
 -- getEventHandler lo  = (logInScan lo, getCurrentTime)
