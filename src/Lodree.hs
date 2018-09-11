@@ -13,27 +13,29 @@ module Lodree (
 
   currentLodree,
   findLodreeNode,
-  ree
+  ree,
+  flattenFileLodree
 ) where
 
-import qualified Crypto.Hash.SHA1      as Cr
-
 import           Control.Applicative
+import           Control.Arrow
+import qualified Crypto.Hash.SHA1      as Cr
 import qualified Data.ByteString       as Strict
 import qualified Data.ByteString.UTF8  as BSU
 import           Data.Function
 import           Data.List
 import qualified Data.Map              as M
 import           Data.Maybe
+import           Data.Time.Clock.POSIX
 import           Data.Yaml
 import           GHC.Generics
-import           Lib
 import           System.Directory.Tree (DirTree (Dir, File), FileName)
 import           System.FilePath
+
+import           Lib
 import           TurboWare
 import           Types
 
-import           Data.Time.Clock.POSIX
 -- import           Data.Time.Clock.UTC
 
 millisToUTC :: Integer -> UTCTime
@@ -96,6 +98,13 @@ findNode path (LDir _ list) = let
   (name, rest) = break ('/'==) (dropPrefixSlashes path)
   lodree2 = snd <$> find ((name==) . fst) list
   in lodree2 >>= findNode rest
+
+flattenFileLodree :: Lodree -> [(RevPath, Ree)]
+flattenFileLodree lodree = flan ([], lodree)
+  where
+    flan :: (RevPath, Lodree) -> [(RevPath, Ree)]
+    flan (rp, (LFile ree _))  = [(rp, ree)]
+    flan (rp, (LDir _ items)) = fmap (first (:rp)) items >>= flan
 
 --------------------------------------------------------
 --

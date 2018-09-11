@@ -99,8 +99,14 @@ backup backupDirRoot = do
                   lo Inf $ printf "       scaning %-15s- \"%s\"" treeName treePath
                   lo Debug $ "ignorance patterns: " ++ (show ignorances)
                   tmSourceStart <- getCurrentTime
-                  (lodreeSourceOneNode, errList) <- readSourceTree lo ignorances treePath
-                  encodeFile (indexRoot </> (treeName ++ sliceSourceTree_suffix)) lodreeSourceOneNode
+                  let cacheHashPath = (indexRoot </> (indexVersion ++ "_" ++ treeName ++ ".yaml"))
+                  cacheHash <- doesFileExist cacheHashPath >>=
+                                     (\exists -> if exists then (decodeFileThrow cacheHashPath :: IO CacheHash)
+                                                           else return M.empty)
+                  (lodreeSourceOneNode, errList) <- readSourceTree lo cacheHash ignorances treePath
+                  -- encodeFile (indexRoot </> (treeName ++ sliceSourceTree_suffix)) lodreeSourceOneNode
+                  -- encodeFile cacheHashPath (flattenFileLodree lodreeSourceOneNode)
+                  encodeFile cacheHashPath (M.fromList (flattenFileLodree lodreeSourceOneNode))
                   tmSourceEnd <- getCurrentTime
                   lo Summary $ printf "source %-15s-%s \"%s\" (%s)" treeName (showRee (ree lodreeSourceOneNode)) treePath (showDiffTm tmSourceEnd tmSourceStart)
                   return ((treeName, lodreeSourceOneNode), errList)

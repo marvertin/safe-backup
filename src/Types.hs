@@ -1,10 +1,10 @@
-{-# LANGUAGE DeriveAnyClass             #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE StandaloneDeriving         #-}
-{-# LANGUAGE TypeSynonymInstances       #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE StandaloneDeriving   #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 module Types (
+  RevPath,
   Ree(..),
   FileSize,
   Hash,
@@ -16,12 +16,12 @@ module Types (
   configFileName,
   slicePhysicalTree_suffix,
   sliceLogicalTree_suffix,
-  sliceSourceTree_suffix,
   indexSubdir,
   dataSubdir,
   logSubdir,
   sliceLogName,
   yabaLogName,
+  indexVersion,
 
   UTCTime
 ) where
@@ -35,6 +35,11 @@ import           System.Directory.Tree (DirTree (..), FileName)
 import           System.FilePath
 
 type FileSize = Integer
+
+type RevPath = [String] -- it is reverse list of path items: ["myfile.txt", "myaccount", "home", "opt"]
+
+--deriving instance ToJSON BS.ByteString
+--deriving instance FromJSON BS.ByteString
 
 data Ree = Ree { rcount :: Int, rsize :: FileSize, rtime :: UTCTime, rhash :: BS.ByteString }
   deriving (Eq, Show, Read, ToJSON, FromJSON, Generic)
@@ -51,7 +56,6 @@ configFileName = "yaba-config.yaml" :: FileName
 
 slicePhysicalTree_suffix = "_physical-tree.yaml"
 sliceLogicalTree_suffix = "_logical-tree.yaml"
-sliceSourceTree_suffix = "_source-tree.yaml"
 
 sliceLogName = "slice-backup.log"
 yabaLogName = "yaba.log"
@@ -59,6 +63,7 @@ indexSubdir = "index"
 dataSubdir = "data"
 logSubdir = "log"
 
+indexVersion = "1"
 
 instance ToJSON Hash where
   toJSON hash = toJSON (show hash)
@@ -67,8 +72,10 @@ instance FromJSON Hash where
   parseJSON = withText "chuj2" (return . parseee)
     where
       parseee :: Text -> Hash
-      parseee x = BS.empty
-{-
+      parseee x = (read (unpack x) :: Hash)
+
+      {-
+
 instance ToJSON Ree where
   -- toJSON (Finfo x y) = object ["x" .= x, "y" .= y]
   toJSON Ree{..} = let val = show rsize ++ " " ++ toHexStr rhash

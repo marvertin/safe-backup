@@ -27,11 +27,10 @@ import           System.IO
 import           Text.Printf
 
 import           Lib
+import           Types
 
 type FlowAvar = [(UTCTime, Int, Integer, UTCTime)] -- timce, count, size, header has latest
 data Acum a b = Acum FlowAvar [(FilePath, a)] b deriving (Show)
-
-type RevPath = [String] -- it is reverse list of path items: ["myfile.txt", "myaccount", "home", "opt"]
 
 data EventEnvelop a b = EventEnvelop RevPath Cumulative (Event a) b
     deriving (Show)
