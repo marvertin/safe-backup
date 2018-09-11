@@ -111,61 +111,56 @@ backup backupDirRoot = do
         ---------------------
           lo Inf "Phase 3/4 - comparing slices and source forest"
           let resulta = buildBackup rootLodree lodreeSourceAllNodes newSliceName
-
-          tmPhase3 <- getCurrentTime
-        ---------------------
-          exitCode <- case resulta of
+          case resulta of
             Nothing -> do
                lo Inf $ "    no differences"
-               lo Inf $ showPhaseTime tmPhase3 tmPhase2
-               lo Inf $ "Phase 4/4 - copying files to new slice"
-               lo Inf $ "    skipped, no differencies, NO backup: "
-               lo Inf $ showSuccess
-               lo Summary $ "**** SUCCESS **** NO BACKUP NEEDED "
-               return ExitSuccess
             Just (comareResult, backupDirTree) -> do
                forM_ [lo Inf, lo Summary] ($ formatDiffResult comareResult)
                forM_ (M.toList $ countCounters backupDirTree) (\(key, value) ->
                    forM_ [lo Inf, lo Summary] ($ printf "%8d: %s" value key)
                    )
-               lo Inf $ showPhaseTime tmPhase3 tmPhase2
-               lo Inf $ "Phase 4/4 - copying files to new slice"
-
+          tmPhase3 <- getCurrentTime
+          lo Inf $ showPhaseTime tmPhase3 tmPhase2
+        ---------------------
+          lo Inf $ "Phase 4/4 - copying files to new slice"
+          failusCopy <- case resulta of
+            Nothing -> do
+               lo Inf $ "    skipped, no differencies, NO BACKUP NEEDED: "
+               return []
+            Just (_, backupDirTree) -> do
                lo Inf $ "    Writing new slice to: " ++ slicedDirName dataRoot
                (_  :/ resultOfCopy) <- writeBackup lo (dataRoot :/ backupDirTree) forest
-               let MonoidPlus3 (copiedFiles, copiedSize, createdMetas) = foldMap MonoidPlus3  resultOfCopy
-               lo Inf $ printf "    copied %d files of %s, created %d metafiles into \"%s\"" copiedFiles (showSz copiedSize) createdMetas (replaceVerticalToSlashes newSliceName)
                let failus :: [DirTree (Int, Integer, Int)]
                    failus = failures resultOfCopy
+               let failusStr = (show . err) <$> failus
+               forM_ failusStr (\msg -> do
+                   lo Error $ "    !!!!! ERROR !!!!! " ++ msg
+                 )
+               let MonoidPlus3 (copiedFiles, copiedSize, createdMetas) = foldMap MonoidPlus3  resultOfCopy
+               let msg = printf "copied %d files of %s, created %d metafiles into \"%s\"" copiedFiles (showSz copiedSize) createdMetas (replaceVerticalToSlashes newSliceName) :: String
+               lo Inf $ printf "    %s" msg
+
                tmPhase4 <- getCurrentTime
+               lo Summary $ printf "%s (%s)" msg (showDiffTm tmPhase4 tmPhase3)
                lo Inf $ showPhaseTime tmPhase4 tmPhase3
-               if null failus && null failusSurces
-                 then do
-                     let msg = printf "created %d files of %s in slice \"%s\" (%s)"
-                             (countsToBackup backupDirTree) (showSz . sizeToBackup $ backupDirTree) (replaceVerticalToSlashes newSliceName) (showDiffTm tmPhase4 tmPhase3) :: String
-                     if null empties then do
-                         lo Inf $ showSuccess
-                         lo Summary $ printf "**** SUCCESS **** %s" msg
-                         return ExitSuccess
-                       else do
-                         lo Inf $  "**** success, BUT some trees are empty or unaccessible: " ++ (show empties)
-                         lo Summary $  printf "**** success **** %s but some trees are empty or unaccessible: %s\n" msg (show empties)
-                         return $ ExitFailure 7
-                 else do
-                     when (not . null $ failus) $
-                       lo Error "    !!!!! ERRORS while coping files !!!!!"
-                     forM_ failus (\oneFail -> do
-                         -- putStrLn b
-                           lo Error $ show oneFail
-                       )
-                     lo Error $ "!!!!! " ++ show (length failus + length failusSurces) ++ " ERRORS totally !!!!!"
-                     return $ ExitFailure 2
-          when (not . null $ failusSurces) $
-            lo Error "    !!!!! ERRORS while scaning sources !!!!!"
-          forM_ failusSurces (\msg -> do
-               lo Error $  msg
+               return failusStr
+          forM_ (failusSurces ++ failusCopy) (\msg -> do
+              lo Summary $  msg
             )
-          return exitCode
+          if null failusCopy && null failusSurces
+               then do
+                 when (not . null $ empties) $ do
+                    forM_ [lo Inf, lo Summary] ($  "!!!! WARNING: some trees are empty: " ++ (show empties))
+                 lo Inf $ showSuccess
+                 return ExitSuccess
+               else do
+                 when (not . null $ failusSurces) $
+                   lo Error $ printf  "!!!!! %d ERRORS while scaning sources !!!!!" (length failusSurces)
+                 when (not . null $ failusCopy) $
+                   lo Error $ printf  "!!!!! %d ERRORS while copiing files !!!!!" (length failusCopy)
+                 lo Error $ "!!!!! " ++ show (length failusCopy + length failusSurces) ++ " ERRORS totally !!!!!"
+                 return $ ExitFailure 1
+
         endTime <- getCurrentTime
         forM_ [lo Inf, lo Summary] ($ "Total time: " ++ showDiffTm endTime startTime ++ "\n")
         return exitCode

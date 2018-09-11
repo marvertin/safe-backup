@@ -127,8 +127,8 @@ logInScan startTime lo (EventEnvelop revpath (Cumulative count' size' countSpeed
        )
      return errList
    Failure exc -> do
-     let errstr = "    !!!!! ERROR !!!!! " ++ show exc
-     lo Error $ errstr
+     let errstr = "!!!!! ERROR !!!!! " ++ show exc
+     lo Error $ "    " ++ errstr
      return  $ ErrList (errstr: getErrList errList)
    _ -> return errList
 
