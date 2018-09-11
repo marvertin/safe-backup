@@ -78,10 +78,11 @@ backup backupDirRoot = do
                       else let decorate fce = (++"\"") . ("\""++) .  replaceVerticalToSlashes . fce
                            in printf "    %d slices: %s ... %s" (length sliceNames) (decorate head sliceNames) (decorate last sliceNames)
           forM_  (zip [1 :: Int ..] sliceNames) (\(n, slicen) -> lo Debug $ printf "%6d. %s" n slicen )
-          slices <- forM sliceNames (\name -> do
-              slice <- readSlice (getEventHandler tmStart lo) (dataRoot </> name)
-              encodeFile (replaceVerticalToSlashes (indexDirx </> slicePhysicalTree_suffix)) slice
-              return slice
+          (slices, failusSlices) <- fmap (>>= getErrList) . unzip <$>
+              forM sliceNames (\name -> do
+                (slice, errs) <- readSlice (getEventHandler tmStart lo) (dataRoot </> name)
+                encodeFile (replaceVerticalToSlashes (indexDirx </> slicePhysicalTree_suffix)) slice
+                return (slice, errs)
             )
           let rootLodree = mergesToLodree emptyLodree slices
           let lodreeBackupCurrent = currentLodree rootLodree
@@ -144,7 +145,7 @@ backup backupDirRoot = do
                lo Summary $ printf "%s (%s)" msg (showDiffTm tmPhase4 tmPhase3)
                lo Inf $ showPhaseTime tmPhase4 tmPhase3
                return failusStr
-          forM_ (failusSurces ++ failusCopy) (\msg -> do
+          forM_ (failusSlices ++ failusSurces ++ failusCopy) (\msg -> do
               lo Summary $  msg
             )
           if null failusCopy && null failusSurces
@@ -154,11 +155,13 @@ backup backupDirRoot = do
                  lo Inf $ showSuccess
                  return ExitSuccess
                else do
+                 when (not . null $ failusSlices) $
+                   lo Error $ printf  "!!!!! %d ERRORS while scaning slices !!!!!" (length failusSlices)
                  when (not . null $ failusSurces) $
                    lo Error $ printf  "!!!!! %d ERRORS while scaning sources !!!!!" (length failusSurces)
                  when (not . null $ failusCopy) $
                    lo Error $ printf  "!!!!! %d ERRORS while copiing files !!!!!" (length failusCopy)
-                 lo Error $ "!!!!! " ++ show (length failusCopy + length failusSurces) ++ " ERRORS totally !!!!!"
+                 lo Error $ "!!!!! " ++ show (length failusCopy + length failusSurces + length failusSlices) ++ " ERRORS totally !!!!!"
                  return $ ExitFailure 1
 
         endTime <- getCurrentTime

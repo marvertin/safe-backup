@@ -52,7 +52,7 @@ writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
            lo Debug $ printf "copy file: \"%s\" --> \"%s\"" sourcePath destPath
            lo Progress $ printf "copy file: \"%s\" --> \"%s\"" sourcePath destPath
            BS.readFile sourcePath >>= BS.writeFile destPath
-           createDirectory destPath
+           createDirectory $ ":|:" ++ destPath
            fsize <- getFileSize destPath
            modifyIORef' counters (mappend (MonoidPlus3 (1, fsize, 0)))
            show <$> readIORef counters >>= lo Debug

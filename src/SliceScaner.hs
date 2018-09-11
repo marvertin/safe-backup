@@ -41,9 +41,9 @@ import           GHC.Generics
 import           Slice
 
 
-readSlice :: EventHandler SliceTree b -> FilePath -> IO SliceTree
+readSlice :: EventHandler SliceTree ErrList -> FilePath -> IO (SliceTree, ErrList)
 readSlice eventHandler rootDir =
-    fst <$> scanDirectory mkDir filterFilesInRoot readSFile eventHandler
+    scanDirectory mkDir filterFilesInRoot readSFile eventHandler
         (replaceVerticalToSlashes rootDir) -- >>= ((takeDirectory rootDir ):/)
   where
     -- rootDir1 = (takeFileName . takeDirectory) rootDir ++ "|" ++ takeFileName rootDir -- it os not filename but root directory
