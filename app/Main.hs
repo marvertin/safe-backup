@@ -42,37 +42,33 @@ import           Types
 -- putStrLn "→"
 
 data Cmdline = Cmdline
-  { backupDir  :: String
-  , version    :: Bool
-  , quiet      :: Bool
-  , enthusiasm :: Int
+  { dir        :: String
+  , backup     :: Bool
   , scan       :: Bool
+  , version    :: Bool
   }
+
+yabaProgramInstallDir = "This value direct to use yaba isntall directory"
 
 cmdline :: Parser Cmdline
 cmdline = Cmdline
       <$> strOption
-          ( long "backup"
+          ( long "dir"
+         <> short 'd'
          <> metavar "BACKUP-DIR"
-         <> help "Destination append only directory with backed up data, contains the \"sources.yaml\" file" )
+         <> help "Directory with backup, must contains \"yaba-config.yaml\" file. (default: directory where the executable of Yaba program is)"
+         <> value yabaProgramInstallDir
+            )
+      <*> switch
+          ( long "backup"
+         <> help "Back up your files." )
+      <*> switch
+          ( long "scan"
+         <> help "Only scans backup folder and create indexes" )
       <*> switch
           ( long "version"
          <> help "Display version" )
-      <*> switch
-          ( long "quiet"
-         <> short 'q'
-         <> help "Whether to be quiet" )
-      <*> option auto
-          ( long "enthusiasm"
-         <> help "How enthusiastically to greet"
-         <> showDefault
-         <> value 1
-         <> metavar "INT" )
-      <*> switch
-         ( long "scan"
-         <> help "Jen skenovat, testovací účel" )
 
---  test directory: ./test/data/case3/backup
 main = do
   setLocaleEncoding utf8
   putStrLn $ "yaba " ++ showVersion Paths_yaba.version ++ " - yeat another backup"
@@ -89,19 +85,18 @@ main' = doBackup =<< execParser opts
 
 
 doBackup :: Cmdline -> IO ExitCode
-doBackup (Cmdline dirToScan _ _ _ True) = do
-  putStrLn $ "Budeme jen skenovat adrear: " ++ dirToScan
-  scanDirectoryTest dirToScan
-  return $ ExitFailure 8
-doBackup (Cmdline _ True _ _ False) = do
+doBackup (Cmdline _ _ _ True) = do
   putStrLn $ "yaba " ++ showVersion Paths_yaba.version ++ " - yeat another backup"
   (pathWithProgram, _) <- SEE.splitExecutablePath
-  putStrLn $ "Cesta k programu: " ++ pathWithProgram
   return ExitSuccess
-doBackup (Cmdline backupDir _ False n _) = do
-  backupDirAbs <- makeAbsolute backupDir
+doBackup (Cmdline enteredBackupDir True _ _) = do
+  (pathWithProgram, _) <- SEE.splitExecutablePath
+  backupDirAbs <- makeAbsolute $
+   if enteredBackupDir == yabaProgramInstallDir then pathWithProgram
+                                                else enteredBackupDir
+
   putStrLn $ "Backing up to \"" ++ backupDirAbs
-  backup backupDirAbs (showVersion Paths_yaba.version)
+  Backup.backup backupDirAbs (showVersion Paths_yaba.version)
 
 
   --let sourceOfMainTree = "./test/data/case3/source-of-maintree"
