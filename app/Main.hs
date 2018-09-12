@@ -3,24 +3,24 @@
 module Main where
 
 import           Control.Monad
+import           Control.Monad
 import           Data.Either
 import           Data.Maybe
-import           Data.Semigroup        ((<>))
+import           Data.Semigroup                ((<>))
 import           Data.Time.Clock
-import           Data.Version          (showVersion)
+import           Data.Version                  (showVersion)
 import           GHC.IO.Encoding
 import           Options.Applicative
-import qualified Paths_yaba            (version)
+import qualified Paths_yaba                    (version)
 import           System.Directory
 import           System.Directory.Tree
 import           System.Environment
+import qualified System.Environment.Executable as SEE
 import           System.Exit
 import           System.FilePath.Find
 import           System.IO
 import           System.TimeIt
 import           Text.Printf
-import qualified System.Environment.Executable as SEE
-import Control.Monad
 
 import           Backup
 import           Config
@@ -42,10 +42,10 @@ import           Types
 -- putStrLn "→"
 
 data Cmdline = Cmdline
-  { dir        :: String
-  , backup     :: Bool
-  , scan       :: Bool
-  , version    :: Bool
+  { dir     :: String
+  , backup  :: Bool
+  , scan    :: Bool
+  , version :: Bool
   }
 
 yabaProgramInstallDir = "This value direct to use yaba isntall directory"
