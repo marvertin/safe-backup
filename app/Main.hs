@@ -97,7 +97,7 @@ doBackup (Cmdline _ True _ _ False) = do
 doBackup (Cmdline backupDir _ False n _) = do
   backupDirAbs <- makeAbsolute backupDir
   putStrLn $ "Backing up to \"" ++ backupDirAbs
-  backup backupDirAbs
+  backup backupDirAbs (showVersion Paths_yaba.version)
 
 
   --let sourceOfMainTree = "./test/data/case3/source-of-maintree"

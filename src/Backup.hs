@@ -13,9 +13,7 @@ import           Data.Counter
 import           Data.List
 import qualified Data.Map              as M
 import           Data.Time.Clock
-import           Data.Version          (showVersion)
 import           Data.Yaml
-import qualified Paths_yaba            (version)
 import           System.Directory
 import           System.Directory.Tree
 import           System.Exit
@@ -46,8 +44,8 @@ getEventHandler :: UTCTime -> Log -> (EventEnvelop a ErrList -> IO ErrList, ErrL
 getEventHandler time lo  = (logInScan time lo, ErrList [])
 
 
-backup :: FilePath -> IO ExitCode
-backup backupDirRoot = do
+backup :: FilePath -> String -> IO ExitCode
+backup backupDirRoot yabaVersion = do -- gcc crashes whne versio is obtain from here
   maybeForestDef <- readConfig backupDirRoot
   case maybeForestDef of
     Nothing -> do
@@ -67,7 +65,7 @@ backup backupDirRoot = do
         startTime <- getCurrentTime
         exitCode <- do
 
-          lo Summary $ "Start yaba " ++  showVersion Paths_yaba.version
+          lo Summary $ "Start yaba " ++  yabaVersion
           tmStart <- getCurrentTime
           lo Inf $ printf  "Detail log is: \"%s\"" logFileName
         ---------------------
