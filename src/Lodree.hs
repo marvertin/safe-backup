@@ -14,7 +14,8 @@ module Lodree (
   currentLodree,
   findLodreeNode,
   ree,
-  flattenFileLodree
+  flattenFileLodree,
+  takeRestoreTuples
 ) where
 
 import           Control.Applicative
@@ -31,6 +32,7 @@ import           Data.Yaml
 import           GHC.Generics
 import           System.Directory.Tree (DirTree (Dir, File), FileName)
 import           System.FilePath
+import           Data.Tuple
 
 import           Lib
 import           TurboWare
@@ -105,6 +107,15 @@ flattenFileLodree lodree = flan ([], lodree)
     flan :: (RevPath, Lodree) -> [(RevPath, Ree)]
     flan (rp, (LFile ree _))  = [(rp, ree)]
     flan (rp, (LDir _ items)) = fmap (first (:rp)) items >>= flan
+
+-- | take tuples to restore originalpath to logicalpath
+takeRestoreTuples :: Lodree -> [(RevPath, FilePath)]
+takeRestoreTuples lodree = x' ([], lodree)
+  where
+    x' :: (RevPath, Lodree) -> [(RevPath, FilePath)]
+    x' (rp, (LFile _ originalPath))  = [(rp, originalPath)]
+    x' (rp, (LDir _ items)) = fmap (first (:rp)) items >>= x'
+
 
 --------------------------------------------------------
 --

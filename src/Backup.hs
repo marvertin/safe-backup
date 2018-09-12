@@ -21,6 +21,7 @@ import           System.FilePath
 import           System.IO
 import           Text.Printf
 import           Text.RawString.QQ
+import           Data.Tuple
 
 import           BackupTreeBuilder
 import           Config
@@ -101,6 +102,8 @@ backup backupDirRoot yabaVersion = do -- gcc crashes whne versio is obtain from 
             )
           let rootLodree = mergesToLodree emptyLodree slices
           let lodreeBackupCurrent = currentLodree rootLodree
+          let restoreTuples = (swap . bimap (replaceBacklashesToSlashes .replaceVerticalToSlashes . namesToPath) (replaceBacklashesToSlashes . replaceVerticalToSlashes)) <$> takeRestoreTuples lodreeBackupCurrent
+          mapM_  (\(x,y) -> printf "\"%s\" -> \"%s\"\n" x y) restoreTuples
           encodeFile (indexDirx </> sliceLogicalTree_suffix) lodreeBackupCurrent
           lo Inf $ "    " ++ showRee (ree rootLodree)
           tmPhase1 <- getCurrentTime
