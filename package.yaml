@@ -46,6 +46,7 @@ dependencies:
 - counter
 - raw-strings-qq
 - terminal-size
+- executable-path
 
 
 # - derive

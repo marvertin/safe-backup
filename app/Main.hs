@@ -19,6 +19,8 @@ import           System.FilePath.Find
 import           System.IO
 import           System.TimeIt
 import           Text.Printf
+import qualified System.Environment.Executable as SEE
+import Control.Monad
 
 import           Backup
 import           Config
@@ -93,6 +95,8 @@ doBackup (Cmdline dirToScan _ _ _ True) = do
   return $ ExitFailure 8
 doBackup (Cmdline _ True _ _ False) = do
   putStrLn $ "yaba " ++ showVersion Paths_yaba.version ++ " - yeat another backup"
+  (pathWithProgram, _) <- SEE.splitExecutablePath
+  putStrLn $ "Cesta k programu: " ++ pathWithProgram
   return ExitSuccess
 doBackup (Cmdline backupDir _ False n _) = do
   backupDirAbs <- makeAbsolute backupDir
