@@ -62,12 +62,8 @@ readSourceTree lo cacheHash ignorance rootDir = do
            case M.lookup rp cacheHash of
                  Nothing -> loadFileRee path
                  Just ree@Ree{..} -> if size == rsize && time == rtime
-                                         then do
-                                           putStrLn $ " zasaj kese: " ++ (pth rp)
-                                           return ree
-                                         else do
-                                           putStrLn $ " NEKESA: " ++ (pth rp)
-                                           loadFileRee path
+                                         then return ree
+                                         else loadFileRee path
 
 
 

@@ -14,7 +14,7 @@ module Types (
   ErrList(..),
   yabaSuffix,
   configFileName,
-  slicePhysicalTree_suffix,
+  sliceIndexName,
   sliceLogicalTree_suffix,
   indexSubdir,
   dataSubdir,
@@ -54,7 +54,7 @@ yabaSuffix = ".yaba"
 
 configFileName = "yaba-config.yaml" :: FileName
 
-slicePhysicalTree_suffix = "_physical-tree.yaml"
+sliceIndexName = indexVersion ++ "_sliceIndex.yaml"
 sliceLogicalTree_suffix = "_logical-tree.yaml"
 
 sliceLogName = "slice-backup.log"

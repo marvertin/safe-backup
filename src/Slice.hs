@@ -94,22 +94,32 @@ printSliceFile2 (MetaFile _)                 = Nothing
 instance Dumpable SliceTree where
   toDump = dirTreeToStringList printSliceFile
 
-{-
 deriving instance Generic SliceTree
 deriving instance ToJSON SliceTree
 deriving instance FromJSON SliceTree
 
-deriving instance Generic IOException
-deriving instance ToJSON IOException
-deriving instance FromJSON IOException
 
--}
+-- deriving instance Generic IOException
+-- deriving instance ToJSON IOException
+-- deriving instance FromJSON IOException
+
+instance ToJSON IOException where
+     toJSON _ = String "IO exception, it will not be parsed"
+
+instance FromJSON IOException where
+     parseJSON :: Value -> Parser IOException
+     parseJSON _ = error "Imposible has happend, exception wants to be parsed!"
+     -- parseJSON q@(String text)   = (File "blb" . read) <$> parseJSON q
+
+
+--}
 
 
   --------------------------------------------------------
   --
   -- Instances for YAML
 
+{-
 instance ToJSON SliceTree where
      toJSON (File _ x)   = toJSON (show x)
      toJSON (Dir _ list) = toJSON $ M.fromList (tupl <$> list)
@@ -125,7 +135,7 @@ instance FromJSON SliceTree where
     mapConvert :: HM.HashMap Text SliceTree -> [SliceTree]
     mapConvert  =  fmap snd . HM.toList
 
-{-
+
 instance ToJSON SliceFile where
   toJSON (RegularFile Ree{..}) = toJSON $ show rsize ++ " " ++ toHexStr rhash
   toJSON (MetaFile x)          = toJSON x

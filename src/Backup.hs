@@ -80,9 +80,26 @@ backup backupDirRoot = do
           forM_  (zip [1 :: Int ..] sliceNames) (\(n, slicen) -> lo Debug $ printf "%6d. %s" n slicen )
           (slices, failusSlices) <- fmap (>>= getErrList) . unzip <$>
               forM sliceNames (\name -> do
-                (slice, errs) <- readSlice (getEventHandler tmStart lo) (dataRoot </> name)
-                encodeFile (replaceVerticalToSlashes (indexDirx </> slicePhysicalTree_suffix)) slice
-                return (slice, errs)
+                let sliceIndexPath = (replaceVerticalToSlashes (indexRoot </> name </> sliceIndexName))
+                let sliceIndexTempPath = (replaceVerticalToSlashes (indexRoot </> name </> "~~" ++ sliceIndexName))
+                createDirectoryIfMissing True (takeDirectory sliceIndexPath)
+                doesFileExist sliceIndexPath >>=
+                  (\exists -> if exists then do
+                                           slice <- (decodeFileThrow sliceIndexPath :: IO SliceTree)
+                                           return (slice, ErrList [])
+                                        else do
+                                           (slice, errs) <- readSlice (getEventHandler tmStart lo) (dataRoot </> name)
+                                           when (null . getErrList $ errs)  $ do -- write index only whne there are no errors
+                                             encodeFile sliceIndexTempPath slice
+                                             slice2 <- (decodeFileThrow sliceIndexTempPath :: IO SliceTree)
+                                             if (slice == slice2)
+                                                then do
+                                                       renameFile sliceIndexTempPath sliceIndexPath
+                                                       lo Inf $ "    created index: \"" ++ sliceIndexPath ++ "\""
+                                                else
+                                                       lo Error $ "IMPOSSIBLE: written a read slices are not same!"
+                                           return (slice, errs)
+                     )
             )
           let rootLodree = mergesToLodree emptyLodree slices
           let lodreeBackupCurrent = currentLodree rootLodree
