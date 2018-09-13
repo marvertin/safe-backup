@@ -4,7 +4,7 @@
 
 
 module Backup (
-  backup
+  cmdBackup
 ) where
 
 import           Control.Monad
@@ -47,11 +47,10 @@ getEventHandler :: UTCTime -> Log -> (EventEnvelop a ErrList -> IO ErrList, ErrL
 getEventHandler time lo  = (logInScan time lo, ErrList [])
 
 
-backup :: Ctx -> IO ExitCode
-backup ctx@Ctx{..} =  do -- gcc crashes whne versio is obtain from here
+cmdBackup :: Ctx -> IO ExitCode
+cmdBackup ctx@Ctx{..} =  do -- gcc crashes whne versio is obtain from here
   startTime <- getCurrentTime
   exitCode <- do
-    createDirectoryIfMissing True (takeSlicedIndexPath newSliceName)
     --lo Summary $ "Start yaba " ++  yabaVersion
     tmStart <- getCurrentTime
 
@@ -121,7 +120,9 @@ scanSlices ctx@Ctx{..} = do
   let lodreeBackupCurrent = currentLodree rootLodree
   anyScriptCreated <- createRestoreScripts indexRoot rootLodree
   when (anyScriptCreated) $ lo Inf "    Any restore script has been created."
-  encodeFile (takeSlicedIndexPath newSliceName </> sliceLogicalTree_suffix) lodreeBackupCurrent
+  -- createDirectoryIfMissing True (takeSlicedIndexPath newSliceName)
+  encodeFile (takeSlicedLogPath newSliceName </> sliceLogicalTree_suffix) lodreeBackupCurrent
+
   lo Inf $ "    " ++ showRee (ree rootLodree)
   tmEnd <- getCurrentTime
   lo Inf $ showPhaseTime tmEnd tmStart

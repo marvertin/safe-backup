@@ -26,7 +26,7 @@ data Ctx = Ctx {
      logRoot             :: FilePath,
      takeSlicedDataPath  :: String -> FilePath,
      takeSlicedIndexPath :: String -> FilePath,
-     takeSlicedRootPath  :: String -> FilePath,
+     takeSlicedLogPath   :: String -> FilePath,
      sliceNameStrategy   :: SliceNameStrategy,
      newSliceName        :: String,
      forest              :: ForestDef, -- definition of forest prom config file
@@ -63,7 +63,7 @@ withContext backupDirRoot fce = do
          , logRoot
          , takeSlicedDataPath = takeSlicePath dataRoot
          , takeSlicedIndexPath = takeSlicePath indexRoot
-         , takeSlicedRootPath = takeSlicePath logRoot
+         , takeSlicedLogPath = takeSlicePath logRoot
          , sliceNameStrategy
          , newSliceName
          , forest

@@ -97,7 +97,7 @@ doBackup (Cmdline enteredBackupDir True _ _) = do
                                                 else enteredBackupDir
 
   putStrLn $ "Backing up to \"" ++ backupDirAbs
-  withContext backupDirAbs  Backup.backup
+  withContext backupDirAbs  cmdBackup
   -- (showVersion Paths_yaba.version)
 
 
