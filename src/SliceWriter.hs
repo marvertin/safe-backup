@@ -75,8 +75,8 @@ showCmd (BackupTreeBuilder.Delete {}) = "<delete>"
 showCmd (BackupTreeBuilder.Link fp _) = "<link \"" ++ fp ++  "\" >"
 
 
-modificationTimes :: BackupTree ->  [(FilePath, UTCTime)]
-modificationTimes bt = sort $ foldMap extractTime (zipPaths' bt)
+modificationTimes :: BackupTree ->  M.Map FilePath UTCTime
+modificationTimes bt = M.fromList . sort $ foldMap extractTime (zipPaths' bt)
   where
      extractTime (fp, (Insert _ time)) = [(fp, time)]
      extractTime _                     = []

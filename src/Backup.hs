@@ -118,7 +118,9 @@ scanSlices ctx@Ctx{..} = do
     )
   let rootLodree = mergesToLodree emptyLodree slices
   let lodreeBackupCurrent = currentLodree rootLodree
-  anyScriptCreated <- createRestoreScripts indexRoot rootLodree
+  -- M.Map FilePath UTCTime
+
+  anyScriptCreated <- createRestoreScripts ctx rootLodree
   when (anyScriptCreated) $ lo Inf "    Any restore script has been created."
   -- createDirectoryIfMissing True (takeSlicedIndexPath newSliceName)
   encodeFile (takeSlicedLogPath newSliceName </> sliceLogicalTree_suffix) lodreeBackupCurrent
@@ -187,7 +189,7 @@ copyFiles ctx@Ctx{..} resulta = do
     Just backupDirTree -> do
        lo Inf $ "    Writing new slice to: " ++ takeSlicedDataPath newSliceName
        createDirectoryIfMissing True (takeSlicedDataPath newSliceName)
-       encodeFile (takeSlicedDataPath newSliceName ++ "/" ++ modificationTimesFileName)  (M.fromList . modificationTimes $ backupDirTree)
+       encodeFile (takeSlicedDataPath newSliceName ++ "/" ++ modificationTimesFileName)  (modificationTimes backupDirTree)
        (_  :/ resultOfCopy) <- writeBackup lo (dataRoot :/ backupDirTree) forest
        let failus :: [DirTree (Int, Integer, Int)]
            failus = failures resultOfCopy
