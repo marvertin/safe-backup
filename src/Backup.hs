@@ -25,6 +25,7 @@ import           Text.RawString.QQ
 
 import           BackupTreeBuilder
 import           Config
+import           Context
 import           DirScan
 import           Dump
 import           Ignorances
