@@ -210,6 +210,6 @@ showSuccess = [r|---------------------------------------------------------
 
 formatDiffResult :: DirCompare -> String
 formatDiffResult  compareResult =
-  let (cl, sl, cr, sr) = diffCountAndSizes compareResult
+  let ((cl, sl), (cr, sr)) = diffCountAndSizes compareResult
   in printf "    deleted (%d #, %4.3f MB), inserted (%d #, %4.3f MB), diff (%d #, %4.3f MB)"
                   cl (sizeInMb sl) cr (sizeInMb sr) (cr - cl) (sizeInMb (sr - sl))

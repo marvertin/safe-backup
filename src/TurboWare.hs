@@ -15,7 +15,8 @@ module TurboWare
       createDirectories,
       Dumpable(..),
       Hexable(..),
-      MonoidPlus3(..)
+      MonoidPlus3(..),
+      MonoidPlus2x2(..)
     ) where
 
 import qualified Data.ByteString  as Strict

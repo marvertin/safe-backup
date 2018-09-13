@@ -1,4 +1,5 @@
-{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE InstanceSigs    #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module TreeComparator (
   compareTrees,
@@ -36,8 +37,22 @@ compareTrees l r = Just $ QBoth l r
 
 -- | dirrenence coune and sizeSpeed
 -- | return left count, left size, right count, right size
-diffCountAndSizes :: DirCompare -> (Int, Integer, Int, Integer)
-diffCountAndSizes _ = (17, 5000000, 23, 8000000)
+diffCountAndSizes :: DirCompare -> ((Int, Integer), (Int, Integer))
+diffCountAndSizes dirCompare = let MonoidPlus2x2 result = dcas dirCompare in result
+  where
+    dcas :: DirCompare -> MonoidPlus2x2 Int Integer Int Integer
+    dcas (QLeft lodree) = MonoidPlus2x2 (countsize lodree, (0,0))
+    dcas (QRight lodree) = MonoidPlus2x2 ((0,0), countsize lodree)
+    dcas (QBoth lodreeLeft lodreeRight) = MonoidPlus2x2 (countsize lodreeLeft, countsize lodreeRight)
+    dcas (QDir list) = foldMap (dcas . snd) list
+
+    countsize lodree = let Ree{..} = ree lodree in (rcount, rsize)
+
+--diffCountAndSizes (QR--LEft lodree) = let Ree{..} = ree lodree in ((rcount, rsize), (0,0))
+--diffCountAndSizes _ = (17, 5000000, 23, 8000000)
+
+
+
 -------------------------------------------------------------------
 -- The rest of this modul is for DEBUGING purpose only - it is dump
 --
