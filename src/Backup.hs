@@ -55,47 +55,10 @@ backup ctx@Ctx{..} =  do -- gcc crashes whne versio is obtain from here
     --lo Summary $ "Start yaba " ++  yabaVersion
     tmStart <- getCurrentTime
   ---------------------
-    lo Inf "Phase 1/4 - reading slices backed up before"
-    sliceNames <-  listSlices  sliceNameStrategy dataRoot
-    lo Inf $ if null sliceNames
-                then "    no slices was backed up yet"
-                else let decorate fce = (++"\"") . ("\""++) .  replaceVerticalToSlashes . fce
-                     in printf "    %d slices: %s ... %s" (length sliceNames) (decorate head sliceNames) (decorate last sliceNames)
-    forM_  (zip [1 :: Int ..] sliceNames) (\(n, slicen) -> lo Debug $ printf "%6d. %s" n slicen )
-    (slices, failusSlices) <- fmap (>>= getErrList) . unzip <$>
-        forM sliceNames (\name -> do
-          let sliceIndexPath = (replaceVerticalToSlashes (indexRoot </> name </> sliceIndexName))
-          let sliceIndexTempPath = (replaceVerticalToSlashes (indexRoot </> name </> "~~" ++ sliceIndexName))
-          createDirectoryIfMissing True (takeDirectory sliceIndexPath)
-          doesFileExist sliceIndexPath >>=
-            (\exists -> if exists then do
-                                     slice <- (decodeFileThrow sliceIndexPath :: IO SliceTree)
-                                     return (slice, ErrList [])
-                                  else do
-                                     (slice, errs) <- readSlice (getEventHandler tmStart lo) (dataRoot </> name)
-                                     when (null . getErrList $ errs)  $ do -- write index only whne there are no errors
-                                       encodeFile sliceIndexTempPath slice
-                                       slice2 <- (decodeFileThrow sliceIndexTempPath :: IO SliceTree)
-                                       if (slice == slice2)
-                                          then do
-                                                 renameFile sliceIndexTempPath sliceIndexPath
-                                                 lo Inf $ "    created index: \"" ++ sliceIndexPath ++ "\""
-                                          else
-                                                 lo Error $ "IMPOSSIBLE: written a read slices are not same!"
-                                     return (slice, errs)
-               )
-      )
-    let rootLodree = mergesToLodree emptyLodree slices
-    let lodreeBackupCurrent = currentLodree rootLodree
-    anyScriptCreated <- createRestoreScripts indexRoot rootLodree
-    when (anyScriptCreated) $ lo Inf "    Any restore script has been created."
-    encodeFile (takeSlicedIndexPath newSliceName </> sliceLogicalTree_suffix) lodreeBackupCurrent
-    lo Inf $ "    " ++ showRee (ree rootLodree)
-    tmPhase1 <- getCurrentTime
-    lo Inf $ showPhaseTime tmPhase1 tmStart
-    lo Summary $ printf "scaned %d slices - %s (%s)" (length sliceNames) (showRee (ree rootLodree)) (showDiffTm tmPhase1 tmStart)
+    (rootLodree, failusSlices) <- scanSlices ctx
   ---------------------
     lo Inf "Phase 2/4 - reading source forest for backup"
+    tmPhaseStart <- getCurrentTime
     lo Inf $ printf "    %d trees in forest " (length forest)
     (lodreeSourceAllNodes, failusSurces) <- bimap makeLDir (>>= getErrList) . unzip <$>
          forM forest ( \(TreeDef treeName treePath ignorances) -> do
@@ -116,8 +79,8 @@ backup ctx@Ctx{..} =  do -- gcc crashes whne versio is obtain from here
        )
     lo Inf $ "    " ++ showRee (ree lodreeSourceAllNodes)
     tmPhase2 <- getCurrentTime
-    lo Inf $ showPhaseTime tmPhase2 tmPhase1
-    lo Summary $ printf "forest of %d trees %s (%s)" (length forest) (showRee (ree lodreeSourceAllNodes)) (showDiffTm tmPhase2 tmPhase1)
+    lo Inf $ showPhaseTime tmPhase2 tmPhaseStart
+    lo Summary $ printf "forest of %d trees %s (%s)" (length forest) (showRee (ree lodreeSourceAllNodes)) (showDiffTm tmPhase2 tmPhaseStart)
   ---------------------
     lo Inf "Phase 3/4 - comparing slices and source forest"
     let resulta = buildBackup rootLodree lodreeSourceAllNodes newSliceName
@@ -177,6 +140,50 @@ backup ctx@Ctx{..} =  do -- gcc crashes whne versio is obtain from here
   forM_ [lo Inf, lo Summary] ($ "Total time: " ++ showDiffTm endTime startTime ++ "\n")
   return exitCode
 
+
+scanSlices :: Ctx -> IO (Lodree, [String])
+scanSlices ctx@Ctx{..} = do
+  lo Inf "Phase 1/4 - reading slices backed up before"
+  tmStart <- getCurrentTime
+  sliceNames <-  listSlices  sliceNameStrategy dataRoot
+  lo Inf $ if null sliceNames
+              then "    no slices was backed up yet"
+              else let decorate fce = (++"\"") . ("\""++) .  replaceVerticalToSlashes . fce
+                   in printf "    %d slices: %s ... %s" (length sliceNames) (decorate head sliceNames) (decorate last sliceNames)
+  forM_  (zip [1 :: Int ..] sliceNames) (\(n, slicen) -> lo Debug $ printf "%6d. %s" n slicen )
+  (slices, failusSlices) <- fmap (>>= getErrList) . unzip <$>
+      forM sliceNames (\name -> do
+        let sliceIndexPath = (replaceVerticalToSlashes (indexRoot </> name </> sliceIndexName))
+        let sliceIndexTempPath = (replaceVerticalToSlashes (indexRoot </> name </> "~~" ++ sliceIndexName))
+        createDirectoryIfMissing True (takeDirectory sliceIndexPath)
+        doesFileExist sliceIndexPath >>=
+          (\exists -> if exists then do
+                                   slice <- (decodeFileThrow sliceIndexPath :: IO SliceTree)
+                                   return (slice, ErrList [])
+                                else do
+                                   (slice, errs) <- readSlice (getEventHandler tmStart lo) (dataRoot </> name)
+                                   when (null . getErrList $ errs)  $ do -- write index only whne there are no errors
+                                     encodeFile sliceIndexTempPath slice
+                                     slice2 <- (decodeFileThrow sliceIndexTempPath :: IO SliceTree)
+                                     if (slice == slice2)
+                                        then do
+                                               renameFile sliceIndexTempPath sliceIndexPath
+                                               lo Inf $ "    created index: \"" ++ sliceIndexPath ++ "\""
+                                        else
+                                               lo Error $ "IMPOSSIBLE: written a read slices are not same!"
+                                   return (slice, errs)
+             )
+    )
+  let rootLodree = mergesToLodree emptyLodree slices
+  let lodreeBackupCurrent = currentLodree rootLodree
+  anyScriptCreated <- createRestoreScripts indexRoot rootLodree
+  when (anyScriptCreated) $ lo Inf "    Any restore script has been created."
+  encodeFile (takeSlicedIndexPath newSliceName </> sliceLogicalTree_suffix) lodreeBackupCurrent
+  lo Inf $ "    " ++ showRee (ree rootLodree)
+  tmEnd <- getCurrentTime
+  lo Inf $ showPhaseTime tmEnd tmStart
+  lo Summary $ printf "scaned %d slices - %s (%s)" (length sliceNames) (showRee (ree rootLodree)) (showDiffTm tmEnd tmStart)
+  return (rootLodree, failusSlices)
   -- return ()
 
 showPhaseTime tmEnd tmStart  = "    (" ++ showDiffTm tmEnd tmStart ++ ")"
