@@ -54,37 +54,12 @@ backup ctx@Ctx{..} =  do -- gcc crashes whne versio is obtain from here
     createDirectoryIfMissing True (takeSlicedIndexPath newSliceName)
     --lo Summary $ "Start yaba " ++  yabaVersion
     tmStart <- getCurrentTime
-  ---------------------
+
     (rootLodree, failusSlices) <- scanSlices ctx
-  ---------------------
     (lodreeSourceAllNodes, failusSurces) <- scanSources ctx
+    resultOfCompare <- compareSlicesToSources ctx rootLodree lodreeSourceAllNodes
+    failusCopy <- copyFiles ctx (snd <$> resultOfCompare)
 
-  ---------------------
-    resulta <- compareSlicesToSources ctx rootLodree lodreeSourceAllNodes
-  ---------------------
-    lo Inf $ "Phase 4/4 - copying files to new slice"
-    tmStart <- getCurrentTime
-    failusCopy <- case resulta of
-      Nothing -> do
-         lo Inf $ "    skipped, no differencies, NO BACKUP NEEDED: "
-         return []
-      Just (_, backupDirTree) -> do
-         lo Inf $ "    Writing new slice to: " ++ takeSlicedDataPath newSliceName
-         (_  :/ resultOfCopy) <- writeBackup lo (dataRoot :/ backupDirTree) forest
-         let failus :: [DirTree (Int, Integer, Int)]
-             failus = failures resultOfCopy
-         let failusStr = (show . err) <$> failus
-         forM_ failusStr (\msg -> do
-             lo Error $ "    !!!!! ERROR !!!!! " ++ msg
-           )
-         let MonoidPlus3 (copiedFiles, copiedSize, createdMetas) = foldMap MonoidPlus3  resultOfCopy
-         let msg = printf "copied %d files of %s, created %d metafiles into \"%s\"" copiedFiles (showSz copiedSize) createdMetas (replaceVerticalToSlashes newSliceName) :: String
-         lo Inf $ printf "    %s" msg
-
-         tmPhase4 <- getCurrentTime
-         lo Summary $ printf "%s (%s)" msg (showDiffTm tmPhase4 tmStart)
-         lo Inf $ showPhaseTime tmPhase4 tmStart
-         return failusStr
     forM_ (failusSlices ++ failusSurces ++ failusCopy) (\msg -> do
         lo Summary $  msg
       )
@@ -199,6 +174,32 @@ compareSlicesToSources ctx@Ctx{..} rootLodree lodreeSourceAllNodes = do
   tmEnd <- getCurrentTime
   lo Inf $ showPhaseTime tmEnd tmStart
   return resulta
+
+copyFiles :: Ctx -> Maybe BackupTree -> IO [String]
+copyFiles ctx@Ctx{..} resulta = do
+  lo Inf $ "Phase 4/4 - copying files to new slice"
+  tmStart <- getCurrentTime
+  case resulta of
+    Nothing -> do
+       lo Inf $ "    skipped, no differencies, NO BACKUP NEEDED: "
+       return []
+    Just backupDirTree -> do
+       lo Inf $ "    Writing new slice to: " ++ takeSlicedDataPath newSliceName
+       (_  :/ resultOfCopy) <- writeBackup lo (dataRoot :/ backupDirTree) forest
+       let failus :: [DirTree (Int, Integer, Int)]
+           failus = failures resultOfCopy
+       let failusStr = (show . err) <$> failus
+       forM_ failusStr (\msg -> do
+           lo Error $ "    !!!!! ERROR !!!!! " ++ msg
+         )
+       let MonoidPlus3 (copiedFiles, copiedSize, createdMetas) = foldMap MonoidPlus3  resultOfCopy
+       let msg = printf "copied %d files of %s, created %d metafiles into \"%s\"" copiedFiles (showSz copiedSize) createdMetas (replaceVerticalToSlashes newSliceName) :: String
+       lo Inf $ printf "    %s" msg
+
+       tmEnd <- getCurrentTime
+       lo Summary $ printf "%s (%s)" msg (showDiffTm tmEnd tmStart)
+       lo Inf $ showPhaseTime tmEnd tmStart
+       return failusStr
 
 showPhaseTime tmEnd tmStart  = "    (" ++ showDiffTm tmEnd tmStart ++ ")"
 
