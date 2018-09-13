@@ -3,7 +3,8 @@
 
 module SliceWriter (
   writeBackup,
-  countCounters
+  countCounters,
+  modificationTimes
 )  where
 
 
@@ -48,7 +49,7 @@ writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
 
       --writeFileToBackup :: Int -> FilePath -> FilePath -> Cmd -> IO ()
       writeFileToBackup :: IORef (MonoidPlus3 Int Integer Int) -> FilePath -> (FilePath, Cmd) -> IO (Int, Integer, Int)
-      writeFileToBackup  counters destPath (sourcePath, (Insert _))  = do
+      writeFileToBackup  counters destPath (sourcePath, (Insert _ _))  = do
            lo Debug $ printf "copy file: \"%s\" --> \"%s\"" sourcePath destPath
            lo Progress $ printf "copy file: \"%s\" --> \"%s\"" sourcePath destPath
            BS.readFile sourcePath >>= BS.writeFile destPath
@@ -72,6 +73,19 @@ showCmd :: Cmd ->  String
 showCmd (BackupTreeBuilder.Insert {}) = "<insert>"
 showCmd (BackupTreeBuilder.Delete {}) = "<delete>"
 showCmd (BackupTreeBuilder.Link fp _) = "<link \"" ++ fp ++  "\" >"
+
+
+modificationTimes :: BackupTree ->  [(FilePath, UTCTime)]
+modificationTimes bt = foldMap extractTime (zipPaths' bt)
+  where
+     extractTime (fp, (Insert _ time)) = [(fp, time)]
+     extractTime _                     = []
+
+zipPaths' :: DirTree a -> DirTree (FilePath, a)
+zipPaths' (Dir _ list) = let dir = Dir "" list
+   in (first replaceBacklashesToSlashes) <$> zipPaths ("" :/ dir)
+
+
 
 title x = ["", "----- " ++ x ++ " ---------------------------"]
 

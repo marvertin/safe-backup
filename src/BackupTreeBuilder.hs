@@ -32,7 +32,7 @@ import           TurboWare
 import           Types
 
 data Info = Info Hash Paths Lodree  deriving (Show) -- gives information only to peaple, not processed by machine
-data Cmd = Insert Integer | Delete Info | Link FilePath Info  deriving (Show)
+data Cmd = Insert Integer UTCTime | Delete Info | Link FilePath Info  deriving (Show)
 data Paths = Paths { pathsNew :: [FilePath], pathsLast:: [FilePath], pathsHistory :: [FilePath] }  deriving (Show)
 
 type BackupTree = DirTree Cmd
@@ -63,7 +63,7 @@ buildBackup sliceLodree surceLodree outputDir =
                       in  case mustInsert revpath paths of
                             Nothing ->
                               case lodree of
-                                LFile _ _   ->  File name (Insert . rsize . ree $ lodree)
+                                LFile Ree{rsize, rtime} _   ->  File name (Insert rsize rtime)
                                 LDir _ list -> Dir name (mapCall bFromLodree revpath list)  -- Dir name (map (uncurry bFromLodree) list)
                             Just pathToLink -> File name $ Link ("/" ++ outputDir ++ pathToLink) $ Info hash paths lodree
           Just (path: _, lodree2) -> File name $ Link path $ Info hash (makePaths hash) lodree2
@@ -88,13 +88,13 @@ mustInsert revpath (Paths (itMustInsert:_) _ _) =
 
 sizeToBackup :: BackupTree -> Integer
 sizeToBackup bt = sum $ fmap mapa bt
-   where mapa (Insert sz) = sz
-         mapa _           = 0
+   where mapa (Insert sz _) = sz
+         mapa _             = 0
 
 countsToBackup :: BackupTree -> Integer
 countsToBackup bt = sum $ fmap mapa bt
-  where mapa (Insert _) = 1
-        mapa _          = 0
+  where mapa (Insert _ _) = 1
+        mapa _            = 0
 
 type MapByHash = M.Map Hash [FileName]
 
@@ -106,7 +106,7 @@ instance Dumpable Cmd where
     toDump x = [ "**" ++ show x ]
     toDumpS = tostra
       where
-          tostra (Insert size) = "Insert " ++ (showSz size)
+          tostra (Insert size time) = "Insert " ++ (showSz size) ++ " " ++ (show time)
           tostra x             = show x
 
 

@@ -16,6 +16,7 @@ module Types (
   configFileName,
   sliceIndexName,
   sliceLogicalTree_suffix,
+  modificationTimesFileName,
   indexSubdir,
   dataSubdir,
   logSubdir,
@@ -62,6 +63,7 @@ yabaLogName = "yaba.log"
 indexSubdir = "index"
 dataSubdir = "data"
 logSubdir = "log"
+modificationTimesFileName = "modification-times.yaml"
 
 indexVersion = "1"
 
