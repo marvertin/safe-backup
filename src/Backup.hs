@@ -103,8 +103,8 @@ backup backupDirRoot yabaVersion = do -- gcc crashes whne versio is obtain from 
             )
           let rootLodree = mergesToLodree emptyLodree slices
           let lodreeBackupCurrent = currentLodree rootLodree
-          let restoreTuples = makeRestoreScript lodreeBackupCurrent
-          mapM_  putStrLn restoreTuples
+          anyScriptCreated <- createRestoreScripts indexRoot rootLodree
+          when (anyScriptCreated) $ lo Inf "    Any restore script has been created."
           encodeFile (indexDirx </> sliceLogicalTree_suffix) lodreeBackupCurrent
           lo Inf $ "    " ++ showRee (ree rootLodree)
           tmPhase1 <- getCurrentTime
