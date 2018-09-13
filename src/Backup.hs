@@ -60,19 +60,7 @@ backup ctx@Ctx{..} =  do -- gcc crashes whne versio is obtain from here
     (lodreeSourceAllNodes, failusSurces) <- scanSources ctx
 
   ---------------------
-    lo Inf "Phase 3/4 - comparing slices and source forest"
-    tmStart <- getCurrentTime
-    let resulta = buildBackup rootLodree lodreeSourceAllNodes newSliceName
-    case resulta of
-      Nothing -> do
-         lo Inf $ "    no differences"
-      Just (comareResult, backupDirTree) -> do
-         forM_ [lo Inf, lo Summary] ($ formatDiffResult comareResult)
-         forM_ (M.toList $ countCounters backupDirTree) (\(key, value) ->
-             forM_ [lo Inf, lo Summary] ($ printf "%8d: %s" value key)
-             )
-    tmEnd <- getCurrentTime
-    lo Inf $ showPhaseTime tmEnd tmStart
+    resulta <- compareSlicesToSources ctx rootLodree lodreeSourceAllNodes
   ---------------------
     lo Inf $ "Phase 4/4 - copying files to new slice"
     tmStart <- getCurrentTime
@@ -195,6 +183,22 @@ scanSources ctx@Ctx{..} = do
   lo Summary $ printf "forest of %d trees %s (%s)" (length forest) (showRee (ree lodreeSourceAllNodes)) (showDiffTm tmEnd tmStart)
   return (lodreeSourceAllNodes, failusSurces)
 
+compareSlicesToSources :: Ctx -> Lodree -> Lodree -> IO (Maybe (DirCompare, BackupTree))
+compareSlicesToSources ctx@Ctx{..} rootLodree lodreeSourceAllNodes = do
+  lo Inf "Phase 3/4 - comparing slices and source forest"
+  tmStart <- getCurrentTime
+  let resulta = buildBackup rootLodree lodreeSourceAllNodes newSliceName
+  case resulta of
+    Nothing -> do
+       lo Inf $ "    no differences"
+    Just (comareResult, backupDirTree) -> do
+       forM_ [lo Inf, lo Summary] ($ formatDiffResult comareResult)
+       forM_ (M.toList $ countCounters backupDirTree) (\(key, value) ->
+           forM_ [lo Inf, lo Summary] ($ printf "%8d: %s" value key)
+           )
+  tmEnd <- getCurrentTime
+  lo Inf $ showPhaseTime tmEnd tmStart
+  return resulta
 
 showPhaseTime tmEnd tmStart  = "    (" ++ showDiffTm tmEnd tmStart ++ ")"
 
