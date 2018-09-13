@@ -186,6 +186,7 @@ copyFiles ctx@Ctx{..} resulta = do
        return []
     Just backupDirTree -> do
        lo Inf $ "    Writing new slice to: " ++ takeSlicedDataPath newSliceName
+       createDirectoryIfMissing True (takeSlicedDataPath newSliceName)
        encodeFile (takeSlicedDataPath newSliceName ++ "/" ++ modificationTimesFileName)  (M.fromList . modificationTimes $ backupDirTree)
        (_  :/ resultOfCopy) <- writeBackup lo (dataRoot :/ backupDirTree) forest
        let failus :: [DirTree (Int, Integer, Int)]
