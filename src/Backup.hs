@@ -47,30 +47,13 @@ getEventHandler :: UTCTime -> Log -> (EventEnvelop a ErrList -> IO ErrList, ErrL
 getEventHandler time lo  = (logInScan time lo, ErrList [])
 
 
-backup :: FilePath -> String -> IO ExitCode
-backup backupDirRoot yabaVersion = do -- gcc crashes whne versio is obtain from here
-  maybeForestDef <- readConfig backupDirRoot
-  case maybeForestDef of
-    Nothing -> do
-      putStrLn "!!! ERRORS starting backup !!!"
-      return $ ExitFailure 1
-    Just (Cfg sliceNameStrategy forest empties) -> do
-      createDirectoryIfMissing False dataRoot
-      newSliceName <- nextSliceName dataRoot sliceNameStrategy
-      let slicedDirName dname = replaceVerticalToSlashes (dname </> newSliceName)
-      let logDirx = slicedDirName logRoot
-      let indexDirx = slicedDirName indexRoot
-      createDirectoryIfMissing True logDirx
-      createDirectoryIfMissing True indexDirx
-      let logFileName = logDirx </> sliceLogName
-      let yabaLogFilePath = logRoot </> yabaLogName
-      withLogger yabaLogFilePath logFileName $ \lo -> do
+backup :: Ctx -> IO ExitCode
+backup ctx@Ctx{..} =  do -- gcc crashes whne versio is obtain from here
         startTime <- getCurrentTime
         exitCode <- do
-
-          lo Summary $ "Start yaba " ++  yabaVersion
+          createDirectoryIfMissing True (takeSlicedIndexPath newSliceName)
+          --lo Summary $ "Start yaba " ++  yabaVersion
           tmStart <- getCurrentTime
-          lo Inf $ printf  "Detail log is: \"%s\"" logFileName
         ---------------------
           lo Inf "Phase 1/4 - reading slices backed up before"
           sliceNames <-  listSlices  sliceNameStrategy dataRoot
@@ -106,7 +89,7 @@ backup backupDirRoot yabaVersion = do -- gcc crashes whne versio is obtain from 
           let lodreeBackupCurrent = currentLodree rootLodree
           anyScriptCreated <- createRestoreScripts indexRoot rootLodree
           when (anyScriptCreated) $ lo Inf "    Any restore script has been created."
-          encodeFile (indexDirx </> sliceLogicalTree_suffix) lodreeBackupCurrent
+          encodeFile (takeSlicedIndexPath newSliceName </> sliceLogicalTree_suffix) lodreeBackupCurrent
           lo Inf $ "    " ++ showRee (ree rootLodree)
           tmPhase1 <- getCurrentTime
           lo Inf $ showPhaseTime tmPhase1 tmStart
@@ -155,7 +138,7 @@ backup backupDirRoot yabaVersion = do -- gcc crashes whne versio is obtain from 
                lo Inf $ "    skipped, no differencies, NO BACKUP NEEDED: "
                return []
             Just (_, backupDirTree) -> do
-               lo Inf $ "    Writing new slice to: " ++ slicedDirName dataRoot
+               lo Inf $ "    Writing new slice to: " ++ takeSlicedDataPath newSliceName
                (_  :/ resultOfCopy) <- writeBackup lo (dataRoot :/ backupDirTree) forest
                let failus :: [DirTree (Int, Integer, Int)]
                    failus = failures resultOfCopy
@@ -193,10 +176,7 @@ backup backupDirRoot yabaVersion = do -- gcc crashes whne versio is obtain from 
         endTime <- getCurrentTime
         forM_ [lo Inf, lo Summary] ($ "Total time: " ++ showDiffTm endTime startTime ++ "\n")
         return exitCode
-   where
-    dataRoot = backupDirRoot </> dataSubdir
-    indexRoot = backupDirRoot </> indexSubdir
-    logRoot = backupDirRoot </> logSubdir
+
   -- return ()
 
 showPhaseTime tmEnd tmStart  = "    (" ++ showDiffTm tmEnd tmStart ++ ")"

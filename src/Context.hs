@@ -3,12 +3,14 @@
 
 module Context (
   withContext,
+  Ctx(..),
 
   ForestDef
 ) where
 
 import           System.Directory
 import           System.Exit
+import           Text.Printf
 
 import           Config
 import           Lib
@@ -25,6 +27,7 @@ data Ctx = Ctx {
      takeSlicedDataPath  :: String -> FilePath,
      takeSlicedIndexPath :: String -> FilePath,
      takeSlicedRootPath  :: String -> FilePath,
+     sliceNameStrategy   :: SliceNameStrategy,
      newSliceName        :: String,
      forest              :: ForestDef, -- definition of forest prom config file
      empties             :: [String], -- trees withoud any file or directory after filtering
@@ -49,7 +52,7 @@ withContext backupDirRoot fce = do
       let takeSlicePath rotPath sliceName = rotPath ++ "/" ++ replaceVerticalToSlashes sliceName
       --let logDirx = slicedDirName logRoot
       --let indexDirx = slicedDirName indexRoot
-      --createDirectoryIfMissing True logDirx
+      createDirectoryIfMissing True (takeSlicePath logRoot newSliceName)
       --createDirectoryIfMissing True indexDirx
       let logFileFath = takeSlicePath logRoot newSliceName ++ "/" ++ sliceLogName
       let yabaLogFilePath = logRoot ++ "/" ++ yabaLogName
@@ -61,12 +64,14 @@ withContext backupDirRoot fce = do
          , takeSlicedDataPath = takeSlicePath dataRoot
          , takeSlicedIndexPath = takeSlicePath indexRoot
          , takeSlicedRootPath = takeSlicePath logRoot
+         , sliceNameStrategy
          , newSliceName
          , forest
          , empties
         }
       createRootDirs ctx
-      withLogger yabaLogFilePath logFileFath $ \lo ->
+      withLogger yabaLogFilePath logFileFath $ \lo -> do
+        lo Inf $ printf  "Detail log is: \"%s\"" logFileFath
         fce (ctx {lo})
 
 

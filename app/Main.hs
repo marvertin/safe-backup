@@ -24,6 +24,7 @@ import           Text.Printf
 
 import           Backup
 import           Config
+import           Context
 import           Debug
 import           DirScan
 import           Lib
@@ -36,7 +37,6 @@ import           Tree
 import           TreeComparator
 import           TurboWare
 import           Types
-import           Context
 
 
 
@@ -97,7 +97,8 @@ doBackup (Cmdline enteredBackupDir True _ _) = do
                                                 else enteredBackupDir
 
   putStrLn $ "Backing up to \"" ++ backupDirAbs
-  Backup.backup backupDirAbs (showVersion Paths_yaba.version)
+  withContext backupDirAbs  Backup.backup
+  -- (showVersion Paths_yaba.version)
 
 
   --let sourceOfMainTree = "./test/data/case3/source-of-maintree"
