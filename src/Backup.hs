@@ -57,32 +57,11 @@ backup ctx@Ctx{..} =  do -- gcc crashes whne versio is obtain from here
   ---------------------
     (rootLodree, failusSlices) <- scanSlices ctx
   ---------------------
-    lo Inf "Phase 2/4 - reading source forest for backup"
-    tmPhaseStart <- getCurrentTime
-    lo Inf $ printf "    %d trees in forest " (length forest)
-    (lodreeSourceAllNodes, failusSurces) <- bimap makeLDir (>>= getErrList) . unzip <$>
-         forM forest ( \(TreeDef treeName treePath ignorances) -> do
-            lo Inf $ printf "       scaning %-15s- \"%s\"" treeName treePath
-            lo Debug $ "ignorance patterns: " ++ (show ignorances)
-            tmSourceStart <- getCurrentTime
-            let cacheHashPath = (indexRoot </> (indexVersion ++ "_" ++ treeName ++ ".yaml"))
-            cacheHash <- doesFileExist cacheHashPath >>=
-                               (\exists -> if exists then (decodeFileThrow cacheHashPath :: IO CacheHash)
-                                                     else return M.empty)
-            (lodreeSourceOneNode, errList) <- readSourceTree lo cacheHash ignorances treePath
-            -- encodeFile (indexRoot </> (treeName ++ sliceSourceTree_suffix)) lodreeSourceOneNode
-            -- encodeFile cacheHashPath (flattenFileLodree lodreeSourceOneNode)
-            encodeFile cacheHashPath (M.fromList (flattenFileLodree lodreeSourceOneNode))
-            tmSourceEnd <- getCurrentTime
-            lo Summary $ printf "source %-15s-%s \"%s\" (%s)" treeName (showRee (ree lodreeSourceOneNode)) treePath (showDiffTm tmSourceEnd tmSourceStart)
-            return ((treeName, lodreeSourceOneNode), errList)
-       )
-    lo Inf $ "    " ++ showRee (ree lodreeSourceAllNodes)
-    tmPhase2 <- getCurrentTime
-    lo Inf $ showPhaseTime tmPhase2 tmPhaseStart
-    lo Summary $ printf "forest of %d trees %s (%s)" (length forest) (showRee (ree lodreeSourceAllNodes)) (showDiffTm tmPhase2 tmPhaseStart)
+    (lodreeSourceAllNodes, failusSurces) <- scanSources ctx
+
   ---------------------
     lo Inf "Phase 3/4 - comparing slices and source forest"
+    tmStart <- getCurrentTime
     let resulta = buildBackup rootLodree lodreeSourceAllNodes newSliceName
     case resulta of
       Nothing -> do
@@ -92,10 +71,11 @@ backup ctx@Ctx{..} =  do -- gcc crashes whne versio is obtain from here
          forM_ (M.toList $ countCounters backupDirTree) (\(key, value) ->
              forM_ [lo Inf, lo Summary] ($ printf "%8d: %s" value key)
              )
-    tmPhase3 <- getCurrentTime
-    lo Inf $ showPhaseTime tmPhase3 tmPhase2
+    tmEnd <- getCurrentTime
+    lo Inf $ showPhaseTime tmEnd tmStart
   ---------------------
     lo Inf $ "Phase 4/4 - copying files to new slice"
+    tmStart <- getCurrentTime
     failusCopy <- case resulta of
       Nothing -> do
          lo Inf $ "    skipped, no differencies, NO BACKUP NEEDED: "
@@ -114,8 +94,8 @@ backup ctx@Ctx{..} =  do -- gcc crashes whne versio is obtain from here
          lo Inf $ printf "    %s" msg
 
          tmPhase4 <- getCurrentTime
-         lo Summary $ printf "%s (%s)" msg (showDiffTm tmPhase4 tmPhase3)
-         lo Inf $ showPhaseTime tmPhase4 tmPhase3
+         lo Summary $ printf "%s (%s)" msg (showDiffTm tmPhase4 tmStart)
+         lo Inf $ showPhaseTime tmPhase4 tmStart
          return failusStr
     forM_ (failusSlices ++ failusSurces ++ failusCopy) (\msg -> do
         lo Summary $  msg
@@ -185,6 +165,36 @@ scanSlices ctx@Ctx{..} = do
   lo Summary $ printf "scaned %d slices - %s (%s)" (length sliceNames) (showRee (ree rootLodree)) (showDiffTm tmEnd tmStart)
   return (rootLodree, failusSlices)
   -- return ()
+
+
+scanSources :: Ctx -> IO (Lodree, [String])
+scanSources ctx@Ctx{..} = do
+  lo Inf "Phase 2/4 - reading source forest for backup"
+  tmStart <- getCurrentTime
+  lo Inf $ printf "    %d trees in forest " (length forest)
+  (lodreeSourceAllNodes, failusSurces) <- bimap makeLDir (>>= getErrList) . unzip <$>
+       forM forest ( \(TreeDef treeName treePath ignorances) -> do
+          lo Inf $ printf "       scaning %-15s- \"%s\"" treeName treePath
+          lo Debug $ "ignorance patterns: " ++ (show ignorances)
+          tmSourceStart <- getCurrentTime
+          let cacheHashPath = (indexRoot </> (indexVersion ++ "_" ++ treeName ++ ".yaml"))
+          cacheHash <- doesFileExist cacheHashPath >>=
+                             (\exists -> if exists then (decodeFileThrow cacheHashPath :: IO CacheHash)
+                                                   else return M.empty)
+          (lodreeSourceOneNode, errList) <- readSourceTree lo cacheHash ignorances treePath
+          -- encodeFile (indexRoot </> (treeName ++ sliceSourceTree_suffix)) lodreeSourceOneNode
+          -- encodeFile cacheHashPath (flattenFileLodree lodreeSourceOneNode)
+          encodeFile cacheHashPath (M.fromList (flattenFileLodree lodreeSourceOneNode))
+          tmSourceEnd <- getCurrentTime
+          lo Summary $ printf "source %-15s-%s \"%s\" (%s)" treeName (showRee (ree lodreeSourceOneNode)) treePath (showDiffTm tmSourceEnd tmSourceStart)
+          return ((treeName, lodreeSourceOneNode), errList)
+     )
+  lo Inf $ "    " ++ showRee (ree lodreeSourceAllNodes)
+  tmEnd <- getCurrentTime
+  lo Inf $ showPhaseTime tmEnd tmStart
+  lo Summary $ printf "forest of %d trees %s (%s)" (length forest) (showRee (ree lodreeSourceAllNodes)) (showDiffTm tmEnd tmStart)
+  return (lodreeSourceAllNodes, failusSurces)
+
 
 showPhaseTime tmEnd tmStart  = "    (" ++ showDiffTm tmEnd tmStart ++ ")"
 
