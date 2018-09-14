@@ -14,10 +14,10 @@ import           System.Directory
 
 import           Context
 import           Lib
-import           Lodree
 import           Text.Printf
 import           TurboWare
 import           Types
+import           Yaba.Data.Lodree
 
 data Cmd = MkDir | CpFile FilePath (Maybe UTCTime) deriving (Show, Eq, Ord)
 

@@ -28,12 +28,12 @@ import           System.IO
 import           DirScan
 import           Ignorances
 import           Lib
-import           Lodree
 import           Log
 import           SliceScaner
 import           SliceToLodree
 import           TurboWare
 import           Types
+import           Yaba.Data.Lodree
 
 
 import qualified Data.ByteString.Lazy  as Lazy

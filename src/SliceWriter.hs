@@ -13,7 +13,7 @@ import           Control.Monad
 import           Data.Counter
 import           Data.IORef
 import           Data.List
-import qualified Data.Map              as M
+import qualified Data.Map               as M
 import           Data.Time.Clock
 import           System.Directory
 import           System.Directory.Tree
@@ -23,15 +23,16 @@ import           System.IO
 import           Text.Printf
 
 
-import           BackupTreeBuilder
+--import           BackupTreeBuilder
 import           Config
-import qualified Data.ByteString.Lazy  as BS
+import qualified Data.ByteString.Lazy   as BS
 import           Dump
 import           Lib
 import           Log
 import           Slice
 import           TurboWare
 import           Types
+import           Yaba.Data.SliceWritten as YDS
 
 -- | Write backu. returns (count of copies files, sizue of set files, count of metafiles)
 writeBackup :: Log -> AnchoredBackupTree -> ForestDef ->  IO (AnchoredDirTree (Int, Integer, Int))
@@ -70,9 +71,9 @@ writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
            return (0,0,1)
 
 showCmd :: Cmd ->  String
-showCmd (BackupTreeBuilder.Insert {}) = "<insert>"
-showCmd (BackupTreeBuilder.Delete {}) = "<delete>"
-showCmd (BackupTreeBuilder.Link fp _) = "<link \"" ++ fp ++  "\" >"
+showCmd (YDS.Insert {}) = "<insert>"
+showCmd (YDS.Delete {}) = "<delete>"
+showCmd (YDS.Link fp _) = "<link \"" ++ fp ++  "\" >"
 
 
 modificationTimes :: BackupTree ->  M.Map FilePath UTCTime
@@ -95,8 +96,8 @@ formatCmd cmd = unlines $ concat $ [
      title "Operation",
      [yabaFilePrefix cmd],
      case cmd of
-           Link _ info                   -> formatInfo info
-           BackupTreeBuilder.Delete info -> formatInfo info
+           Link _ info     -> formatInfo info
+           YDS.Delete info -> formatInfo info
   ]
 
 formatInfo :: Info -> [String]
@@ -119,13 +120,13 @@ countCounters = count . (foldMap (return . yabaFilePrefix))
 
 
 yabaFilePrefix :: Cmd -> String
-yabaFilePrefix (BackupTreeBuilder.Delete (Info _ (Paths {pathsNew=[]}) _ ))= "~DELETE~"
-yabaFilePrefix (BackupTreeBuilder.Delete _)= "~MOVE-AWAY~"
-yabaFilePrefix (BackupTreeBuilder.Link _ (Info _ (Paths {pathsHistory=[]}) _ ))= "~N-LINK~"
-yabaFilePrefix (BackupTreeBuilder.Link _ _)   = "~LINK~"
-yabaFilePrefix (BackupTreeBuilder.Insert{})   = "~INSERT~"
+yabaFilePrefix (YDS.Delete (Info _ (Paths {pathsNew=[]}) _ ))= "~DELETE~"
+yabaFilePrefix (YDS.Delete _)= "~MOVE-AWAY~"
+yabaFilePrefix (YDS.Link _ (Info _ (Paths {pathsHistory=[]}) _ ))= "~N-LINK~"
+yabaFilePrefix (YDS.Link _ _)   = "~LINK~"
+yabaFilePrefix (YDS.Insert{})   = "~INSERT~"
 -- yabaFilePrefix _ = "~IMPOSSIBLE~"
 
 convertToSliceCmd :: Cmd -> SliceCmd
-convertToSliceCmd (BackupTreeBuilder.Link  x _) = Slice.PhysicalLink x
-convertToSliceCmd (BackupTreeBuilder.Delete _ ) = Slice.Delete
+convertToSliceCmd (YDS.Link  x _) = Slice.PhysicalLink x
+convertToSliceCmd (YDS.Delete _ ) = Slice.Delete

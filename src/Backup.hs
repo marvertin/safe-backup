@@ -11,7 +11,7 @@ import           Control.Monad
 import           Data.Bifunctor
 import           Data.Counter
 import           Data.List
-import qualified Data.Map              as M
+import qualified Data.Map               as M
 import           Data.Time.Clock
 import           Data.Tuple
 import           Data.Yaml
@@ -30,7 +30,6 @@ import           DirScan
 import           Dump
 import           Ignorances
 import           Lib
-import           Lodree
 import           Log
 import           RestoreScript
 import           Slice
@@ -42,6 +41,11 @@ import           SourceTree
 import           TreeComparator
 import           TurboWare
 import           Types
+import           Yaba.Data.Differences
+import           Yaba.Data.Lodree
+import           Yaba.Data.SliceWritten
+
+
 
 getEventHandler :: UTCTime -> Log -> (EventEnvelop a ErrList -> IO ErrList, ErrList)
 getEventHandler time lo  = (logInScan time lo, ErrList [])

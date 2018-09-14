@@ -6,6 +6,7 @@ module Debug (
 --  q, w, p3, mainovec, e, (>:), (<:), (?:), Test(..), ww, cc, ee, qq, yy, t, tt, l
 ) where
 
+{-
 import           Crypto.Hash.SHA1           (hashlazy)
 import qualified Data.ByteString            as Strict
 import qualified Data.ByteString.Lazy       as Lazy
@@ -45,7 +46,7 @@ import qualified Data.Map                   as M
 import           Data.Yaml
 import           GHC.Generics
 
-{-
+
 
 hashFile :: FilePath -> IO Strict.ByteString
 hashFile = fmap hashlazy . Lazy.readFile

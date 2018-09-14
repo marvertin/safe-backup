@@ -6,37 +6,28 @@ module BackupTreeBuilder (
   buildBackup,
   sizeToBackup,
   countsToBackup,
-  BackupTree,
-  AnchoredBackupTree,
-  Cmd(..),
-  Paths(..),
-  Info(..)
 ) where
 
 
 import           Control.Arrow
-import           Data.List             (mapAccumL)
-import qualified Data.Map              as M
+import           Data.List              (mapAccumL)
+import qualified Data.Map               as M
 import           Data.Maybe
 import           Debug.Trace
 import           Debug.Trace
-import           DirScan               (RevPath, pth)
+import           DirScan                (RevPath, pth)
 import           Dump
 import           Hashpairing
 import           Lib
-import           Lodree
 import           SliceToLodree
 import           System.Directory.Tree
 import           TreeComparator
 import           TurboWare
 import           Types
+import           Yaba.Data.Differences
+import           Yaba.Data.Lodree
+import           Yaba.Data.SliceWritten
 
-data Info = Info Hash Paths Lodree  deriving (Show) -- gives information only to peaple, not processed by machine
-data Cmd = Insert Integer UTCTime | Delete Info | Link FilePath Info  deriving (Show)
-data Paths = Paths { pathsNew :: [FilePath], pathsLast:: [FilePath], pathsHistory :: [FilePath] }  deriving (Show)
-
-type BackupTree = DirTree Cmd
-type AnchoredBackupTree = AnchoredDirTree Cmd
 
 mapCall :: (RevPath -> a -> BackupTree ) -> RevPath -> [(FileName, a)] -> [BackupTree]
 mapCall fce revpath = map (uncurry fce . (first (:revpath)))
@@ -99,24 +90,6 @@ countsToBackup bt = sum $ fmap mapa bt
 type MapByHash = M.Map Hash [FileName]
 
 
-
-
-
-instance Dumpable Cmd where
-    toDump x = [ "**" ++ show x ]
-    toDumpS = tostra
-      where
-          tostra (Insert size time) = "Insert " ++ (showSz size) ++ " " ++ (show time)
-          tostra x             = show x
-
-
-instance Dumpable BackupTree where
-  toDump = dirTreeToStringList printCmd
-
-printCmd :: Cmd ->  Maybe String
-printCmd (Insert {}) = Just "<insert>"
-printCmd (Delete {}) = Just "<delete>"
-printCmd (Link fp _) = Just $ "<link \"" ++ fp ++  "\" >"
 
 {-
     toDump x = [tostr x]

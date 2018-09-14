@@ -19,12 +19,12 @@ import           Data.Maybe
 import           Data.Yaml
 import           GHC.Generics
 import           Lib
-import           Lodree
 import           Slice
 import           System.Directory.Tree (DirTree (Dir, File), FileName)
 import           System.FilePath
 import           TurboWare
 import           Types
+import           Yaba.Data.Lodree
 
 
 

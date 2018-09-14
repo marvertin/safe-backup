@@ -12,11 +12,11 @@ module Hashpairing (
 
 import           Data.Function
 import           Data.List
-import qualified Data.Map      as M
+import qualified Data.Map         as M
 import           Lib
-import           Lodree
 import           TurboWare
 import           Types
+import           Yaba.Data.Lodree
 
 
 
