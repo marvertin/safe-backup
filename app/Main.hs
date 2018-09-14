@@ -31,12 +31,19 @@ data Cmdline = Cmdline
   , optCommand :: Command
   } deriving Show
 
+data WhichSlice
+  = JustSlice String
+  | LastSlice
+  | PrevSlice
+   deriving (Show)
+
 data Command
   = Backup
   | Restore {
-        destDir   :: String,
-        fromDir   :: String,     -- relative dir
-        checkDest :: Bool
+        whichSlice :: WhichSlice,
+        destDir    :: String,
+        fromDir    :: String,     -- relative dir
+        checkDest  :: Bool
       }
   | MarkDuplicities {
         markedDir :: String
@@ -49,9 +56,25 @@ yabaProgramInstallDir = "This value direct to use yaba isntall directory"
 backupOptions :: Parser Command
 backupOptions = pure Backup
 
+
+whichSliceOpt :: Parser WhichSlice
+whichSliceOpt =
+        JustSlice <$> strOption
+            ( long "slice"
+           <> metavar "SLICE-NAME"
+           <> help "get this slice")
+    <|> flag' LastSlice
+            ( long "last-slice"
+           <> help "get the last slice backed up")
+    <|> flag' PrevSlice
+            ( long "prev-slice"
+           <> help "get the previouse slice backed up")
+
+
 restoreOptions :: Parser Command
 restoreOptions = Restore
-    <$> strOption
+    <$> whichSliceOpt
+    <*> strOption
         ( long "dest-dir"
        <> metavar "DEST-DIR"
        <> help "Destination directory for restoring data. It must exists and must be empty."
