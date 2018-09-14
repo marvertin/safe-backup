@@ -24,7 +24,7 @@ import           Text.Printf
 
 
 data Options =
-  GoCmdline Cmdlinex | Version
+  GoCmdline Cmdlinex | Version | NoArgs
   deriving Show
 
 -- putStrLn "→"
@@ -126,6 +126,7 @@ options =
      <|> flag' Version
              ( long "version"
             <> help "Display version")--      <*> switch
+     <|> pure NoArgs
 --          ( long "version"
 --         <> help "Display version" )
 
