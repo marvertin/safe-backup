@@ -63,7 +63,6 @@ createOnRestoreScript Ctx{..} (sliceName, lodree) mustCreate = do
       \exist -> if exist  then (decodeFileThrow modificationTimesFilePath :: IO (M.Map FilePath UTCTime))
                           else return M.empty
   -- let modificationTimes = M.empty
-  print "docetl jsem modifikance"
   let scriptFileName = indexRoot ++ "/" ++ replaceVerticalToSlashes sliceName ++ "/restore.sh"
   mustCreate <- (||) <$> mustCreate <*> (not <$> doesFileExist scriptFileName)
   when (mustCreate) $ do
