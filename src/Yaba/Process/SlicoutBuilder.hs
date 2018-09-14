@@ -17,7 +17,6 @@ import           Debug.Trace
 import           Debug.Trace
 import           DirScan                     (RevPath, pth)
 import           Dump
-import           Hashpairing
 import           Lib
 import           System.Directory.Tree
 import           TurboWare
@@ -35,9 +34,9 @@ mapCall fce revpath = map (uncurry fce . (first (:revpath)))
 buildBackup :: Lodree -> Lodree ->  FileName -> Maybe (Differences, Slicout)
 buildBackup sliceLodree surceLodree outputDir =
   let
-      sliceHashes = createMapOfHashes' sliceLodree
-      sourceHashes = createMapOfHashes' surceLodree
-      currentSliceHashes = createMapOfHashes' (currentLodree sliceLodree)
+      sliceHashes = createMapOfHashes sliceLodree
+      sourceHashes = createMapOfHashes surceLodree
+      currentSliceHashes = createMapOfHashes (currentLodree sliceLodree)
 
       makePaths :: Hash -> Paths
       makePaths hash =
