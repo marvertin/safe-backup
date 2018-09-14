@@ -1,6 +1,6 @@
 {-# LANGUAGE TupleSections #-}
 
-module Main where
+module Main2 where
 
 import           Control.Monad
 import           Control.Monad
@@ -22,58 +22,34 @@ import           System.IO
 import           System.TimeIt
 import           Text.Printf
 
+import           Backup
+import           Config
+import           Context
+import           Debug
+import           DirScan
+import           Lib
+import           Log
+import           Slice
+import           SliceNameStrategy
+import           SliceToLodree
+import           SourceTree
+import           Tree
+import           TreeComparator
+import           TurboWare
+import           Types
+
+
 
 -- putStrLn "→"
 
 data Cmdline = Cmdline
-  { dir        :: String
-  , version    :: Bool
-  , optCommand :: Command
-  } deriving Show
-
-data Command
-  = Backup
-  | Restore {
-        destDir   :: String,
-        fromDir   :: String,     -- relative dir
-        checkDest :: Bool
-      }
-  | MarkDuplicities {
-        markedDir :: String
-      }
- deriving (Show)
-
+  { dir     :: String
+  , backup  :: Bool
+  , scan    :: Bool
+  , version :: Bool
+  }
 
 yabaProgramInstallDir = "This value direct to use yaba isntall directory"
-
-backupOptions :: Parser Command
-backupOptions = pure Backup
-
-restoreOptions :: Parser Command
-restoreOptions = Restore
-    <$> strOption
-        ( long "dest-dir"
-       <> metavar "DEST-DIR"
-       <> help "Destination directory for restoring data. It must exists and must be empty."
-        )
-    <*> strOption
-        ( long "from-dir"
-       <> metavar "FROM-DIR"
-       <> help "Subdirectory which you want to restore. (Default is the whole forest.)"
-       <> value ""
-        )
-    <*> switch
-        ( long "check-dest"
-       <> help "Not to check existence and emptiness of the dest directory."
-        )
-
-markDuplicitiesOptions = MarkDuplicities
-    <$> strOption
-        ( long "marked-dir"
-       <> metavar "MARKED-DIR"
-       <> help "Directory in which the duplicities will be marked by renaming files allready backed up."
-        )
-
 
 cmdline :: Parser Cmdline
 cmdline = Cmdline
@@ -85,13 +61,14 @@ cmdline = Cmdline
          <> value yabaProgramInstallDir
             )
       <*> switch
+          ( long "backup"
+         <> help "Back up your files." )
+      <*> switch
+          ( long "scan"
+         <> help "Only scans backup folder and create indexes" )
+      <*> switch
           ( long "version"
          <> help "Display version" )
-      <*> hsubparser
-          (  command "backup" (info backupOptions ( progDesc "Backup your system" ))
-          <> command "restore" (info restoreOptions ( progDesc "Restore backed up files" ))
-          <> command "find-duuplicities" (info markDuplicitiesOptions ( progDesc "Find duplicities in another directory" ))
-          )
 
 main = do
   setLocaleEncoding utf8
@@ -109,8 +86,24 @@ main' = doBackup =<< execParser opts
 
 
 doBackup :: Cmdline -> IO ExitCode
-doBackup x = do
-  print x
+doBackup (Cmdline _ _ _ True) = do
+  putStrLn $ "yaba " ++ showVersion Paths_yaba.version ++ " - yeat another backup"
+  (pathWithProgram, _) <- SEE.splitExecutablePath
   return ExitSuccess
+doBackup (Cmdline enteredBackupDir True _ _) = do
+  (pathWithProgram, _) <- SEE.splitExecutablePath
+  backupDirAbs <- makeAbsolute $
+   if enteredBackupDir == yabaProgramInstallDir then pathWithProgram
+                                                else enteredBackupDir
+
+  putStrLn $ "Backing up to \"" ++ backupDirAbs
+  withContext backupDirAbs  cmdBackup
+  -- (showVersion Paths_yaba.version)
+
+
+  --let sourceOfMainTree = "./test/data/case3/source-of-maintree"
+  -- backup backupDir [("maintree", sourceOfMainTree)]
+  --putStrLn $ " Back up finished "
+doBackup _  = return (ExitFailure 5)
 
 -- putStrLn $ "Backup, " ++ h ++ replicate n '!'
