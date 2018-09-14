@@ -9,14 +9,14 @@
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE StandaloneDeriving         #-}
 
-module Slice
+module Yaba.Data.Slicin
     (
     formatMetaFileHeader,
     parseMetaFile,
     SliceFile(..),
-    SliceTree(..),
+    Slicin(..),
     SliceCmd(..),
-    AnchoredSliceTree
+    AnchoredSlicin
     ) where
 
 import           Control.Exception
@@ -49,8 +49,8 @@ import           GHC.Generics
 
 
 
-type SliceTree = DirTree SliceFile
-type AnchoredSliceTree = AnchoredDirTree SliceFile
+type Slicin = DirTree SliceFile
+type AnchoredSlicin = AnchoredDirTree SliceFile
 
 
 data SliceFile = RegularFile Ree FilePath
@@ -72,11 +72,11 @@ parseMetaFile fileContent = (parse . lines) fileContent
 formatMetaFileHeader :: SliceCmd -> [String]
 formatMetaFileHeader x = ["#yaba1", show x]
 
-isSliceRegularFile :: SliceTree -> Bool
+isSliceRegularFile :: Slicin -> Bool
 isSliceRegularFile (File _ (RegularFile _ _)) = True
 isSliceRegularFile _                          = False
 
-isSliceMetaFile :: SliceTree -> Bool
+isSliceMetaFile :: Slicin -> Bool
 isSliceMetaFile (File _ (MetaFile _)) = True
 isSliceMetaFile _                     = False
 
@@ -91,12 +91,12 @@ printSliceFile2 (MetaFile _)                 = Nothing
 
 --------------------------------------------------------
 
-instance Dumpable SliceTree where
+instance Dumpable Slicin where
   toDump = dirTreeToStringList printSliceFile
 
-deriving instance Generic SliceTree
-deriving instance ToJSON SliceTree
-deriving instance FromJSON SliceTree
+deriving instance Generic Slicin
+deriving instance ToJSON Slicin
+deriving instance FromJSON Slicin
 
 
 -- deriving instance Generic IOException
@@ -120,19 +120,19 @@ instance FromJSON IOException where
   -- Instances for YAML
 
 {-
-instance ToJSON SliceTree where
+instance ToJSON Slicin where
      toJSON (File _ x)   = toJSON (show x)
      toJSON (Dir _ list) = toJSON $ M.fromList (tupl <$> list)
        where
         tupl q@(File name _) = (name, q)
         tupl q@(Dir name _)  = (name, q)
 
-instance FromJSON SliceTree where
-  parseJSON :: Value -> Parser SliceTree
+instance FromJSON Slicin where
+  parseJSON :: Value -> Parser Slicin
   parseJSON q@(String text)   = (File "blb" . read) <$> parseJSON q
   parseJSON q@(Object object) = (Dir "blbe" . mapConvert) <$> mapM parseJSON object
    where
-    mapConvert :: HM.HashMap Text SliceTree -> [SliceTree]
+    mapConvert :: HM.HashMap Text Slicin -> [Slicin]
     mapConvert  =  fmap snd . HM.toList
 
 

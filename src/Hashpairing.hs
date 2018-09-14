@@ -3,8 +3,6 @@
 {-# LANGUAGE RecordWildCards   #-}
 
 module Hashpairing (
-    -- flattenRees,
-    -- flattenLodrees,
     createMapOfHashes,
     createMapOfHashes',
 

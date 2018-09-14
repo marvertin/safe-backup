@@ -1,9 +1,9 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
-module Yaba.Data.SliceWritten (
-  BackupTree,
-  AnchoredBackupTree,
+module Yaba.Data.Slicout (
+  Slicout,
+  AnchoredSlicout,
   Cmd(..),
   Paths(..),
   Info(..)
@@ -23,8 +23,8 @@ data Info = Info Hash Paths Lodree  deriving (Show) -- gives information only to
 data Cmd = Insert Integer UTCTime | Delete Info | Link FilePath Info  deriving (Show)
 data Paths = Paths { pathsNew :: [FilePath], pathsLast:: [FilePath], pathsHistory :: [FilePath] }  deriving (Show)
 
-type BackupTree = DirTree Cmd
-type AnchoredBackupTree = AnchoredDirTree Cmd
+type Slicout = DirTree Cmd
+type AnchoredSlicout = AnchoredDirTree Cmd
 
 
 
@@ -37,7 +37,7 @@ instance Dumpable Cmd where
           tostra x             = show x
 
 
-instance Dumpable BackupTree where
+instance Dumpable Slicout where
   toDump = dirTreeToStringList printCmd
 
 printCmd :: Cmd ->  Maybe String

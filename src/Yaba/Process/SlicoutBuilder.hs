@@ -2,7 +2,7 @@
 {-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
-module BackupTreeBuilder (
+module Yaba.Process.SlicoutBuilder (
   buildBackup,
   sizeToBackup,
   countsToBackup,
@@ -10,30 +10,29 @@ module BackupTreeBuilder (
 
 
 import           Control.Arrow
-import           Data.List              (mapAccumL)
-import qualified Data.Map               as M
+import           Data.List                   (mapAccumL)
+import qualified Data.Map                    as M
 import           Data.Maybe
 import           Debug.Trace
 import           Debug.Trace
-import           DirScan                (RevPath, pth)
+import           DirScan                     (RevPath, pth)
 import           Dump
 import           Hashpairing
 import           Lib
-import           SliceToLodree
 import           System.Directory.Tree
-import           TreeComparator
 import           TurboWare
 import           Types
 import           Yaba.Data.Differences
 import           Yaba.Data.Lodree
-import           Yaba.Data.SliceWritten
+import           Yaba.Data.Slicout
+import           Yaba.Process.TreeComparator
 
 
-mapCall :: (RevPath -> a -> BackupTree ) -> RevPath -> [(FileName, a)] -> [BackupTree]
+mapCall :: (RevPath -> a -> Slicout ) -> RevPath -> [(FileName, a)] -> [Slicout]
 mapCall fce revpath = map (uncurry fce . (first (:revpath)))
 
 
-buildBackup :: Lodree -> Lodree ->  FileName -> Maybe (DirCompare, BackupTree)
+buildBackup :: Lodree -> Lodree ->  FileName -> Maybe (Differences, Slicout)
 buildBackup sliceLodree surceLodree outputDir =
   let
       sliceHashes = createMapOfHashes' sliceLodree
@@ -45,7 +44,7 @@ buildBackup sliceLodree surceLodree outputDir =
         let find  set = maybe [] fst (M.lookup hash set)
         in Paths (find sourceHashes) (find currentSliceHashes) (find sliceHashes)
 
-      bFromLodree :: RevPath -> Lodree -> BackupTree
+      bFromLodree :: RevPath -> Lodree -> Slicout
       bFromLodree revpath@(name:_) lodree =
         let hash = hashLodree lodree
         in
@@ -59,16 +58,16 @@ buildBackup sliceLodree surceLodree outputDir =
                             Just pathToLink -> File name $ Link ("/" ++ outputDir ++ pathToLink) $ Info hash paths lodree
           Just (path: _, lodree2) -> File name $ Link path $ Info hash (makePaths hash) lodree2
 
-      bFromDirCompare :: RevPath -> DirCompare -> BackupTree
-      bFromDirCompare (name:_) (QLeft lodree)   = let hash = hashLodree lodree in File name $ Delete $ Info hash (makePaths hash) lodree
-      bFromDirCompare revpath (QRight lodree)  = bFromLodree revpath lodree
-      bFromDirCompare revpath (QBoth _ lodree) = bFromLodree revpath lodree
-      bFromDirCompare revpath@(name:_) (QDir list) = Dir name (mapCall bFromDirCompare  revpath list)
+      bFromDifferences :: RevPath -> Differences -> Slicout
+      bFromDifferences (name:_) (QLeft lodree)   = let hash = hashLodree lodree in File name $ Delete $ Info hash (makePaths hash) lodree
+      bFromDifferences revpath (QRight lodree)  = bFromLodree revpath lodree
+      bFromDifferences revpath (QBoth _ lodree) = bFromLodree revpath lodree
+      bFromDifferences revpath@(name:_) (QDir list) = Dir name (mapCall bFromDifferences  revpath list)
 
-      diff :: Maybe DirCompare
+      diff :: Maybe Differences
       diff = compareTrees (currentLodree sliceLodree) surceLodree
 
-  in  fmap (\di -> (di, bFromDirCompare [outputDir] di)) diff
+  in  fmap (\di -> (di, bFromDifferences [outputDir] di)) diff
 
 mustInsert :: RevPath -> Paths -> Maybe FilePath
 mustInsert _ (Paths [] _ _) = Nothing -- impossible
@@ -77,12 +76,12 @@ mustInsert revpath (Paths (itMustInsert:_) _ _) =
     in if path == itMustInsert then Nothing
                                else Just itMustInsert
 
-sizeToBackup :: BackupTree -> Integer
+sizeToBackup :: Slicout -> Integer
 sizeToBackup bt = sum $ fmap mapa bt
    where mapa (Insert sz _) = sz
          mapa _             = 0
 
-countsToBackup :: BackupTree -> Integer
+countsToBackup :: Slicout -> Integer
 countsToBackup bt = sum $ fmap mapa bt
   where mapa (Insert _ _) = 1
         mapa _            = 0
@@ -100,11 +99,11 @@ type MapByHash = M.Map Hash [FileName]
             toStr x = show x
 
 
-                  replaceRedundantNewFiles :: BackupTree -> BackupTree
+                  replaceRedundantNewFiles :: Slicout -> Slicout
                   replaceRedundantNewFiles =
                       let
-                        --zz :: MapByHash -> BackupTree -> (MapByHash, BackupTree)
-                        repla :: [FileName] -> MapByHash -> BackupTree -> (MapByHash, BackupTree)
+                        --zz :: MapByHash -> Slicout -> (MapByHash, Slicout)
+                        repla :: [FileName] -> MapByHash -> Slicout -> (MapByHash, Slicout)
                         repla path hm this@(File name (Insert hash)) =
                             case M.lookup hash hm of
                               Nothing   -> (M.insert hash (name:path) hm, this)

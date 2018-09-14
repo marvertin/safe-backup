@@ -38,17 +38,18 @@ import qualified Data.ByteString.UTF8  as BSU
 import qualified Data.Map              as M
 import           Data.Yaml
 import           GHC.Generics
-import           Slice
+import           Yaba.Data.Slicin
 
 
-readSlice :: EventHandler SliceTree ErrList -> FilePath -> IO (SliceTree, ErrList)
+
+readSlice :: EventHandler Slicin ErrList -> FilePath -> IO (Slicin, ErrList)
 readSlice eventHandler rootDir =
     scanDirectory mkDir filterFilesInRoot readSFile eventHandler
         (replaceVerticalToSlashes rootDir) -- >>= ((takeDirectory rootDir ):/)
   where
     -- rootDir1 = (takeFileName . takeDirectory) rootDir ++ "|" ++ takeFileName rootDir -- it os not filename but root directory
     rootDir1 = takeFileName rootDir -- it is not filename but root directory
-    readSFile :: RevPath -> IO SliceTree
+    readSFile :: RevPath -> IO Slicin
     readSFile rp = File (head rp) <$> loadSliceFile rootDir rp
 
     mkDir rp list = Dir (safeHead rootDir1 rp) (filter (not . isEmptyDir) . fmap snd $ list)
@@ -70,16 +71,16 @@ loadSliceFile rootPath rp = do
           else (MetaFile . parseMetaFile . T.unpack) <$> TIO.readFile realPath
 
 
-totalDirSize :: SliceTree -> FileSize
+totalDirSize :: Slicin -> FileSize
 totalDirSize = sum . fmap size0
   where
     size0 :: SliceFile -> FileSize
     size0 (MetaFile _)            = 100 -- odhadnout
     size0 (RegularFile Ree{..} _)=rsize
 
-totalFilesCount :: SliceTree -> Int
+totalFilesCount :: Slicin -> Int
 totalFilesCount = sum . fmap (const 1)
 
-isEmptyDir :: SliceTree -> Bool
+isEmptyDir :: Slicin -> Bool
 isEmptyDir (Dir _ []) = True
 isEmptyDir _          = False

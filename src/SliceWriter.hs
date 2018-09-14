@@ -13,7 +13,7 @@ import           Control.Monad
 import           Data.Counter
 import           Data.IORef
 import           Data.List
-import qualified Data.Map               as M
+import qualified Data.Map              as M
 import           Data.Time.Clock
 import           System.Directory
 import           System.Directory.Tree
@@ -23,19 +23,19 @@ import           System.IO
 import           Text.Printf
 
 
---import           BackupTreeBuilder
+--import           SlicoutBuilder
 import           Config
-import qualified Data.ByteString.Lazy   as BS
+import qualified Data.ByteString.Lazy  as BS
 import           Dump
 import           Lib
 import           Log
-import           Slice
 import           TurboWare
 import           Types
-import           Yaba.Data.SliceWritten as YDS
+import           Yaba.Data.Slicin      as YDSI
+import           Yaba.Data.Slicout     as YDSO
 
 -- | Write backu. returns (count of copies files, sizue of set files, count of metafiles)
-writeBackup :: Log -> AnchoredBackupTree -> ForestDef ->  IO (AnchoredDirTree (Int, Integer, Int))
+writeBackup :: Log -> AnchoredSlicout -> ForestDef ->  IO (AnchoredDirTree (Int, Integer, Int))
 writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
         let (Dir _ subdirs) = (first replaceWithSorucePath) <$> zipPaths ("" :/ bt)
         counters <- newIORef mempty
@@ -71,12 +71,12 @@ writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
            return (0,0,1)
 
 showCmd :: Cmd ->  String
-showCmd (YDS.Insert {}) = "<insert>"
-showCmd (YDS.Delete {}) = "<delete>"
-showCmd (YDS.Link fp _) = "<link \"" ++ fp ++  "\" >"
+showCmd (YDSO.Insert {}) = "<insert>"
+showCmd (YDSO.Delete {}) = "<delete>"
+showCmd (YDSO.Link fp _) = "<link \"" ++ fp ++  "\" >"
 
 
-modificationTimes :: BackupTree ->  M.Map FilePath UTCTime
+modificationTimes :: Slicout ->  M.Map FilePath UTCTime
 modificationTimes bt = M.fromList . sort $ foldMap extractTime (zipPaths' bt)
   where
      extractTime (fp, (Insert _ time)) = [(fp, time)]
@@ -96,8 +96,8 @@ formatCmd cmd = unlines $ concat $ [
      title "Operation",
      [yabaFilePrefix cmd],
      case cmd of
-           Link _ info     -> formatInfo info
-           YDS.Delete info -> formatInfo info
+           Link _ info      -> formatInfo info
+           YDSO.Delete info -> formatInfo info
   ]
 
 formatInfo :: Info -> [String]
@@ -115,18 +115,18 @@ formatInfo (Info hash Paths{..} lodree)  = concat [
     toDump lodree
    ]
 
-countCounters :: BackupTree -> Counter String Int
+countCounters :: Slicout -> Counter String Int
 countCounters = count . (foldMap (return . yabaFilePrefix))
 
 
 yabaFilePrefix :: Cmd -> String
-yabaFilePrefix (YDS.Delete (Info _ (Paths {pathsNew=[]}) _ ))= "~DELETE~"
-yabaFilePrefix (YDS.Delete _)= "~MOVE-AWAY~"
-yabaFilePrefix (YDS.Link _ (Info _ (Paths {pathsHistory=[]}) _ ))= "~N-LINK~"
-yabaFilePrefix (YDS.Link _ _)   = "~LINK~"
-yabaFilePrefix (YDS.Insert{})   = "~INSERT~"
+yabaFilePrefix (YDSO.Delete (Info _ (Paths {pathsNew=[]}) _ ))= "~DELETE~"
+yabaFilePrefix (YDSO.Delete _)= "~MOVE-AWAY~"
+yabaFilePrefix (YDSO.Link _ (Info _ (Paths {pathsHistory=[]}) _ ))= "~N-LINK~"
+yabaFilePrefix (YDSO.Link _ _)   = "~LINK~"
+yabaFilePrefix (YDSO.Insert{})   = "~INSERT~"
 -- yabaFilePrefix _ = "~IMPOSSIBLE~"
 
 convertToSliceCmd :: Cmd -> SliceCmd
-convertToSliceCmd (YDS.Link  x _) = Slice.PhysicalLink x
-convertToSliceCmd (YDS.Delete _ ) = Slice.Delete
+convertToSliceCmd (YDSO.Link  x _) = YDSI.PhysicalLink x
+convertToSliceCmd (YDSO.Delete _ ) = YDSI.Delete

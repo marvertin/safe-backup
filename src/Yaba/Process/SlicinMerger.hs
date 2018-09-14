@@ -2,7 +2,7 @@
 {-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module SliceToLodree (
+module Yaba.Process.SlicinMerger (
   mergeToLodree,
   mergesToLodree,
 ) where
@@ -19,19 +19,19 @@ import           Data.Maybe
 import           Data.Yaml
 import           GHC.Generics
 import           Lib
-import           Slice
 import           System.Directory.Tree (DirTree (Dir, File), FileName)
 import           System.FilePath
 import           TurboWare
 import           Types
 import           Yaba.Data.Lodree
+import           Yaba.Data.Slicin
 
 
 
-mergesToLodree :: Lodree -> [SliceTree] -> Lodree
+mergesToLodree :: Lodree -> [Slicin] -> Lodree
 mergesToLodree = foldl mergeToLodree
 
-mergeToLodree :: Lodree -> SliceTree -> Lodree
+mergeToLodree :: Lodree -> Slicin -> Lodree
 mergeToLodree lodree sliceTree =
    let mergeSliceTo = flip merge1 sliceTree -- functio
    -- must be 2 times applied due to resolve duplicities added in previews
@@ -39,7 +39,7 @@ mergeToLodree lodree sliceTree =
    in (dropPenuliamate . mergeSliceTo . mergeSliceTo) lodree
  where dropPenuliamate (LDir _ (last' : _ : rest)) = makeLDir (last': rest)
 
-merge1 :: Lodree -> SliceTree -> Lodree
+merge1 :: Lodree -> Slicin -> Lodree
 merge1 rootLodree rootDirTree = let
 --     x = 0
        rootList (LDir _ list) =  list
@@ -47,7 +47,7 @@ merge1 rootLodree rootDirTree = let
     in  makeLDir ((fileNamex rootDirTree, newLodree) : rootList rootLodree)
     --in  LDir (DRee 0 0 Strict.empty) [ (rootList rootLodree)
   where
-    merge' :: Maybe Lodree -> Maybe SliceTree -> Maybe Lodree
+    merge' :: Maybe Lodree -> Maybe Slicin -> Maybe Lodree
     merge' Nothing Nothing = Nothing
     merge' Nothing dirtree = merge' (Just emptyLodree) dirtree -- nemámeli složku, stvoříme ji
     merge' lodree Nothing = lodree
@@ -65,13 +65,13 @@ merge1 rootLodree rootDirTree = let
                      else Just (makeLDir ra)
 
 ------------------------------------ private -------------------------
-pairDirs :: [(FileName, Lodree)] -> [SliceTree]
-             -> [(FileName, Maybe Lodree, Maybe (SliceTree))]
+pairDirs :: [(FileName, Lodree)] -> [Slicin]
+             -> [(FileName, Maybe Lodree, Maybe (Slicin))]
 pairDirs lodree2 dirtree =
     let preZiped = zipMaybe fst pickPureFordName lodree2 dirtree
     in map (\(name, lodree, dirtree) -> (name, snd <$> lodree, dirtree)) preZiped
 
-filterOutYaba :: [SliceTree] -> [SliceTree]
+filterOutYaba :: [Slicin] -> [Slicin]
 filterOutYaba fulllist = let
     list = filter (isJust . extractPureFordName . fileNamex ) fulllist -- jen správně udělaná yaba fajly
     (yabaall, regular) = partition isMetaFile list
@@ -101,7 +101,7 @@ extractPureFordName _ = Nothing
 pickPureFordName :: DirTree a -> FileName
 pickPureFordName = fromJust . extractPureFordName . fileNamex  -- function returning name in yaba and no yaba files
 
-isMetaFile :: SliceTree -> Bool
+isMetaFile :: Slicin -> Bool
 isMetaFile (File _ (MetaFile _)) = True
 isMetaFile _                     = False
 

@@ -11,7 +11,7 @@ import           Control.Monad
 import           Data.Bifunctor
 import           Data.Counter
 import           Data.List
-import qualified Data.Map               as M
+import qualified Data.Map                    as M
 import           Data.Time.Clock
 import           Data.Tuple
 import           Data.Yaml
@@ -23,7 +23,6 @@ import           System.IO
 import           Text.Printf
 import           Text.RawString.QQ
 
-import           BackupTreeBuilder
 import           Config
 import           Context
 import           DirScan
@@ -32,18 +31,19 @@ import           Ignorances
 import           Lib
 import           Log
 import           RestoreScript
-import           Slice
 import           SliceNameStrategy
 import           SliceScaner
-import           SliceToLodree
 import           SliceWriter
 import           SourceTree
-import           TreeComparator
 import           TurboWare
 import           Types
 import           Yaba.Data.Differences
 import           Yaba.Data.Lodree
-import           Yaba.Data.SliceWritten
+import           Yaba.Data.Slicin
+import           Yaba.Data.Slicout
+import           Yaba.Process.SlicinMerger
+import           Yaba.Process.SlicoutBuilder
+import           Yaba.Process.TreeComparator
 
 
 
@@ -104,13 +104,13 @@ scanSlices ctx@Ctx{..} = do
         createDirectoryIfMissing True (takeDirectory sliceIndexPath)
         doesFileExist sliceIndexPath >>=
           (\exists -> if exists then do
-                                   slice <- (decodeFileThrow sliceIndexPath :: IO SliceTree)
+                                   slice <- (decodeFileThrow sliceIndexPath :: IO Slicin)
                                    return (slice, ErrList [])
                                 else do
                                    (slice, errs) <- readSlice (getEventHandler tmStart lo) (dataRoot </> name)
                                    when (null . getErrList $ errs)  $ do -- write index only whne there are no errors
                                      encodeFile sliceIndexTempPath slice
-                                     slice2 <- (decodeFileThrow sliceIndexTempPath :: IO SliceTree)
+                                     slice2 <- (decodeFileThrow sliceIndexTempPath :: IO Slicin)
                                      if (slice == slice2)
                                         then do
                                                renameFile sliceIndexTempPath sliceIndexPath
@@ -165,7 +165,7 @@ scanSources ctx@Ctx{..} = do
   lo Summary $ printf "forest of %d trees %s (%s)" (length forest) (showRee (ree lodreeSourceAllNodes)) (showDiffTm tmEnd tmStart)
   return (lodreeSourceAllNodes, failusSurces)
 
-compareSlicesToSources :: Ctx -> Lodree -> Lodree -> IO (Maybe (DirCompare, BackupTree))
+compareSlicesToSources :: Ctx -> Lodree -> Lodree -> IO (Maybe (Differences, Slicout))
 compareSlicesToSources ctx@Ctx{..} rootLodree lodreeSourceAllNodes = do
   lo Inf "Phase 3/4 - comparing slices and source forest"
   tmStart <- getCurrentTime
@@ -182,7 +182,7 @@ compareSlicesToSources ctx@Ctx{..} rootLodree lodreeSourceAllNodes = do
   lo Inf $ showPhaseTime tmEnd tmStart
   return resulta
 
-copyFiles :: Ctx -> Maybe BackupTree -> IO [String]
+copyFiles :: Ctx -> Maybe Slicout -> IO [String]
 copyFiles ctx@Ctx{..} resulta = do
   lo Inf $ "Phase 4/4 - copying files to new slice"
   tmStart <- getCurrentTime
@@ -216,7 +216,7 @@ showSuccess = [r|---------------------------------------------------------
 *** OK *** OK *** OK *** SUCCESS *** OK *** OK *** OK ***
 |]
 
-formatDiffResult :: DirCompare -> String
+formatDiffResult :: Differences -> String
 formatDiffResult  compareResult =
   let ((cl, sl), (cr, sr)) = diffCountAndSizes compareResult
   in printf "    deleted (%d #, %4.3f MB), inserted (%d #, %4.3f MB), diff (%d #, %4.3f MB)"

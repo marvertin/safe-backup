@@ -4,23 +4,22 @@
 
 module SourceTree (
  readSourceTree,
- scanDirectoryTest,
  CacheHash
 ) where
 
-import qualified Crypto.Hash.SHA1      as Cr
+import qualified Crypto.Hash.SHA1          as Cr
 
 import           Control.Exception
-import qualified Data.ByteString       as Strict
-import qualified Data.ByteString.UTF8  as BSU
+import qualified Data.ByteString           as Strict
+import qualified Data.ByteString.UTF8      as BSU
 import           Data.Function
 import           Data.List
-import qualified Data.Map              as M
+import qualified Data.Map                  as M
 import           Data.Maybe
 import           Data.Time.Clock
 import           System.Directory
-import           System.Directory.Tree (AnchoredDirTree (..),
-                                        DirTree (Dir, File), FileName)
+import           System.Directory.Tree     (AnchoredDirTree (..),
+                                            DirTree (Dir, File), FileName)
 import           System.FilePath
 import           System.IO
 
@@ -30,13 +29,13 @@ import           Ignorances
 import           Lib
 import           Log
 import           SliceScaner
-import           SliceToLodree
 import           TurboWare
 import           Types
 import           Yaba.Data.Lodree
+import           Yaba.Process.SlicinMerger
 
 
-import qualified Data.ByteString.Lazy  as Lazy
+import qualified Data.ByteString.Lazy      as Lazy
 
 type CacheHash = M.Map RevPath Ree
 
@@ -64,25 +63,3 @@ readSourceTree lo cacheHash ignorance rootDir = do
                  Just ree@Ree{..} -> if size == rsize && time == rtime
                                          then return ree
                                          else loadFileRee path
-
-
-
-scanDirectoryTest :: FilePath -> IO ()
--- scanDirectory = scanDirectory'' (\y b -> ()) (const True) (return . const ())
-scanDirectoryTest path = do
-   startTime <- getCurrentTime
-   result <- scanDirectory (\rp list -> sum $ fmap snd list) (\rp -> True)
-                readAndCountBytes
-                (stdOutLoggingEventHanler startTime)
-                path
-   putStrLn "Hotovo"
-   where
-     readAndCountBytes :: RevPath -> IO Integer
-     readAndCountBytes revpath = do
-       h <- openFile  (path </> pth revpath) ReadMode
-       hSetBuffering h (BlockBuffering $ Just 100000)
-       -- print (path </> (pth revpath))
-       --dataa <- Lazy.readFile (path </> (pth revpath))
-       --evaluate $ fromIntegral (Lazy.length dataa)
-       dataa <- Lazy.hGetContents h
-       evaluate $ fromIntegral (Lazy.length dataa)

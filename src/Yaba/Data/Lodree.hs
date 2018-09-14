@@ -132,7 +132,7 @@ instance ToJSON Lodree where
 -- The rest of this modul is for DEBUGING purpose only - it is dump
 --
 instance Dumpable Lodree where
-  -- toDump :: DirCompare -> [String]
+  -- toDump :: Differences -> [String]
 
   toDump :: Lodree -> [String]
   toDump (LFile ree _) = [printRee ree]
