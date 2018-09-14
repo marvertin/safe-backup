@@ -1,4 +1,5 @@
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE TupleSections  #-}
 
 module Main where
 
@@ -22,18 +23,18 @@ import           System.IO
 import           System.TimeIt
 import           Text.Printf
 
+import           Backup
+import           Context
 
 data Options =
-  GoCmdline Cmdlinex | Version | NoArgs
+  NormalCommand   { dir    :: String
+              , optCommand :: Command
+              }
+  | Version
+  | NoArgs
   deriving Show
 
 -- putStrLn "→"
-
-data Cmdlinex = Cmdliney
-  { dir        :: String
---  , version    :: Bool
-  , optCommand :: Command
-  } deriving Show
 
 data WhichSlice
   = JustSlice String
@@ -102,8 +103,8 @@ markDuplicitiesOptions = MarkDuplicities
         )
 
 
-cmdline :: Parser Cmdlinex
-cmdline = Cmdliney
+normalCommand :: Parser Options
+normalCommand = NormalCommand
       <$> strOption
           ( long "dir"
          <> short 'd'
@@ -122,7 +123,7 @@ cmdline = Cmdliney
 
 options :: Parser Options
 options =
-     GoCmdline <$> cmdline
+         normalCommand
      <|> flag' Version
              ( long "version"
             <> help "Display version")--      <*> switch
@@ -137,7 +138,7 @@ main = do
   exitWith exitCode
 
 main' :: IO ExitCode
-main' = doBackup =<< execParser opts
+main' = doProcessing =<< execParser opts
  where
    opts = info (options <**> helper)
      ( fullDesc
@@ -145,9 +146,29 @@ main' = doBackup =<< execParser opts
     <> header "yaba - yeat another backup" )
 
 
-doBackup :: Options -> IO ExitCode
-doBackup x = do
-  print x
+doProcessing :: Options -> IO ExitCode
+
+doProcessing Version = do
+  putStrLn $ "yaba " ++ showVersion Paths_yaba.version ++ " - yeat another backup"
   return ExitSuccess
+
+doProcessing NoArgs = do
+  hPutStrLn stderr "NOARGS not implemented yeat"
+  return $ ExitFailure 10
+
+doProcessing NormalCommand{dir = enteredBackupDir, optCommand} = do
+  (pathWithProgram, _) <- SEE.splitExecutablePath
+  backupDirAbs <- makeAbsolute $
+     if enteredBackupDir == yabaProgramInstallDir then pathWithProgram
+                                                  else enteredBackupDir
+  case optCommand of
+    Backup -> do
+      putStrLn $ "Backing up to \"" ++ backupDirAbs
+      withContext backupDirAbs cmdBackup
+    _ -> do
+      hPutStrLn stderr $ "NOT IMPLEMENTED: " ++ (show optCommand)
+      return $ ExitFailure 10
+
+
 
 -- putStrLn $ "Backup, " ++ h ++ replicate n '!'

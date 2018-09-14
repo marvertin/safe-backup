@@ -70,7 +70,7 @@ cmdline = Cmdline
           ( long "version"
          <> help "Display version" )
 
-main = do
+xmain = do
   setLocaleEncoding utf8
   putStrLn $ "yaba " ++ showVersion Paths_yaba.version ++ " - yeat another backup"
   exitCode <- timeIt  main'
