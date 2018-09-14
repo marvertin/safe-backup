@@ -23,11 +23,15 @@ import           System.TimeIt
 import           Text.Printf
 
 
+data Options =
+  GoCmdline Cmdlinex | Version
+  deriving Show
+
 -- putStrLn "→"
 
-data Cmdline = Cmdline
+data Cmdlinex = Cmdliney
   { dir        :: String
-  , version    :: Bool
+--  , version    :: Bool
   , optCommand :: Command
   } deriving Show
 
@@ -98,8 +102,8 @@ markDuplicitiesOptions = MarkDuplicities
         )
 
 
-cmdline :: Parser Cmdline
-cmdline = Cmdline
+cmdline :: Parser Cmdlinex
+cmdline = Cmdliney
       <$> strOption
           ( long "dir"
          <> short 'd'
@@ -107,14 +111,23 @@ cmdline = Cmdline
          <> help "Directory with backup, must contains \"yaba-config.yaml\" file. (default: directory where the executable of Yaba program is)"
          <> value yabaProgramInstallDir
             )
-      <*> switch
-          ( long "version"
-         <> help "Display version" )
+--      <*> switch
+--          ( long "version"
+--         <> help "Display version" )
       <*> hsubparser
           (  command "backup" (info backupOptions ( progDesc "Backup your system" ))
           <> command "restore" (info restoreOptions ( progDesc "Restore backed up files" ))
           <> command "find-duuplicities" (info markDuplicitiesOptions ( progDesc "Find duplicities in another directory" ))
           )
+
+options :: Parser Options
+options =
+     GoCmdline <$> cmdline
+     <|> flag' Version
+             ( long "version"
+            <> help "Display version")--      <*> switch
+--          ( long "version"
+--         <> help "Display version" )
 
 main = do
   setLocaleEncoding utf8
@@ -125,13 +138,13 @@ main = do
 main' :: IO ExitCode
 main' = doBackup =<< execParser opts
  where
-   opts = info (cmdline <**> helper)
+   opts = info (options <**> helper)
      ( fullDesc
     <> progDesc "backing up structure without change and duplicity"
     <> header "yaba - yeat another backup" )
 
 
-doBackup :: Cmdline -> IO ExitCode
+doBackup :: Options -> IO ExitCode
 doBackup x = do
   print x
   return ExitSuccess
