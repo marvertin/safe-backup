@@ -25,6 +25,7 @@ import           Text.Printf
 
 import           Backup
 import           Context
+import           Types
 
 data Options =
   NormalCommand   { dir    :: String
@@ -103,14 +104,15 @@ markDuplicitiesOptions = MarkDuplicities
         )
 
 
-normalCommand :: Parser Options
-normalCommand = NormalCommand
+normalCommand :: FilePath -> Parser Options
+normalCommand defaultDir = NormalCommand
       <$> strOption
           ( long "dir"
          <> short 'd'
          <> metavar "BACKUP-DIR"
          <> help "Directory with backup, must contains \"yaba-config.yaml\" file. (default: directory where the executable of Yaba program is)"
-         <> value yabaProgramInstallDir
+         <> value defaultDir
+         <> showDefault
             )
 --      <*> switch
 --          ( long "version"
@@ -121,9 +123,9 @@ normalCommand = NormalCommand
           <> command "find-duuplicities" (info markDuplicitiesOptions ( progDesc "Find duplicities in another directory" ))
           )
 
-options :: Parser Options
-options =
-         normalCommand
+options :: FilePath -> Parser Options
+options defaultDir =
+         normalCommand defaultDir
      <|> flag' Version
              ( long "version"
             <> help "Display version")--      <*> switch
@@ -138,12 +140,14 @@ main = do
   exitWith exitCode
 
 main' :: IO ExitCode
-main' = doProcessing =<< execParser opts
- where
-   opts = info (options <**> helper)
-     ( fullDesc
-    <> progDesc "backing up structure without change and duplicity"
-    <> header "yaba - yeat another backup" )
+main' = do
+   (pathWithProgram, _) <- SEE.splitExecutablePath
+   let opts = info ((options pathWithProgram) <**> helper)
+          ( fullDesc
+         <> progDesc "backing up structure without change and duplicity"
+         <> header "yaba - yeat another backup" )
+
+   doProcessing =<< execParser opts
 
 
 doProcessing :: Options -> IO ExitCode
@@ -153,8 +157,18 @@ doProcessing Version = do
   return ExitSuccess
 
 doProcessing NoArgs = do
-  hPutStrLn stderr "NOARGS not implemented yeat"
-  return $ ExitFailure 10
+  (pathWithProgram, _) <- SEE.splitExecutablePath
+  isHereConfig <- doesFileExist (pathWithProgram ++ "/" ++ configFileName)
+  if isHereConfig then do
+    exitCode <- withContext pathWithProgram cmdBackup
+    isTerm <- hIsTerminalDevice stdout
+    when (isTerm) $ do
+      putStrLn "\nPress ENTER to continue."
+      getLine >> return ()
+    return exitCode
+  else do
+    putStrLn "No config no args .... kecy"
+    return ExitSuccess
 
 doProcessing NormalCommand{dir = enteredBackupDir, optCommand} = do
   (pathWithProgram, _) <- SEE.splitExecutablePath
@@ -162,13 +176,7 @@ doProcessing NormalCommand{dir = enteredBackupDir, optCommand} = do
      if enteredBackupDir == yabaProgramInstallDir then pathWithProgram
                                                   else enteredBackupDir
   case optCommand of
-    Backup -> do
-      putStrLn $ "Backing up to \"" ++ backupDirAbs
-      withContext backupDirAbs cmdBackup
+    Backup -> withContext backupDirAbs cmdBackup
     _ -> do
       hPutStrLn stderr $ "NOT IMPLEMENTED: " ++ (show optCommand)
       return $ ExitFailure 10
-
-
-
--- putStrLn $ "Backup, " ++ h ++ replicate n '!'
