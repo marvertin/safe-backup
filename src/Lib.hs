@@ -8,14 +8,14 @@ module Lib
       deAnchore,
       splitByChar,
       computeFileHash,
-      loadFileRee,
       sizeInMb,
-      showRee,
       showSz,
-      showDiffTm
+      showDiffTm,
+      zipPaths',
 
     ) where
 
+import           Control.Arrow
 import           Control.Exception
 import           Control.Monad
 import qualified Crypto.Hash.SHA1      as Cr
@@ -76,14 +76,8 @@ splitByChar z xs = let (s1, s2) = span (/=z) xs
 computeFileHash :: FilePath -> IO Strict.ByteString
 computeFileHash = (fmap Cr.hashlazy . Lazy.readFile)  >=> evaluate
 
-loadFileRee :: FilePath -> IO Ree
-loadFileRee f = Ree 1 <$> getFileSize f <*> getModificationTime f <*> computeFileHash f
-
 sizeInMb :: Integer -> Double
 sizeInMb x =  fromIntegral x / 1024 / 1024
-
-showRee :: Ree -> String
-showRee Ree{..} = printf "%d files, %s" rcount (showSz rsize)
 
 showSz ::  Integral a  => a -> String
 showSz sz = let (x, m) = head . dropWhile (\(q, _) ->  q > 1024.0)
@@ -91,5 +85,10 @@ showSz sz = let (x, m) = head . dropWhile (\(q, _) ->  q > 1024.0)
             in printf "%4.3f %s" (x :: Double) m
   where qs size = size : qs (size / 1024.0)
 
+
 showDiffTm :: UTCTime -> UTCTime -> String
 showDiffTm endTime startTime = show (diffUTCTime endTime startTime)
+
+zipPaths' :: DirTree a -> DirTree (FilePath, a)
+zipPaths' (Dir _ list) = let dir = Dir "" list
+                         in (first replaceBacklashesToSlashes) <$> zipPaths ("" :/ dir)

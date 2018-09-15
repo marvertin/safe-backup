@@ -26,6 +26,7 @@ import           Text.Printf
 import           Backup
 import           Context
 import           Types
+import           Yaba.IO.FileNamesC
 
 data Options =
   NormalCommand   { dir    :: String

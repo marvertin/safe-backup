@@ -7,8 +7,8 @@ module RestoreScript (
 import           Control.Monad
 import           Data.Bifunctor
 import           Data.List
-import qualified Data.Map         as M
-import qualified Data.Set         as S
+import qualified Data.Map           as M
+import qualified Data.Set           as S
 import           Data.Yaml
 import           System.Directory
 
@@ -18,6 +18,7 @@ import           Text.Printf
 import           TurboWare
 import           Types
 import           Yaba.Data.Lodree
+import           Yaba.IO.FileNamesC
 
 data Cmd = MkDir | CpFile FilePath (Maybe UTCTime) deriving (Show, Eq, Ord)
 

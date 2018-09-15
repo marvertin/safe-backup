@@ -4,8 +4,6 @@
 
 module Yaba.Process.SlicoutBuilder (
   buildBackup,
-  sizeToBackup,
-  countsToBackup,
 ) where
 
 
@@ -75,21 +73,12 @@ mustInsert revpath (Paths (itMustInsert:_) _ _) =
     in if path == itMustInsert then Nothing
                                else Just itMustInsert
 
-sizeToBackup :: Slicout -> Integer
-sizeToBackup bt = sum $ fmap mapa bt
-   where mapa (Insert sz _) = sz
-         mapa _             = 0
-
-countsToBackup :: Slicout -> Integer
-countsToBackup bt = sum $ fmap mapa bt
-  where mapa (Insert _ _) = 1
-        mapa _            = 0
-
-type MapByHash = M.Map Hash [FileName]
 
 
 
 {-
+type MapByHash = M.Map Hash [FileName]
+
     toDump x = [tostr x]
       where tostr (Insert hash) = "Insert  " ++ toHexStr hash
             toStr x = show x

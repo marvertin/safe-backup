@@ -2,24 +2,20 @@
 {-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module SourceTree (
+module Yaba.IO.SourceScaner (
  readSourceTree,
- CacheHash
 ) where
 
-import qualified Crypto.Hash.SHA1          as Cr
 
 import           Control.Exception
-import qualified Data.ByteString           as Strict
-import qualified Data.ByteString.UTF8      as BSU
+import qualified Data.ByteString      as Strict
+import qualified Data.ByteString.UTF8 as BSU
 import           Data.Function
 import           Data.List
-import qualified Data.Map                  as M
+import qualified Data.Map             as M
 import           Data.Maybe
 import           Data.Time.Clock
 import           System.Directory
-import           System.Directory.Tree     (AnchoredDirTree (..),
-                                            DirTree (Dir, File), FileName)
 import           System.FilePath
 import           System.IO
 
@@ -28,16 +24,14 @@ import           DirScan
 import           Ignorances
 import           Lib
 import           Log
-import           SliceScaner
 import           TurboWare
 import           Types
 import           Yaba.Data.Lodree
-import           Yaba.Process.SlicinMerger
+import           Yaba.Data.Ree
 
 
-import qualified Data.ByteString.Lazy      as Lazy
+import qualified Data.ByteString.Lazy as Lazy
 
-type CacheHash = M.Map RevPath Ree
 
 getEventHandler :: UTCTime -> Log -> (EventEnvelop a ErrList -> IO ErrList, ErrList)
 getEventHandler time lo  = (logInScan time lo, ErrList [])

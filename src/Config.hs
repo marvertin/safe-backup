@@ -36,7 +36,7 @@ import           SliceNameStrategy         (SliceNameStrategy,
                                             checkSliceNamePattern,
                                             defaultSliceNameStrategy)
 import           Types
-
+import           Yaba.IO.FileNamesC
 data TreeDef = TreeDef { tdName :: String, tdPath :: FilePath, tdPatterns :: IgnoranceDef} deriving (Show)
 type ForestDef = [TreeDef]
 

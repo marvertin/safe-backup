@@ -1,16 +1,13 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections   #-}
 
-module SliceWriter (
+module Yaba.IO.SlicoutWriter (
   writeBackup,
-  countCounters,
-  modificationTimes
 )  where
 
 
 import           Control.Arrow
 import           Control.Monad
-import           Data.Counter
 import           Data.IORef
 import           Data.List
 import qualified Data.Map              as M
@@ -31,7 +28,7 @@ import           Lib
 import           Log
 import           TurboWare
 import           Types
-import           Yaba.Data.Slicin      as YDSI
+import qualified Yaba.Data.Slicin      as YDSI
 import           Yaba.Data.Slicout     as YDSO
 
 -- | Write backu. returns (count of copies files, sizue of set files, count of metafiles)
@@ -63,7 +60,7 @@ writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
 
       writeFileToBackup counters path (_, cmd) = do
            let (dir, file) = splitFileName path
-           let cesta = dir </> (yabaFilePrefix cmd ++ file) ++ ".yaba"
+           let cesta = dir </> (kindOfChange cmd ++ file) ++ ".yaba"
            lo Debug $ printf  "create meta: \"%s\": %s" cesta (showCmd cmd )
            writeFile cesta (formatCmd cmd)
            modifyIORef' counters (mappend (MonoidPlus3 (0, 0, 1)))
@@ -76,25 +73,14 @@ showCmd (YDSO.Delete {}) = "<delete>"
 showCmd (YDSO.Link fp _) = "<link \"" ++ fp ++  "\" >"
 
 
-modificationTimes :: Slicout ->  M.Map FilePath UTCTime
-modificationTimes bt = M.fromList . sort $ foldMap extractTime (zipPaths' bt)
-  where
-     extractTime (fp, (Insert _ time)) = [(fp, time)]
-     extractTime _                     = []
-
-zipPaths' :: DirTree a -> DirTree (FilePath, a)
-zipPaths' (Dir _ list) = let dir = Dir "" list
-   in (first replaceBacklashesToSlashes) <$> zipPaths ("" :/ dir)
-
-
 
 title x = ["", "----- " ++ x ++ " ---------------------------"]
 
 formatCmd :: Cmd -> String
 formatCmd cmd = unlines $ concat $ [
-     (formatMetaFileHeader . convertToSliceCmd) cmd,
+     (YDSI.formatMetaFileHeader . convertToSliceCmd) cmd,
      title "Operation",
-     [yabaFilePrefix cmd],
+     [kindOfChange cmd],
      case cmd of
            Link _ info      -> formatInfo info
            YDSO.Delete info -> formatInfo info
@@ -115,18 +101,9 @@ formatInfo (Info hash Paths{..} lodree)  = concat [
     toDump lodree
    ]
 
-countCounters :: Slicout -> Counter String Int
-countCounters = count . (foldMap (return . yabaFilePrefix))
 
-
-yabaFilePrefix :: Cmd -> String
-yabaFilePrefix (YDSO.Delete (Info _ (Paths {pathsNew=[]}) _ ))= "~DELETE~"
-yabaFilePrefix (YDSO.Delete _)= "~MOVE-AWAY~"
-yabaFilePrefix (YDSO.Link _ (Info _ (Paths {pathsHistory=[]}) _ ))= "~N-LINK~"
-yabaFilePrefix (YDSO.Link _ _)   = "~LINK~"
-yabaFilePrefix (YDSO.Insert{})   = "~INSERT~"
 -- yabaFilePrefix _ = "~IMPOSSIBLE~"
 
-convertToSliceCmd :: Cmd -> SliceCmd
+convertToSliceCmd :: Cmd -> YDSI.SliceCmd
 convertToSliceCmd (YDSO.Link  x _) = YDSI.PhysicalLink x
 convertToSliceCmd (YDSO.Delete _ ) = YDSI.Delete

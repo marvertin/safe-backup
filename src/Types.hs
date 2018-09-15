@@ -5,29 +5,19 @@
 
 module Types (
   RevPath,
-  Ree(..),
   FileSize,
   Hash,
   FileName,
   FilePath,
   ErrMsg,
   ErrList(..),
-  yabaSuffix,
-  configFileName,
-  sliceIndexName,
-  sliceLogicalTree_suffix,
-  modificationTimesFileName,
-  indexSubdir,
-  dataSubdir,
-  logSubdir,
-  sliceLogName,
-  yabaLogName,
-  indexVersion,
+
 
   UTCTime
 ) where
 
 import qualified Data.ByteString       as BS
+
 import           Data.Text
 import           Data.Time.Clock
 import           Data.Yaml
@@ -35,15 +25,10 @@ import           GHC.Generics
 import           System.Directory.Tree (DirTree (..), FileName)
 import           System.FilePath
 
+
 type FileSize = Integer
 
 type RevPath = [String] -- it is reverse list of path items: ["myfile.txt", "myaccount", "home", "opt"]
-
---deriving instance ToJSON BS.ByteString
---deriving instance FromJSON BS.ByteString
-
-data Ree = Ree { rcount :: Int, rsize :: FileSize, rtime :: UTCTime, rhash :: BS.ByteString }
-  deriving (Eq, Show, Read, ToJSON, FromJSON, Generic)
 
 type Hash = BS.ByteString
 
@@ -51,21 +36,6 @@ type ErrMsg = String
 
 newtype ErrList = ErrList { getErrList :: [String] } deriving (Show)
 
-yabaSuffix = ".yaba"
-
-configFileName = "yaba-config.yaml" :: FileName
-
-sliceIndexName = indexVersion ++ "_sliceIndex.yaml"
-sliceLogicalTree_suffix = "_logical-tree.yaml"
-
-sliceLogName = "slice-backup.log"
-yabaLogName = "yaba.log"
-indexSubdir = "index"
-dataSubdir = "data"
-logSubdir = "log"
-modificationTimesFileName = "modification-times.yaml"
-
-indexVersion = "1"
 
 instance ToJSON Hash where
   toJSON hash = toJSON (show hash)

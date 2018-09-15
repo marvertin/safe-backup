@@ -7,7 +7,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RecordWildCards            #-}
 
-module SliceScaner
+module Yaba.IO.SlicinScaner
     (
     readSlice,
     ) where
@@ -38,7 +38,10 @@ import qualified Data.ByteString.UTF8  as BSU
 import qualified Data.Map              as M
 import           Data.Yaml
 import           GHC.Generics
+import           Yaba.Data.Ree
 import           Yaba.Data.Slicin
+import           Yaba.IO.FileNamesC
+
 
 
 
@@ -69,17 +72,6 @@ loadSliceFile rootPath rp = do
   let originalPath = "/" ++ takeFileName rootPath ++ "/" ++ path
   if not $ yabaSuffix `isSuffixOf` path then return (RegularFile  (Ree 1 size time hash) originalPath )
           else (MetaFile . parseMetaFile . T.unpack) <$> TIO.readFile realPath
-
-
-totalDirSize :: Slicin -> FileSize
-totalDirSize = sum . fmap size0
-  where
-    size0 :: SliceFile -> FileSize
-    size0 (MetaFile _)            = 100 -- odhadnout
-    size0 (RegularFile Ree{..} _)=rsize
-
-totalFilesCount :: Slicin -> Int
-totalFilesCount = sum . fmap (const 1)
 
 isEmptyDir :: Slicin -> Bool
 isEmptyDir (Dir _ []) = True
