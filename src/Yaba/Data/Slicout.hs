@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
 module Yaba.Data.Slicout (
@@ -17,6 +18,8 @@ module Yaba.Data.Slicout (
 import           Data.Counter
 import           Data.List
 import qualified Data.Map              as M
+import qualified Data.Set              as S
+import           System.FilePath.Posix
 
 import           System.Directory.Tree
 import           Util.Dump
@@ -35,6 +38,8 @@ data Paths = Paths { pathsNew :: [FilePath], pathsLast:: [FilePath], pathsHistor
 type Slicout = DirTree Cmd
 type AnchoredSlicout = AnchoredDirTree Cmd
 
+info (Delete i) = i
+info (Link _ i) = i
 
 sizeToBackup :: Slicout -> Integer
 sizeToBackup bt = sum $ fmap mapa bt
@@ -57,13 +62,49 @@ countCounters :: Slicout -> Counter String Int
 countCounters = count . (foldMap (return . kindOfChange))
 
 
-kindOfChange :: Cmd -> String
-kindOfChange (Delete (Info _ (Paths {pathsNew=[]}) _ ))=    "~DELETE~"
-kindOfChange (Delete _)=                                    "~MOVE-AWAY~"
-kindOfChange (Link _ (Info _ (Paths {pathsHistory=[]}) _ ))="~N-LINK~"
-kindOfChange (Link _ _)                                     = "~LINK~"
-kindOfChange (Insert{})                                     = "~INSERT~"
+data Kardinality = Zero | One | Many
 
+kindOfChange :: Cmd -> String
+kindOfChange (Insert{})                                     = "~INSERT~"
+kindOfChange cmd =
+  let Info _ paths _ = info cmd
+      (pathsLast, pathsNew, pathsCommon) = pickPaths paths
+
+      k :: Cmd -> Kardinality -> Kardinality -> Bool -> String
+      k cmd Many Zero hasHistory = k cmd One Zero hasHistory
+      k cmd Zero Many hasHistory = k cmd Zero One hasHistory
+      k _ One One _              = if isSame takeDirectory then "RENAME" else
+                                       if isSame takeFileName then "MOVE"
+                                                     else "MOVE-RENAME"
+      k _ One Many _             = "FORK"
+      k _ Many One _             = "JOIN"
+      k _ Many Many _            = "CROSS"
+      k Delete{} One Zero False  = "DELETE"
+      k Delete{} One Zero True   = "UNLINK"
+      k Link{} Zero One False    = if null (pathsHistory paths) then "NEW" else "RESTORE"
+      k Link{} Zero One True     = "CLONE"
+      k _ _ _ _ = "IMPOSSIBLE"
+
+      isSame fce = fce (head pathsLast) == fce (head pathsNew)
+  in "~" ++ case cmd of
+          Delete{} -> "DEL_"
+          Link{}   -> "INS_"
+      ++ (k cmd (kardinality pathsLast) (kardinality pathsNew) (not . null $ pathsCommon))
+      ++ "~"
+
+  where
+    pickPaths :: Paths -> ([FilePath],  [FilePath], [FilePath])
+    pickPaths Paths{..} =
+      let palast = S.fromList pathsLast
+          panew = S.fromList pathsNew
+          common = palast `S.intersection` panew
+      in  (S.toList $ palast S.\\ common ,  S.toList $ panew S.\\ common, S.toList common)
+
+
+    kardinality :: [a] -> Kardinality
+    kardinality []  = Zero
+    kardinality [_] = One
+    kardinality _   = Many
 
 instance Dumpable Cmd where
     toDump x = [ "**" ++ show x ]
