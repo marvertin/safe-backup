@@ -13,17 +13,16 @@ import qualified Data.Map                    as M
 import           Data.Maybe
 import           Debug.Trace
 import           Debug.Trace
-import           DirScan                     (RevPath, pth)
-import           Dump
-import           Lib
 import           System.Directory.Tree
-import           TurboWare
-import           Types
+
+import           Util.Dump
+import           Util.Lib
+import           Util.TurboWare
+import           Util.Types
 import           Yaba.Data.Differences
 import           Yaba.Data.Lodree
 import           Yaba.Data.Slicout
 import           Yaba.Process.TreeComparator
-
 
 mapCall :: (RevPath -> a -> Slicout ) -> RevPath -> [(FileName, a)] -> [Slicout]
 mapCall fce revpath = map (uncurry fce . (first (:revpath)))

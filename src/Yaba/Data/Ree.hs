@@ -16,14 +16,13 @@ module Yaba.Data.Ree (
 import qualified Data.ByteString  as BS
 import qualified Data.Map         as M
 import           Data.Time.Clock
+import           Data.Yaml
 import           GHC.Generics
 import           System.Directory
-
-
-import           Data.Yaml
-import           Lib
 import           Text.Printf
-import           Types
+
+import           Util.Lib
+import           Util.Types
 
 
 

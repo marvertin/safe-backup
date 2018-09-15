@@ -1,13 +1,13 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module Dump  (
+module Util.Dump  (
   dirTreeToStringList
 
 ) where
 
 import qualified Data.Map              as M
 import           System.Directory.Tree
-import           TurboWare
+import           Util.TurboWare
 
 
 dirTreeToStringList :: Show a =>  (a -> Maybe String) -> DirTree a -> [String]

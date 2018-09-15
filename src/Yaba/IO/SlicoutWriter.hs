@@ -20,14 +20,13 @@ import           System.IO
 import           Text.Printf
 
 
---import           SlicoutBuilder
-import           Config
 import qualified Data.ByteString.Lazy  as BS
-import           Dump
-import           Lib
-import           Log
-import           TurboWare
-import           Types
+import           Util.Dump
+import           Util.Lib
+import           Util.TurboWare
+import           Util.Types
+import           Yaba.App.Config
+import           Yaba.App.Log
 import qualified Yaba.Data.Slicin      as YDSI
 import           Yaba.Data.Slicout     as YDSO
 

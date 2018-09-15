@@ -12,11 +12,11 @@ import qualified Data.Set                        as S
 import           Data.Yaml
 import           System.Directory
 
-import           Context
-import           Lib
 import           Text.Printf
-import           TurboWare
-import           Types
+import           Util.Lib
+import           Util.TurboWare
+import           Util.Types
+import           Yaba.App.Context
 import           Yaba.Data.Lodree
 import           Yaba.IO.FileNamesC
 import           Yaba.Process.RestoreScriptMaker

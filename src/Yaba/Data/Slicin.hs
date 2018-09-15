@@ -21,31 +21,30 @@ module Yaba.Data.Slicin
 
 import           Control.Exception
 import           Control.Monad
+import qualified Crypto.Hash.SHA1      as Cr
+import qualified Data.ByteString       as Strict
+import qualified Data.ByteString.Lazy  as Lazy
+import qualified Data.ByteString.UTF8  as BSU
+import qualified Data.HashMap.Strict   as HM
 import           Data.List
+import qualified Data.Map              as M
 import           Data.Maybe
+import           Data.Text             hiding (lines, unlines)
 import qualified Data.Text             as T
 import qualified Data.Text.IO          as TIO
-import           Dump
+import           Data.Yaml
 import           GHC.Generics
 import           GHC.IO.Encoding
-import           Lib
 import           System.Directory
 import           System.Directory.Tree
 import           System.FilePath
 import           System.IO             (hFlush, stdout)
 import           Text.Printf           (printf)
 
-import qualified Crypto.Hash.SHA1      as Cr
-import qualified Data.ByteString       as Strict
-import qualified Data.ByteString.Lazy  as Lazy
-import qualified Data.ByteString.UTF8  as BSU
-
-import qualified Data.HashMap.Strict   as HM
-import qualified Data.Map              as M
-import           Data.Text             hiding (lines, unlines)
-import           Data.Yaml
-import           TurboWare
-import           Types
+import           Util.Dump
+import           Util.Lib
+import           Util.TurboWare
+import           Util.Types
 import           Yaba.Data.Ree
 
 

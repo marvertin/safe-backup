@@ -6,8 +6,8 @@ module Yaba.Data.Differences (
   diffCountAndSizes
 ) where
 
-import           TurboWare
-import           Types
+import           Util.TurboWare
+import           Util.Types
 import           Yaba.Data.Lodree
 
 data Differences = QDir [(FileName, Differences)]

@@ -1,4 +1,4 @@
-module Ignorances (
+module Yaba.App.Ignorances (
 
   makeFilterFce,
   IgnoranceDef,
@@ -10,10 +10,12 @@ import           Data.Foldable
 import           Data.Maybe
 import           Data.Monoid
 import           Debug.Trace
-import           DirScan
 import           System.FilePath
 import           Text.Regex.Posix
-import           TurboWare
+
+import           Util.Lib
+import           Util.TurboWare
+import           Util.Types
 
 
 type IgnoranceDef = [String]

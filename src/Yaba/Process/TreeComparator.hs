@@ -7,9 +7,9 @@ module Yaba.Process.TreeComparator (
 
 
 import           Data.Maybe
-import           Lib
-import           TurboWare
-import           Types
+import           Util.Lib
+import           Util.TurboWare
+import           Util.Types
 import           Yaba.Data.Differences
 import           Yaba.Data.Lodree
 

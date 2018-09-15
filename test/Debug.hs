@@ -24,7 +24,7 @@ import           Dump
 import qualified GHC.IO.Encoding            as GIE
 import           Hashpairing
 import           Ignorances
-import           Lib
+import           Util.Lib
 import           Lodree
 import           SliceNameStrategy
 import           SliceScaner                hiding (RegularFile)
@@ -37,7 +37,7 @@ import           Text.Printf                (printf)
 import           Text.RawString.QQ
 import           Tree
 import           TreeComparator
-import           TurboWare
+import           Util.TurboWare
 
 import qualified Data.ByteString.Char8      as B8
 --import qualified Data.HashMap.Strict   as HM

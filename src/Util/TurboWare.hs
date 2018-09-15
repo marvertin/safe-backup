@@ -1,4 +1,4 @@
-module TurboWare
+module Util.TurboWare
     (
       tupleMaybeUpFst,
       tupleMaybeUpSnd,
@@ -108,7 +108,7 @@ appendToFirst [] []     = []
 appendToFirst x []      = [x]
 appendToFirst x (y: ys) = (y ++ x) : ys
 
--- | O(n (ln n)) Takes two functios which creates Ordable keys from two Types
+-- | O(n (ln n)) Takes two functios which creates Ordable keys from two Util.Types
 -- | Then takes two lists whic zips by result of the two functions
 -- | The result is sorted by the key
 -- | zipMaybe (*3) length [1, 2] ["qwer", "abcABC"] = [(3,Just 1,Nothing),(4,Nothing,Just "qwer"),(6,Just 2,Just "abcABC")]

@@ -7,7 +7,7 @@
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TupleSections         #-}
 
-module Config
+module Yaba.App.Config
     (
       readConfig,
       ForestDef,
@@ -31,12 +31,11 @@ import           System.IO
 import           Text.Printf
 import           Text.Regex.Posix
 
-import           Ignorances
-import           SliceNameStrategy         (SliceNameStrategy,
-                                            checkSliceNamePattern,
-                                            defaultSliceNameStrategy)
-import           Types
+import           Util.Types
+import           Yaba.App.Ignorances
 import           Yaba.IO.FileNamesC
+import           Yaba.IO.SliceNameStrategy
+
 data TreeDef = TreeDef { tdName :: String, tdPath :: FilePath, tdPatterns :: IgnoranceDef} deriving (Show)
 type ForestDef = [TreeDef]
 

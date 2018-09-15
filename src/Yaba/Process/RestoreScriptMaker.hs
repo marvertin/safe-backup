@@ -11,9 +11,9 @@ import qualified Data.Map         as M
 import qualified Data.Set         as S
 import           Text.Printf
 
-import           Lib
-import           TurboWare
-import           Types
+import           Util.Lib
+import           Util.TurboWare
+import           Util.Types
 import           Yaba.Data.Lodree
 
 

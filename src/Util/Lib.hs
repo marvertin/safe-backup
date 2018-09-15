@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Lib
+module Util.Lib
     (
       HasFileName(..),
       mapTree,
@@ -12,6 +12,7 @@ module Lib
       showSz,
       showDiffTm,
       zipPaths',
+      pth
 
     ) where
 
@@ -31,10 +32,12 @@ import           Data.Maybe
 import           Data.Time.Clock
 import           System.Directory
 import           System.Directory.Tree
+import           System.FilePath
 import           Text.Printf           (printf)
 
-import           TurboWare
-import           Types
+
+import           Util.TurboWare
+import           Util.Types
 
 
 
@@ -92,3 +95,8 @@ showDiffTm endTime startTime = show (diffUTCTime endTime startTime)
 zipPaths' :: DirTree a -> DirTree (FilePath, a)
 zipPaths' (Dir _ list) = let dir = Dir "" list
                          in (first replaceBacklashesToSlashes) <$> zipPaths ("" :/ dir)
+
+-- | convert reverse path to forward path not starting with slash
+-- | pth ["yaba", "home", "opt"] == opt/home/jaba
+pth :: RevPath -> FilePath
+pth = foldl (flip (</>)) []

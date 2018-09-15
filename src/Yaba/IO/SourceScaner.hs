@@ -20,12 +20,12 @@ import           System.FilePath
 import           System.IO
 
 
-import           DirScan
-import           Ignorances
-import           Lib
-import           Log
-import           TurboWare
-import           Types
+import           Util.DirScan
+import           Util.Lib
+import           Util.TurboWare
+import           Util.Types
+import           Yaba.App.Ignorances
+import           Yaba.App.Log
 import           Yaba.Data.Lodree
 import           Yaba.Data.Ree
 

@@ -3,9 +3,8 @@
 -}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module DirScan (
+module Util.DirScan (
   scanDirectory,
-  pth,
   RevPath,
   emptyEventHandler,
   stdOutLoggingEventHanler,
@@ -26,8 +25,8 @@ import           System.FilePath
 import           System.IO
 import           Text.Printf
 
-import           Lib
-import           Types
+import           Util.Lib
+import           Util.Types
 
 type FlowAvar = [(UTCTime, Int, Integer, UTCTime)] -- timce, count, size, header has latest
 data Acum a b = Acum FlowAvar [(FilePath, a)] b deriving (Show)
@@ -142,11 +141,6 @@ scanDirectory createDirNode predicate createFileNode (eventFce, eventStart) root
 
   fullPth :: RevPath -> FilePath
   fullPth p = rootPath </> pth  p
-
--- | convert reverse path to forward path not starting with slash
--- | pth ["yaba", "home", "opt"] == opt/home/jaba
-pth :: RevPath -> FilePath
-pth = foldl (flip (</>)) []
 
 
 printLog :: UTCTime -> Handle -> EventEnvelop a () -> IO ()

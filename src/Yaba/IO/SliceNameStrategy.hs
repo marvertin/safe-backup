@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
 
-module SliceNameStrategy (
+module Yaba.IO.SliceNameStrategy (
   SliceNameStrategy(),
   defaultSliceNameStrategy,
 
@@ -27,7 +27,7 @@ import           System.IO
 import           Text.Printf
 import           Text.Regex.Posix
 
-import           TurboWare
+import           Util.TurboWare
 
 data SliceNameStrategy = Pattern String
    deriving (Show, Generic, FromJSON, ToJSON)

@@ -1,5 +1,5 @@
 {-# LANGUAGE NamedFieldPuns #-}
-module Log (
+module Yaba.App.Log (
   withLogger,
   Level(..),
   Log,
@@ -15,9 +15,9 @@ import           System.IO
 import           Text.Printf
 
 
-import           DirScan
-import           Lib
-import           Types
+import           Util.DirScan
+import           Util.Lib
+import           Util.Types
 
 type Log = Level -> String -> IO ()
 

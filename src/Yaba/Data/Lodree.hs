@@ -36,9 +36,9 @@ import           GHC.Generics
 import           System.Directory.Tree (DirTree (Dir, File), FileName)
 import           System.FilePath
 
-import           Lib
-import           TurboWare
-import           Types
+import           Util.Lib
+import           Util.TurboWare
+import           Util.Types
 import           Yaba.Data.Ree
 
 -- import           Data.Time.Clock.UTC

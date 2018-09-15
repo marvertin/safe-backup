@@ -18,11 +18,11 @@ import qualified Data.Map              as M
 import           Data.Maybe
 import           Data.Yaml
 import           GHC.Generics
-import           Lib
 import           System.Directory.Tree (DirTree (Dir, File), FileName)
 import           System.FilePath
-import           TurboWare
-import           Types
+import           Util.Lib
+import           Util.TurboWare
+import           Util.Types
 import           Yaba.Data.Lodree
 import           Yaba.Data.Slicin
 import           Yaba.IO.FileNamesC

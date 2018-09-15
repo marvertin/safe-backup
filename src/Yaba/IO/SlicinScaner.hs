@@ -14,30 +14,29 @@ module Yaba.IO.SlicinScaner
 
 import           Control.Exception
 import           Control.Monad
+import qualified Crypto.Hash.SHA1      as Cr
+import qualified Data.ByteString       as Strict
+import qualified Data.ByteString.Lazy  as Lazy
+import qualified Data.ByteString.UTF8  as BSU
 import           Data.List
+import qualified Data.Map              as M
 import           Data.Maybe
 import qualified Data.Text             as T
 import qualified Data.Text.IO          as TIO
-import           DirScan
-import           Dump
+import           Data.Yaml
+import           GHC.Generics
 import           GHC.IO.Encoding
-import           Lib
 import           System.Directory
 import           System.Directory.Tree
 import           System.FilePath
 import           System.IO             (hFlush, stdout)
 import           Text.Printf           (printf)
-import           TurboWare
-import           Types
 
-import qualified Crypto.Hash.SHA1      as Cr
-import qualified Data.ByteString       as Strict
-import qualified Data.ByteString.Lazy  as Lazy
-import qualified Data.ByteString.UTF8  as BSU
-
-import qualified Data.Map              as M
-import           Data.Yaml
-import           GHC.Generics
+import           Util.DirScan
+import           Util.Dump
+import           Util.Lib
+import           Util.TurboWare
+import           Util.Types
 import           Yaba.Data.Ree
 import           Yaba.Data.Slicin
 import           Yaba.IO.FileNamesC

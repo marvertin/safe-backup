@@ -18,11 +18,11 @@ import           Data.Counter
 import           Data.List
 import qualified Data.Map              as M
 
-import           Dump
-import           Lib
 import           System.Directory.Tree
-import           TurboWare
-import           Types
+import           Util.Dump
+import           Util.Lib
+import           Util.TurboWare
+import           Util.Types
 import           Yaba.Data.Lodree
 
 

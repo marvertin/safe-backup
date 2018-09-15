@@ -3,7 +3,7 @@
 {-# LANGUAGE TupleSections   #-}
 
 
-module Backup (
+module Yaba.Command.Backup (
   cmdBackup
 ) where
 
@@ -23,16 +23,15 @@ import           System.IO
 import           Text.Printf
 import           Text.RawString.QQ
 
-import           Config
-import           Context
-import           DirScan
-import           Dump
-import           Ignorances
-import           Lib
-import           Log
-import           SliceNameStrategy
-import           TurboWare
-import           Types
+import           Util.DirScan
+import           Util.Dump
+import           Util.Lib
+import           Util.TurboWare
+import           Util.Types
+import           Yaba.App.Config
+import           Yaba.App.Context
+import           Yaba.App.Ignorances
+import           Yaba.App.Log
 import           Yaba.Data.Differences
 import           Yaba.Data.Lodree
 import           Yaba.Data.Ree
@@ -40,6 +39,7 @@ import           Yaba.Data.Slicin
 import           Yaba.Data.Slicout
 import           Yaba.IO.FileNamesC
 import           Yaba.IO.RestoreScriptWriter
+import           Yaba.IO.SliceNameStrategy
 import           Yaba.IO.SlicinScaner
 import           Yaba.IO.SlicoutWriter
 import           Yaba.IO.SourceScaner

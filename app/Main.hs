@@ -23,9 +23,9 @@ import           System.IO
 import           System.TimeIt
 import           Text.Printf
 
-import           Backup
-import           Context
-import           Types
+import           Util.Types
+import           Yaba.App.Context
+import           Yaba.Command.Backup
 import           Yaba.IO.FileNamesC
 
 data Options =

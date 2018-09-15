@@ -3,7 +3,7 @@
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
-module Types (
+module Util.Types (
   RevPath,
   FileSize,
   Hash,
