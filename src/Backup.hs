@@ -30,7 +30,6 @@ import           Dump
 import           Ignorances
 import           Lib
 import           Log
-import           RestoreScript
 import           SliceNameStrategy
 import           TurboWare
 import           Types
@@ -40,6 +39,7 @@ import           Yaba.Data.Ree
 import           Yaba.Data.Slicin
 import           Yaba.Data.Slicout
 import           Yaba.IO.FileNamesC
+import           Yaba.IO.RestoreScriptWriter
 import           Yaba.IO.SlicinScaner
 import           Yaba.IO.SlicoutWriter
 import           Yaba.IO.SourceScaner
