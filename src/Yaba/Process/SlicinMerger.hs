@@ -55,8 +55,7 @@ merge1 rootLodree rootDirTree = let
     merge' _ (Just (File _ (RegularFile ree originalPath)))= Just $ LFile ree originalPath
     merge' lodree (Just (File _ (MetaFile content)))
       | isDelete content = Nothing
-      | isLogicalLink   content = findTarget content (currentLodree rootLodree) <|> lodree
-      | isPhysicalLink  content = findTarget content rootLodree <|> lodree
+      | isLink  content = findTarget content rootLodree <|> lodree
     merge' (Just (LDir ree subdirs)) (Just (Dir name dirtrees)) =
        let pa = pairDirs subdirs (filterOutYaba dirtrees)
            qa = map (\(name, lodree, dirtree) ->  (name, merge' lodree dirtree)) pa
@@ -110,21 +109,13 @@ isDelete :: SliceCmd -> Bool
 isDelete Delete = True
 isDelete _      = False
 
+
 isLink :: SliceCmd -> Bool
--- isLink x = isLogicalLink x || isPhysicalLink x
-isLink = (||) <$> isLogicalLink <*> isPhysicalLink
-
-isLogicalLink :: SliceCmd -> Bool
-isLogicalLink (LogicalLink _) = True;
-isLogicalLink _               = False
-
-isPhysicalLink :: SliceCmd -> Bool
-isPhysicalLink (PhysicalLink _) = True
-isPhysicalLink _                = False
+isLink (Link _) = True
+isLnk _         = False
 
 findTarget :: SliceCmd -> Lodree -> Maybe Lodree
 findTarget cmd = findLodreeNode $ getLinkTarget cmd
 
 getLinkTarget :: SliceCmd -> FilePath
-getLinkTarget (LogicalLink target)  = target
-getLinkTarget (PhysicalLink target) = target
+getLinkTarget (Link target)  = target

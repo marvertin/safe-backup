@@ -56,7 +56,7 @@ data SliceFile = RegularFile Ree FilePath
               |  MetaFile SliceCmd  -- file content
               deriving (Eq, Show, Read, Generic, ToJSON, FromJSON)
 
-data SliceCmd = Delete | LogicalLink FilePath | PhysicalLink FilePath
+data SliceCmd = Delete | Link FilePath
   deriving (Eq, Show, Read, Generic, ToJSON, FromJSON)
 
 

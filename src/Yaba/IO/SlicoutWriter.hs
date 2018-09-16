@@ -104,5 +104,5 @@ formatInfo (Info hash Paths{..} lodree)  = concat [
 -- yabaFilePrefix _ = "~IMPOSSIBLE~"
 
 convertToSliceCmd :: Cmd -> YDSI.SliceCmd
-convertToSliceCmd (YDSO.Link  x _) = YDSI.PhysicalLink x
+convertToSliceCmd (YDSO.Link  x _) = YDSI.Link x
 convertToSliceCmd (YDSO.Delete _ ) = YDSI.Delete
