@@ -187,7 +187,7 @@ instance Dumpable Lodree where
         todump (filename, q@(LDir ree _)) =   ("/" ++ filename ++ " " ++ printRee ree) : toDump q
 
 printRee :: Ree ->  String
-printRee Ree {..} = "  #" ++ show rsize ++ " " ++ toHexStr rhash
+printRee Ree {..} = "  #" ++ showSz rsize ++ " - " ++ toHexStr rhash
 
 
 --w = do
