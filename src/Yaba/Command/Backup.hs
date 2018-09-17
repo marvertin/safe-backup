@@ -234,5 +234,5 @@ showSuccess = [r|---------------------------------------------------------
 formatDiffResult :: Differences -> String
 formatDiffResult  compareResult =
   let ((cl, sl), (cr, sr)) = diffCountAndSizes compareResult
-  in printf "    deleted (%d #, %4.3f MB), inserted (%d #, %4.3f MB), diff (%d #, %4.3f MB)"
-                  cl (sizeInMb sl) cr (sizeInMb sr) (cr - cl) (sizeInMb (sr - sl))
+  in printf "    deleted (#%d, %s), inserted (#%d, %s), diff (#%d, %s)"
+                  cl (showSz sl) cr (showSz sr) (cr - cl) (showSz (sr - sl))

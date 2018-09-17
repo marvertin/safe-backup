@@ -8,7 +8,6 @@ module Util.Lib
       deAnchore,
       splitByChar,
       computeFileHash,
-      sizeInMb,
       showSz,
       showDiffTm,
       zipPaths',

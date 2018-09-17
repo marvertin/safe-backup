@@ -7,8 +7,8 @@ module Util.DirScan (
   scanDirectory,
   RevPath,
   emptyEventHandler,
-  stdOutLoggingEventHanler,
-  hLoggingEventHandler,
+  --stdOutLoggingEventHanler,
+  --hLoggingEventHandler,
   EventHandler(..),
   Event(..),
   Cumulative(..),
@@ -66,7 +66,7 @@ data Cumulative = Cumulative {
       etotalCount       :: Int,
       etotalSize        :: Integer,
       avarageCountSpeed :: Double,
-      avarageMbSpeed    :: Double
+      avarageSizeSpeed  :: Integer  -- bytes per second
     } deriving (Show)
 
 flowAvarEmpty :: UTCTime -> FlowAvar
@@ -75,8 +75,8 @@ flowAvarEmpty startTime = [(startTime, 0, 0, startTime), (startTime, 0, 0, start
 emptyEventHandler :: EventHandler a ()
 emptyEventHandler = (\x -> return (), ())
 
-stdOutLoggingEventHanler = hLoggingEventHandler stdout
-hLoggingEventHandler handle startTime = (printLog startTime handle, ())
+--stdOutLoggingEventHanler = hLoggingEventHandler stdout
+--hLoggingEventHandler handle startTime = (printLog startTime handle, ())
 
 scanDirectory :: Show a =>
         (RevPath -> [(FilePath, a)] -> a) -> -- directory node creator
@@ -143,35 +143,6 @@ scanDirectory createDirNode predicate createFileNode (eventFce, eventStart) root
   fullPth p = rootPath </> pth  p
 
 
-printLog :: UTCTime -> Handle -> EventEnvelop a () -> IO ()
-printLog startTime handle (EventEnvelop revpath (Cumulative count' size' countSpeed sizeSpeed) event _) = do
-  case event of
-    Ignore ->
-      hPutStrLn handle $ "IGNORE: " ++ pth revpath
-    Start rootPath -> do
-      hPutStrLn handle "========================================================================="
-      hPutStrLn handle $ "Start scanning: " ++ rootPath ++ " at " ++ show startTime
-    End _ _ -> do
-      endTime <- getCurrentTime
-      hPutStrLn handle $ "End scanning at " ++ show endTime ++ ", duration=" ++ show (duration endTime) ++ "; total: "
-      hPrintf handle "%6d# %10.3f MB | %9.2f #/s  %10.3f MB/s  \n" count' (sizeInMb size') countSpeed sizeSpeed
-    AfterFile (EventFile size)  _ -> do
-      time' <- getCurrentTime
-      hPutStr handle $ duration time'
-      hPrintf handle "%s %6d # %10.3f MB %9.2f #/s  %7.3f MB/s %10.3f %s\n"
-          (take 19 $ show time') count' (sizeInMb size') countSpeed sizeSpeed (sizeInMb size) (pth revpath)
-    BeforeFile (EventFile size) ->
-      when (size > 1024 * 1024 * 100) (do
-        hPrintf handle"  ... big file: %10.3f - %s \r" (sizeInMb size) (pth revpath)
-        hFlush handle)
-    Failure exc -> do
-      let errstr = "!!!!! ERROR !!!!! " ++ show exc
-      hPutStrLn handle errstr
-      hPutStrLn stderr errstr
-    _ -> return ()
-  return ()
-  where duration time' = take 6 (show (diffUTCTime time' startTime)) ++ "s "
-
 
 updateFlowAvar :: FlowAvar -> (Int, Integer) -> UTCTime ->FlowAvar
 updateFlowAvar flowavar (count', size') nowTime =
@@ -190,15 +161,15 @@ getCumulative flowAvar = let
 
 
 
-averageSpeed :: FlowAvar -> (Double, Double)
+averageSpeed :: FlowAvar -> (Double, Integer)
 averageSpeed flowAvar = averageSpeed' (last flowAvar) (head flowAvar)
 
-averageSpeed' :: (UTCTime, Int, Integer, UTCTime) -> (UTCTime, Int, Integer, UTCTime) -> (Double, Double)
+averageSpeed' :: (UTCTime, Int, Integer, UTCTime) -> (UTCTime, Int, Integer, UTCTime) -> (Double, Integer)
 averageSpeed' (time1, count1, size1, _) (time2, count2, size2, _) =
     let
         timeDiff :: Double = realToFrac  $ diffUTCTime time2 time1
     in (fromIntegral (count2 - count1) / timeDiff,
-        fromIntegral (size2 - size1) / timeDiff / 1024 / 1024  )
+         round  (fromIntegral (size2 - size1) / timeDiff))
 
 safeHead :: a -> [a] -> a
 safeHead def [] = def
