@@ -82,7 +82,7 @@ sizeInMb :: Integer -> Double
 sizeInMb x =  fromIntegral x / 1024 / 1024
 
 showSz ::  Integral a  => a -> String
-showSz sz = let (x, m) = head . dropWhile (\(q, _) ->  q > 1024.0)
+showSz sz = let (x, m) = safeHead (0, "XiB") . dropWhile (\(q, _) ->  q > 1024.0)
                          $ zip (qs (fromIntegral sz)) ["B", "KiB", "MiB", "GiB", "TiB", "PiB"]
             in printf "%4.3f %s" (x :: Double) m
   where qs size = size : qs (size / 1024.0)

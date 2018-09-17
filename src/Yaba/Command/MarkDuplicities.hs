@@ -32,30 +32,23 @@ getEventHandler time lo  = (logInScan time lo, ErrList [])
 cmdMarkDuplicities :: FilePath -> Ctx -> IO ExitCode
 cmdMarkDuplicities markedDir ctx@Ctx{..} = do
     (slicinLodree, failusSlices) <- scanSlices ctx
-    putStrLn "xxxxx0"
-    let startTime = read "2018-09-17 20:28:57.1280774 UTC" :: UTCTime
-    putStrLn $ "xxxxx1 " ++ show startTime
+    putStrLn $ "Scaning dir for mark: \"" ++ markedDir ++ "\""
+    startTime <- getCurrentTime
     (markedLodree, _) <- scanDirectory (const makeLDir)
                     (const True)
                     loadFile
                     (getEventHandler startTime lo)
                     markedDir
-    putStrLn "xxxxx2"
     let hashesSlicin = createMapOfHashes slicinLodree
     let hashesMarked = createMapOfHashes markedLodree
     let beMarked = M.intersection hashesMarked hashesSlicin
-    dump beMarked
     let list = concat (fst <$> M.elems beMarked )
     forM_ list (\p -> do
       let path1 = markedDir ++ p
       let path2 = takeDirectory path1 ++ "/~DUPLICITY~" ++ takeFileName path1
-      putStrLn path1
-      putStrLn path2
-      putStrLn ""
+      lo Inf path2
       renameFile path1 path2
-
       )
-    print list
     return ExitSuccess
   where
     loadFile :: RevPath -> IO Lodree
