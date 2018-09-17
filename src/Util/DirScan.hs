@@ -176,5 +176,5 @@ safeHead def [] = def
 safeHead _ l    = myhead l
 
 myhead :: [a] -> a
-myhead []    = error "the list is empty"
+myhead []    = error "the list is empty DirScan"
 myhead (x:_) = x
