@@ -143,8 +143,8 @@ createMapOfHashes lodree =
 konv :: [(Hash, (FilePath, Lodree))] -> (Hash, ([FilePath], Lodree))
 konv x = let
               pathList = reverse . sort $ (fst . snd) <$> x
-              hash = fst . head $ x
-              lodree = snd . snd . head $ x
+              hash = fst . myhead $ x
+              lodree = snd . snd . myhead $ x
          in (hash, (pathList, lodree))
 
 flattenLodrees :: Lodree -> [(FilePath, Lodree)]
@@ -190,6 +190,10 @@ instance Dumpable Lodree where
 
 printRee :: Ree ->  String
 printRee Ree {..} = "  #" ++ showSz rsize ++ " - " ++ toHexStr rhash
+
+myhead :: [a] -> a
+myhead []    = error "the list is empty Lodree"
+myhead (x:_) = x
 
 
 --w = do

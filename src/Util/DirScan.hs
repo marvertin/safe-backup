@@ -93,7 +93,7 @@ scanDirectory createDirNode predicate createFileNode (eventFce, eventStart) root
     Acum flowAvar ((_, result) : _) evacum3
       <- scanDirectory' 0 startTime (Acum startFlowAvar [] evacum2) []
     endTime <- getCurrentTime
-    evacum4 <- emitEvent' [] [head flowAvar, last startFlowAvar]  (End rootPath result) evacum3
+    evacum4 <- emitEvent' [] [myhead flowAvar, last startFlowAvar]  (End rootPath result) evacum3
     --putStrLn $ "End scanning at " ++ show endTime ++ ", duration=" ++ show duration ++ "; total: "
     --printf "%6d# %10.3f MB | %9.2f #/s  %10.3f MB/s  \n" count (sizeInMb size) countSpeed sizeSpeed
     return (result, evacum4)
@@ -128,7 +128,7 @@ scanDirectory createDirNode predicate createFileNode (eventFce, eventStart) root
            nowTime <- getCurrentTime
            let newFlowAvar = updateFlowAvar flowAvar (1, fromIntegral sz) nowTime
            evacum3 <- emitEvent newFlowAvar (AfterFile (EventFile sz) result) evacum2
-           let newAcum =  Acum newFlowAvar ((head revpath, result): reslist) evacum3
+           let newAcum =  Acum newFlowAvar ((myhead revpath, result): reslist) evacum3
            return newAcum
         )  (\e  -> do
                let err = show (e :: IOException)
@@ -146,7 +146,7 @@ scanDirectory createDirNode predicate createFileNode (eventFce, eventStart) root
 
 updateFlowAvar :: FlowAvar -> (Int, Integer) -> UTCTime ->FlowAvar
 updateFlowAvar flowavar (count', size') nowTime =
-  let (lastTime, count1 , size1, latTraceTime )  = head flowavar
+  let (lastTime, count1 , size1, latTraceTime )  = myhead flowavar
       count2 = count1 + count'
       size2 = size1 + size'
       jecas = diffUTCTime nowTime latTraceTime > 1.0
@@ -155,14 +155,14 @@ updateFlowAvar flowavar (count', size') nowTime =
 
 getCumulative :: FlowAvar -> Cumulative
 getCumulative flowAvar = let
-     (countSpeed, sizeSpeed) = averageSpeed' (last flowAvar) (head flowAvar)
-     (_, totalCount, totalSize, _) = head flowAvar
+     (countSpeed, sizeSpeed) = averageSpeed' (last flowAvar) (myhead flowAvar)
+     (_, totalCount, totalSize, _) = myhead flowAvar
     in Cumulative totalCount totalSize countSpeed sizeSpeed
 
 
 
 averageSpeed :: FlowAvar -> (Double, Integer)
-averageSpeed flowAvar = averageSpeed' (last flowAvar) (head flowAvar)
+averageSpeed flowAvar = averageSpeed' (last flowAvar) (myhead flowAvar)
 
 averageSpeed' :: (UTCTime, Int, Integer, UTCTime) -> (UTCTime, Int, Integer, UTCTime) -> (Double, Integer)
 averageSpeed' (time1, count1, size1, _) (time2, count2, size2, _) =
@@ -173,4 +173,8 @@ averageSpeed' (time1, count1, size1, _) (time2, count2, size2, _) =
 
 safeHead :: a -> [a] -> a
 safeHead def [] = def
-safeHead _ l    = head l
+safeHead _ l    = myhead l
+
+myhead :: [a] -> a
+myhead []    = error "the list is empty"
+myhead (x:_) = x

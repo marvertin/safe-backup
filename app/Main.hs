@@ -26,6 +26,7 @@ import           Text.Printf
 import           Util.Types
 import           Yaba.App.Context
 import           Yaba.Command.Backup
+import           Yaba.Command.MarkDuplicities
 import           Yaba.IO.FileNamesC
 
 data Options =
@@ -121,7 +122,7 @@ normalCommand defaultDir = NormalCommand
       <*> hsubparser
           (  command "backup" (info backupOptions ( progDesc "Backup your system" ))
           <> command "restore" (info restoreOptions ( progDesc "Restore backed up files" ))
-          <> command "find-duuplicities" (info markDuplicitiesOptions ( progDesc "Find duplicities in another directory" ))
+          <> command "mark-duplicities" (info markDuplicitiesOptions ( progDesc "Find duplicities in another directory and mark them" ))
           )
 
 options :: FilePath -> Parser Options
@@ -178,6 +179,7 @@ doProcessing NormalCommand{dir = enteredBackupDir, optCommand} = do
                                                   else enteredBackupDir
   case optCommand of
     Backup -> withContext backupDirAbs cmdBackup
+    (MarkDuplicities dir) -> withContext backupDirAbs (cmdMarkDuplicities dir)
     _ -> do
       hPutStrLn stderr $ "NOT IMPLEMENTED: " ++ (show optCommand)
       return $ ExitFailure 10

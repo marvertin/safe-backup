@@ -4,7 +4,8 @@
 
 
 module Yaba.Command.Backup (
-  cmdBackup
+  cmdBackup,
+  scanSlices
 ) where
 
 import           Control.Monad
