@@ -11,6 +11,7 @@ module Util.Types (
   FilePath,
   ErrMsg,
   ErrList(..),
+  SliceName,
 
 
   UTCTime
@@ -33,6 +34,9 @@ type RevPath = [String] -- it is reverse list of path items: ["myfile.txt", "mya
 type Hash = BS.ByteString
 
 type ErrMsg = String
+
+-- slcienamei of the form "2008-02|12|156" It contains vertical lines, not slashes.
+type SliceName = String
 
 newtype ErrList = ErrList { getErrList :: [String] } deriving (Show)
 

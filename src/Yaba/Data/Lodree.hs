@@ -8,6 +8,7 @@
 module Yaba.Data.Lodree (
   Lodree(..),
   Ree(..),
+  MapOfHashes,
   emptyLodree,
   hashLodree,
   makeLDir,
@@ -41,7 +42,8 @@ import           Util.TurboWare
 import           Util.Types
 import           Yaba.Data.Ree
 
--- import           Data.Time.Clock.UTC
+
+type MapOfHashes = M.Map Hash ([FilePath], Lodree)
 
 millisToUTC :: Integer -> UTCTime
 millisToUTC t = posixSecondsToUTCTime $ (fromInteger t) / 1000
@@ -122,7 +124,7 @@ takeRestoreTuples lodree = x' ([], lodree)
 --------------------------------------------------------
 
 
-createMapOfHashes :: Lodree -> M.Map Hash ([FilePath], Lodree)
+createMapOfHashes :: Lodree -> MapOfHashes
 createMapOfHashes lodree =
   let
       list :: [(Hash, (FilePath, Lodree))]
@@ -158,7 +160,7 @@ flattenLodrees = fla [] ""
 instance Dumpable (M.Map Hash FilePath) where
    toDump m = map (\(k,v) -> toHexStr k ++ " = " ++ v) (M.toList m)
 
-instance Dumpable (M.Map Hash ([FilePath], Lodree)) where
+instance Dumpable MapOfHashes where
   toDump m = map (\(k, (v, _)) -> toHexStr k ++ " = " ++ show v) (M.toList m)
 
 --------------------------------------------------------

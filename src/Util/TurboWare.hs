@@ -53,6 +53,9 @@ class Dumpable a where
   dump :: a -> IO ()
   dump = putStrLn . toDumpS
 
+  dumpToFile :: FilePath -> a -> IO ()
+  dumpToFile fp = writeFile fp . toDumpS
+
 class  Hexable a  where
   toHexStr :: a -> String
 

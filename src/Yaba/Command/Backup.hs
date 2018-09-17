@@ -62,7 +62,7 @@ cmdBackup ctx@Ctx{..} =  do -- gcc crashes whne versio is obtain from here
     (rootLodree, failusSlices) <- scanSlices ctx
     (lodreeSourceAllNodes, failusSurces) <- scanSources ctx
     resultOfCompare <- compareSlicesToSources ctx rootLodree lodreeSourceAllNodes
-    failusCopy <- copyFiles ctx (snd <$> resultOfCompare)
+    failusCopy <- copyFiles ctx resultOfCompare
 
     forM_ (failusSlices ++ failusSurces ++ failusCopy) (\msg -> do
         lo Summary $  msg
@@ -166,22 +166,36 @@ scanSources ctx@Ctx{..} = do
   lo Summary $ printf "forest of %d trees %s (%s)" (length forest) (showRee (ree lodreeSourceAllNodes)) (showDiffTm tmEnd tmStart)
   return (lodreeSourceAllNodes, failusSurces)
 
-compareSlicesToSources :: Ctx -> Lodree -> Lodree -> IO (Maybe (Differences, Slicout))
+compareSlicesToSources :: Ctx -> Lodree -> Lodree -> IO (Maybe Slicout)
 compareSlicesToSources ctx@Ctx{..} rootLodree lodreeSourceAllNodes = do
   lo Inf "Phase 3/4 - comparing slices and source forest"
   tmStart <- getCurrentTime
-  let resulta = buildBackup rootLodree lodreeSourceAllNodes newSliceName
-  case resulta of
-    Nothing -> do
-       lo Inf $ "    no differences"
-    Just (comareResult, backupDirTree) -> do
-       forM_ [lo Inf, lo Summary] ($ formatDiffResult comareResult)
-       forM_ (M.toList $ countCounters backupDirTree) (\(key, value) ->
-           forM_ [lo Inf, lo Summary] ($ printf "%8d: %s" value key)
-           )
+
+  let maybeResultDiff = compareTrees (currentLodree rootLodree) lodreeSourceAllNodes
+
+  maybeSliceout <- do
+    case maybeResultDiff of
+      Nothing -> do
+         lo Inf $ "    no differences"
+         return Nothing
+      Just resultDiff -> do
+         let lf x = takeSlicedLogPath newSliceName </> x
+         dumpToFile (lf "differences.log") resultDiff
+         let mapOfHashes = createMapOfHashes3 (rootLodree, lodreeSourceAllNodes)
+         let (allSlicinHashes, sourceHashes, lastSlicinHashes) = mapOfHashes in do
+            dumpToFile (lf "hashes-allSlicin.log") allSlicinHashes
+            dumpToFile (lf "hashes-sources.log") sourceHashes
+            dumpToFile (lf "hashes-lastSlicin.log") lastSlicinHashes
+         let resultSliceout = buildSlicout mapOfHashes resultDiff newSliceName
+         dumpToFile (lf "slicout.log") resultSliceout
+         forM_ [lo Inf, lo Summary] ($ formatDiffResult resultDiff)
+         forM_ (M.toList $ countCounters resultSliceout) (\(key, value) ->
+             forM_ [lo Inf, lo Summary] ($ printf "%8d: %s" value key)
+             )
+         return $ Just resultSliceout
   tmEnd <- getCurrentTime
   lo Inf $ showPhaseTime tmEnd tmStart
-  return resulta
+  return maybeSliceout
 
 copyFiles :: Ctx -> Maybe Slicout -> IO [String]
 copyFiles ctx@Ctx{..} resulta = do

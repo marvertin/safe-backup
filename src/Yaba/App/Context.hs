@@ -47,6 +47,7 @@ withContext backupDirRoot fce = do
       let dataRoot = backupDirRoot ++ "/" ++ dataSubdir
       let indexRoot = backupDirRoot ++ "/" ++ indexSubdir
       let logRoot = backupDirRoot ++ "/" ++ logSubdir
+      createDirectoryIfMissing True dataRoot
       newSliceName <- nextSliceName dataRoot sliceNameStrategy
       --let slicedDirName dname = replaceVerticalToSlashes (dname ++ "/" ++ newSliceName)
       let takeSlicePath rotPath sliceName = rotPath ++ "/" ++ replaceVerticalToSlashes sliceName
