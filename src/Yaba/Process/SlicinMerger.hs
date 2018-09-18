@@ -34,11 +34,13 @@ mergesToLodree = foldl mergeToLodree
 
 mergeToLodree :: Lodree -> Slicin -> Lodree
 mergeToLodree lodree sliceTree =
-   let mergeSliceTo = flip merge1 sliceTree -- functio
-   -- must be 2 times applied due to resolve duplicities added in previews
+   let mergeSliceTo :: Lodree -> Lodree
+       mergeSliceTo = flip merge1 sliceTree -- functio
+   -- must be more times applied due to resolve duplicities added in previews
    -- slice where are physical links to the same slice, thand droped the last but one
-   in (dropPenuliamate . mergeSliceTo . mergeSliceTo) lodree
- where dropPenuliamate (LDir _ (last' : _ : rest)) = makeLDir (last': rest)
+   in (iterate2 20 eqHashes (dropPenuliamate . mergeSliceTo) . mergeSliceTo) lodree
+ where dropPenuliamate :: Lodree -> Lodree
+       dropPenuliamate (LDir _ (last' : _ : rest)) = makeLDir (last': rest)
 
 merge1 :: Lodree -> Slicin -> Lodree
 merge1 rootLodree rootDirTree = let
@@ -81,13 +83,6 @@ filterOutYaba fulllist = let
   in yabas ++ regular
 
 
-{- |
-  extract pure filename from yaba files
-    "ahoj.txt" -> "ahoj.txt"
-    "~COKoLI~normalni jmen~o.yaba" -> Just "normalni jmen~o"
-    "~COkOLI~normalni jmen~o.xaba" -> Just "~COkOLI~normalni jmen~o.xaba"
-    "anyother patter.yaba" -> Nothing
--}
 extractPureFordName :: FileName -> Maybe FileName
 extractPureFordName [] = Nothing
 extractPureFordName fullName
@@ -119,3 +114,6 @@ findTarget cmd = findLodreeNode $ getLinkTarget cmd
 
 getLinkTarget :: SliceCmd -> FilePath
 getLinkTarget (Link target)  = target
+
+eqHashes :: Lodree -> Lodree -> Bool
+eqHashes = (==) `on` hashLodree

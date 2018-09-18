@@ -13,6 +13,7 @@ module Util.TurboWare
       safeHead,
       replaceItem,
       createDirectories,
+      iterate2,
       Dumpable(..),
       Hexable(..),
       MonoidPlus3(..),
@@ -149,3 +150,13 @@ replaceItem index item list =
     let (pref, suf) = splitAt index list
     in if null suf then list
                    else pref ++ [item] ++ tail suf
+
+-- | Iterate maximum iteration while the subsequence iteration are not equals
+-- | by function fceEq
+iterate2 :: Int -> (a -> a -> Bool) -> (a -> a) -> a -> a
+iterate2 maxIterCount fceEq fceIter value
+  | maxIterCount <= 0 = value
+  | otherwise =
+     let value' = fceIter value
+     in if value `fceEq` value' then value'
+                                else iterate2 (maxIterCount - 1) fceEq fceIter value'
