@@ -18,7 +18,8 @@ module Yaba.Data.Lodree (
   findLodreeNode,
   ree,
   flattenFileLodree,
-  takeRestoreTuples
+  takeRestoreTuples,
+  isFile
 ) where
 
 import           Control.Applicative
@@ -51,6 +52,10 @@ millisToUTC t = posixSecondsToUTCTime $ (fromInteger t) / 1000
 data Lodree = LFile Ree FilePath
             | LDir Ree [(FileName, Lodree)]
             deriving (Show)
+
+isFile :: Lodree -> Bool
+isFile LFile {} = True
+isFile _        = False
 
 emptyLodree :: Lodree
 emptyLodree = makeLDir []

@@ -42,7 +42,7 @@ cmdMarkDuplicities markedDir ctx@Ctx{..} = do
     let hashesSlicin = createMapOfHashes slicinLodree
     let hashesMarked = createMapOfHashes markedLodree
     let beMarked = M.intersection hashesMarked hashesSlicin
-    let list = concat (fst <$> M.elems beMarked )
+    let list = concat (fst <$> filter (isFile . snd) (M.elems beMarked) )
     forM_ list (\p -> do
       let path1 = markedDir ++ p
       let path2 = takeDirectory path1 ++ "/~DUPLICITY~" ++ takeFileName path1
