@@ -40,7 +40,7 @@ toShallCommand (path, CpFile op maybeTime) =
     printf "ycp \"%s\" \"%s\"" (dropSlash op)  (dropSlash path)
     ++ case maybeTime of
          Nothing -> ""
-         Just time -> printf "\nymodtime \"%s\" %s" (dropSlash path) (show time)
+         Just time -> printf "\nymodtime \"%s\" \"%s\"" (dropSlash path) (show time)
 
 
 dropSlash :: String -> String
