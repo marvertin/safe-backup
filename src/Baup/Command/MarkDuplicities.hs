@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections   #-}
 
-module Yaba.Command.MarkDuplicities (
+module Baup.Command.MarkDuplicities (
   cmdMarkDuplicities
 ) where
 
@@ -17,11 +17,11 @@ import           Util.DirScan
 import           Util.Lib
 import           Util.TurboWare
 import           Util.Types
-import           Yaba.App.Context
-import           Yaba.App.Log
-import           Yaba.Command.Backup
-import           Yaba.Data.Lodree
-import           Yaba.Data.Ree
+import           Baup.App.Context
+import           Baup.App.Log
+import           Baup.Command.Backup
+import           Baup.Data.Lodree
+import           Baup.Data.Ree
 
 
 

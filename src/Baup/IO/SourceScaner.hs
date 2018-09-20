@@ -2,7 +2,7 @@
 {-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Yaba.IO.SourceScaner (
+module Baup.IO.SourceScaner (
  readSourceTree,
 ) where
 
@@ -24,10 +24,10 @@ import           Util.DirScan
 import           Util.Lib
 import           Util.TurboWare
 import           Util.Types
-import           Yaba.App.Ignorances
-import           Yaba.App.Log
-import           Yaba.Data.Lodree
-import           Yaba.Data.Ree
+import           Baup.App.Ignorances
+import           Baup.App.Log
+import           Baup.Data.Lodree
+import           Baup.Data.Ree
 
 
 import qualified Data.ByteString.Lazy as Lazy

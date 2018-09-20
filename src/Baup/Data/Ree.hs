@@ -4,7 +4,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 
 
-module Yaba.Data.Ree (
+module Baup.Data.Ree (
   Ree(..),
   CacheHash,
   loadFileRee,

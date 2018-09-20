@@ -24,10 +24,10 @@ import           System.TimeIt
 import           Text.Printf
 
 import           Util.Types
-import           Yaba.App.Context
-import           Yaba.Command.Backup
-import           Yaba.Command.MarkDuplicities
-import           Yaba.IO.FileNamesC
+import           Baup.App.Context
+import           Baup.Command.Backup
+import           Baup.Command.MarkDuplicities
+import           Baup.IO.FileNamesC
 
 data Options =
   NormalCommand   { dir    :: String

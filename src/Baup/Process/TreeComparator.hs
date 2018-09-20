@@ -1,7 +1,7 @@
 {-# LANGUAGE InstanceSigs    #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Yaba.Process.TreeComparator (
+module Baup.Process.TreeComparator (
   compareTrees,
 ) where
 
@@ -10,8 +10,8 @@ import           Data.Maybe
 import           Util.Lib
 import           Util.TurboWare
 import           Util.Types
-import           Yaba.Data.Differences
-import           Yaba.Data.Lodree
+import           Baup.Data.Differences
+import           Baup.Data.Lodree
 
 compareTrees :: Lodree -> Lodree -> Maybe Differences
 compareTrees l r

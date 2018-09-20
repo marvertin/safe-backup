@@ -2,7 +2,7 @@
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
-module Yaba.Data.Slicout (
+module Baup.Data.Slicout (
   Slicout,
   AnchoredSlicout,
   Cmd(..),
@@ -26,7 +26,7 @@ import           Util.Dump
 import           Util.Lib
 import           Util.TurboWare
 import           Util.Types
-import           Yaba.Data.Lodree
+import           Baup.Data.Lodree
 
 
 

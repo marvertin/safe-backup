@@ -3,7 +3,7 @@
 {-# LANGUAGE TupleSections   #-}
 
 
-module Yaba.Command.Backup (
+module Baup.Command.Backup (
   cmdBackup,
   scanSlices
 ) where
@@ -24,29 +24,29 @@ import           System.IO
 import           Text.Printf
 import           Text.RawString.QQ
 
+import           Baup.App.Config
+import           Baup.App.Context
+import           Baup.App.Ignorances
+import           Baup.App.Log
+import           Baup.Data.Differences
+import           Baup.Data.Lodree
+import           Baup.Data.Ree
+import           Baup.Data.Slicin
+import           Baup.Data.Slicout
+import           Baup.IO.FileNamesC
+import           Baup.IO.RestoreScriptWriter
+import           Baup.IO.SliceNameStrategy
+import           Baup.IO.SlicinScaner
+import           Baup.IO.SlicoutWriter
+import           Baup.IO.SourceScaner
+import           Baup.Process.SlicinMerger
+import           Baup.Process.SlicoutBuilder
+import           Baup.Process.TreeComparator
 import           Util.DirScan
 import           Util.Dump
 import           Util.Lib
 import           Util.TurboWare
 import           Util.Types
-import           Yaba.App.Config
-import           Yaba.App.Context
-import           Yaba.App.Ignorances
-import           Yaba.App.Log
-import           Yaba.Data.Differences
-import           Yaba.Data.Lodree
-import           Yaba.Data.Ree
-import           Yaba.Data.Slicin
-import           Yaba.Data.Slicout
-import           Yaba.IO.FileNamesC
-import           Yaba.IO.RestoreScriptWriter
-import           Yaba.IO.SliceNameStrategy
-import           Yaba.IO.SlicinScaner
-import           Yaba.IO.SlicoutWriter
-import           Yaba.IO.SourceScaner
-import           Yaba.Process.SlicinMerger
-import           Yaba.Process.SlicoutBuilder
-import           Yaba.Process.TreeComparator
 
 
 getEventHandler :: UTCTime -> Log -> (EventEnvelop a ErrList -> IO ErrList, ErrList)

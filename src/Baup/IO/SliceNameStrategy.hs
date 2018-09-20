@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
 
-module Yaba.IO.SliceNameStrategy (
+module Baup.IO.SliceNameStrategy (
   SliceNameStrategy(),
   defaultSliceNameStrategy,
 

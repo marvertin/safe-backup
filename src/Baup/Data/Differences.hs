@@ -1,14 +1,14 @@
 {-# LANGUAGE InstanceSigs    #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Yaba.Data.Differences (
+module Baup.Data.Differences (
   Differences(..),
   diffCountAndSizes
 ) where
 
 import           Util.TurboWare
 import           Util.Types
-import           Yaba.Data.Lodree
+import           Baup.Data.Lodree
 
 data Differences = QDir [(FileName, Differences)]
  | QLeft Lodree

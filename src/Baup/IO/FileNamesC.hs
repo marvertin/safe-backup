@@ -1,4 +1,4 @@
-module Yaba.IO.FileNamesC (
+module Baup.IO.FileNamesC (
   yabaSuffix,
   configFileName,
   sliceIndexName,

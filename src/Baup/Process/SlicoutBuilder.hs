@@ -2,7 +2,7 @@
 {-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
-module Yaba.Process.SlicoutBuilder (
+module Baup.Process.SlicoutBuilder (
   buildSlicout,
   createMapOfHashes3,
 ) where
@@ -16,14 +16,14 @@ import           Debug.Trace
 import           Debug.Trace
 import           System.Directory.Tree
 
+import           Baup.Data.Differences
+import           Baup.Data.Lodree
+import           Baup.Data.Slicout
+import           Baup.Process.TreeComparator
 import           Util.Dump
 import           Util.Lib
 import           Util.TurboWare
 import           Util.Types
-import           Yaba.Data.Differences
-import           Yaba.Data.Lodree
-import           Yaba.Data.Slicout
-import           Yaba.Process.TreeComparator
 
 mapCall :: (RevPath -> a -> Slicout ) -> RevPath -> [(FileName, a)] -> [Slicout]
 mapCall fce revpath = map (uncurry fce . (first (:revpath)))

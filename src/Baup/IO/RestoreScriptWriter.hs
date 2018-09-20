@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Yaba.IO.RestoreScriptWriter (
+module Baup.IO.RestoreScriptWriter (
   createRestoreScripts
 ) where
 
@@ -16,10 +16,10 @@ import           Text.Printf
 import           Util.Lib
 import           Util.TurboWare
 import           Util.Types
-import           Yaba.App.Context
-import           Yaba.Data.Lodree
-import           Yaba.IO.FileNamesC
-import           Yaba.Process.RestoreScriptMaker
+import           Baup.App.Context
+import           Baup.Data.Lodree
+import           Baup.IO.FileNamesC
+import           Baup.Process.RestoreScriptMaker
 
 createRestoreScripts ::  Ctx -> Lodree -> IO Bool
 createRestoreScripts ctx (LDir _ list) = foldr (createOnRestoreScript ctx) (return False) list

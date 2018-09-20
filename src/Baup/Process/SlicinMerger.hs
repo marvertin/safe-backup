@@ -2,13 +2,16 @@
 {-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Yaba.Process.SlicinMerger (
+module Baup.Process.SlicinMerger (
   mergeToLodree,
   mergesToLodree,
 ) where
 
 import qualified Crypto.Hash.SHA1      as Cr
 
+import           Baup.Data.Lodree
+import           Baup.Data.Slicin
+import           Baup.IO.FileNamesC
 import           Control.Applicative
 import qualified Data.ByteString       as Strict
 import qualified Data.ByteString.UTF8  as BSU
@@ -23,9 +26,6 @@ import           System.FilePath
 import           Util.Lib
 import           Util.TurboWare
 import           Util.Types
-import           Yaba.Data.Lodree
-import           Yaba.Data.Slicin
-import           Yaba.IO.FileNamesC
 
 
 

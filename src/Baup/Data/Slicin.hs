@@ -9,7 +9,7 @@
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE StandaloneDeriving         #-}
 
-module Yaba.Data.Slicin
+module Baup.Data.Slicin
     (
     formatMetaFileHeader,
     parseMetaFile,
@@ -45,7 +45,7 @@ import           Util.Dump
 import           Util.Lib
 import           Util.TurboWare
 import           Util.Types
-import           Yaba.Data.Ree
+import           Baup.Data.Ree
 
 
 type Slicin = DirTree SliceFile

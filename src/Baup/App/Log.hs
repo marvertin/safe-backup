@@ -1,5 +1,5 @@
 {-# LANGUAGE NamedFieldPuns #-}
-module Yaba.App.Log (
+module Baup.App.Log (
   withLogger,
   Level(..),
   Log,

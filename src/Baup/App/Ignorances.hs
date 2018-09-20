@@ -1,4 +1,4 @@
-module Yaba.App.Ignorances (
+module Baup.App.Ignorances (
 
   makeFilterFce,
   IgnoranceDef,

@@ -1,4 +1,4 @@
-module Yaba.Process.RestoreScriptMaker (
+module Baup.Process.RestoreScriptMaker (
   makeRestoreScript
 )
 
@@ -11,10 +11,10 @@ import qualified Data.Map         as M
 import qualified Data.Set         as S
 import           Text.Printf
 
+import           Baup.Data.Lodree
 import           Util.Lib
 import           Util.TurboWare
 import           Util.Types
-import           Yaba.Data.Lodree
 
 
 data Cmd = MkDir | CpFile FilePath (Maybe UTCTime) deriving (Show, Eq, Ord)

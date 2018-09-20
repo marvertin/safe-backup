@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 
 
-module Yaba.Data.Lodree (
+module Baup.Data.Lodree (
   Lodree(..),
   Ree(..),
   MapOfHashes,
@@ -38,10 +38,10 @@ import           GHC.Generics
 import           System.Directory.Tree (DirTree (Dir, File), FileName)
 import           System.FilePath
 
+import           Baup.Data.Ree
 import           Util.Lib
 import           Util.TurboWare
 import           Util.Types
-import           Yaba.Data.Ree
 
 
 type MapOfHashes = M.Map Hash ([FilePath], Lodree)

@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections   #-}
 
-module Yaba.IO.SlicoutWriter (
+module Baup.IO.SlicoutWriter (
   writeBackup,
 )  where
 
@@ -20,15 +20,15 @@ import           System.IO
 import           Text.Printf
 
 
+import           Baup.App.Config
+import           Baup.App.Log
+import qualified Baup.Data.Slicin      as YDSI
+import           Baup.Data.Slicout     as YDSO
 import qualified Data.ByteString.Lazy  as BS
 import           Util.Dump
 import           Util.Lib
 import           Util.TurboWare
 import           Util.Types
-import           Yaba.App.Config
-import           Yaba.App.Log
-import qualified Yaba.Data.Slicin      as YDSI
-import           Yaba.Data.Slicout     as YDSO
 
 -- | Write backu. returns (count of copies files, sizue of set files, count of metafiles)
 writeBackup :: Log -> AnchoredSlicout -> ForestDef ->  IO (AnchoredDirTree (Int, Integer, Int))

@@ -7,7 +7,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RecordWildCards            #-}
 
-module Yaba.IO.SlicinScaner
+module Baup.IO.SlicinScaner
     (
     readSlice,
     ) where
@@ -37,9 +37,9 @@ import           Util.Dump
 import           Util.Lib
 import           Util.TurboWare
 import           Util.Types
-import           Yaba.Data.Ree
-import           Yaba.Data.Slicin
-import           Yaba.IO.FileNamesC
+import           Baup.Data.Ree
+import           Baup.Data.Slicin
+import           Baup.IO.FileNamesC
 
 
 

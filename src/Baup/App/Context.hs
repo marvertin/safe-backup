@@ -1,7 +1,7 @@
 {-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Yaba.App.Context (
+module Baup.App.Context (
   withContext,
   Ctx(..),
 
@@ -12,13 +12,13 @@ import           System.Directory
 import           System.Exit
 import           Text.Printf
 
+import           Baup.App.Config
+import           Baup.App.Log
+import           Baup.IO.FileNamesC
+import           Baup.IO.SliceNameStrategy
 import           Util.Lib
 import           Util.TurboWare
 import           Util.Types
-import           Yaba.App.Config
-import           Yaba.App.Log
-import           Yaba.IO.FileNamesC
-import           Yaba.IO.SliceNameStrategy
 
 data Ctx = Ctx {
      dataRoot            :: FilePath,
