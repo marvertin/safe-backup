@@ -5,6 +5,7 @@ module Util.TurboWare
       replaceBacklashesToSlashes,
       replaceVerticalToSlashes,
       replaceSlashesToVertical,
+      replaceSlashesToBacklashes,
       zipMaybe,
       prependToFirst,
       appendToFirst,
@@ -82,6 +83,12 @@ replaceBacklashesToSlashes :: String -> String
 replaceBacklashesToSlashes = let
       repl '\\' = '/'
       repl x    = x
+  in map repl
+
+replaceSlashesToBacklashes :: String -> String
+replaceSlashesToBacklashes = let
+      repl '/' = '\\'
+      repl x   = x
   in map repl
 
 
