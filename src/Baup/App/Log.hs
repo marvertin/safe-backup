@@ -31,10 +31,10 @@ data Level
   deriving (Show)
 
 withLogger :: FilePath ->  FilePath -> (Log -> IO a) -> IO a
-withLogger yabaLogPath sliceLogPath fce = do
+withLogger mainLogPath sliceLogPath fce = do
   charOnLineCounter <- newIORef 0
   isTerm <- hIsTerminalDevice stdout
-  withFile yabaLogPath AppendMode (\yhandle ->
+  withFile mainLogPath AppendMode (\yhandle ->
     withFile sliceLogPath WriteMode (\shandle ->
       fce (doLog isTerm charOnLineCounter yhandle shandle)
      )

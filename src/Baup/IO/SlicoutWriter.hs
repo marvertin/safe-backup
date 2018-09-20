@@ -24,6 +24,7 @@ import           Baup.App.Config
 import           Baup.App.Log
 import qualified Baup.Data.Slicin      as YDSI
 import           Baup.Data.Slicout     as YDSO
+import           Baup.IO.FileNamesC
 import qualified Data.ByteString.Lazy  as BS
 import           Util.Dump
 import           Util.Lib
@@ -59,7 +60,7 @@ writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
 
       writeFileToBackup counters path (_, cmd) = do
            let (dir, file) = splitFileName path
-           let cesta = dir </> (kindOfChange cmd ++ file) ++ ".yaba"
+           let cesta = dir </> (kindOfChange cmd ++ file) ++ metaSuffix
            lo Debug $ printf  "create meta: \"%s\": %s" cesta (showCmd cmd )
            writeFile cesta (formatCmd cmd)
            modifyIORef' counters (mappend (MonoidPlus3 (0, 0, 1)))
@@ -100,8 +101,6 @@ formatInfo (Info hash Paths{..} lodree)  = concat [
     toDump lodree
    ]
 
-
--- yabaFilePrefix _ = "~IMPOSSIBLE~"
 
 convertToSliceCmd :: Cmd -> YDSI.SliceCmd
 convertToSliceCmd (YDSO.Link  x _) = YDSI.Link x

@@ -32,14 +32,14 @@ import           System.FilePath
 import           System.IO             (hFlush, stdout)
 import           Text.Printf           (printf)
 
+import           Baup.Data.Ree
+import           Baup.Data.Slicin
+import           Baup.IO.FileNamesC
 import           Util.DirScan
 import           Util.Dump
 import           Util.Lib
 import           Util.TurboWare
 import           Util.Types
-import           Baup.Data.Ree
-import           Baup.Data.Slicin
-import           Baup.IO.FileNamesC
 
 
 
@@ -69,7 +69,7 @@ loadSliceFile rootPath rp = do
   time <- getModificationTime realPath
   hash <- computeFileHash realPath
   let originalPath = "/" ++ takeFileName rootPath ++ "/" ++ path
-  if not $ yabaSuffix `isSuffixOf` path then return (RegularFile  (Ree 1 size time hash) originalPath )
+  if not $ metaSuffix `isSuffixOf` path then return (RegularFile  (Ree 1 size time hash) originalPath )
           else (MetaFile . parseMetaFile . T.unpack) <$> TIO.readFile realPath
 
 isEmptyDir :: Slicin -> Bool

@@ -96,6 +96,6 @@ zipPaths' (Dir _ list) = let dir = Dir "" list
                          in (first replaceBacklashesToSlashes) <$> zipPaths ("" :/ dir)
 
 -- | convert reverse path to forward path not starting with slash
--- | pth ["yaba", "home", "opt"] == opt/home/jaba
+-- | pth ["jaba", "home", "opt"] == opt/home/jaba
 pth :: RevPath -> FilePath
 pth = foldl (flip (</>)) []

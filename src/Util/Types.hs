@@ -12,6 +12,8 @@ module Util.Types (
   ErrMsg,
   ErrList(..),
   SliceName,
+  pgmname,
+  pgmshortdesc,
 
 
   UTCTime
@@ -50,6 +52,8 @@ instance FromJSON Hash where
       parseee :: Text -> Hash
       parseee x = (read (unpack x) :: Hash)
 
+pgmname = "yaba"
+pgmshortdesc = "yeat another backup"
       {-
 
 instance ToJSON Ree where

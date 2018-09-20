@@ -59,7 +59,7 @@ merge1 rootLodree rootDirTree = let
       | isDelete content = Nothing
       | isLink  content = findTarget content rootLodree <|> lodree
     merge' (Just (LDir ree subdirs)) (Just (Dir name dirtrees)) =
-       let pa = pairDirs subdirs (filterOutYaba dirtrees)
+       let pa = pairDirs subdirs (filterOutMeta dirtrees)
            qa = map (\(name, lodree, dirtree) ->  (name, merge' lodree dirtree)) pa
            ra :: [(FileName, Lodree)]
            ra = mapMaybe tupleMaybeUpSnd qa
@@ -73,20 +73,20 @@ pairDirs lodree2 dirtree =
     let preZiped = zipMaybe fst pickPureFordName lodree2 dirtree
     in map (\(name, lodree, dirtree) -> (name, snd <$> lodree, dirtree)) preZiped
 
-filterOutYaba :: [Slicin] -> [Slicin]
-filterOutYaba fulllist = let
-    list = filter (isJust . extractPureFordName . fileNamex ) fulllist -- jen správně udělaná yaba fajly
-    (yabaall, regular) = partition isMetaFile list
+filterOutMeta :: [Slicin] -> [Slicin]
+filterOutMeta fulllist = let
+    list = filter (isJust . extractPureFordName . fileNamex ) fulllist -- jen správně udělaná meta fajly
+    (metaall, regular) = partition isMetaFile list
     regularFordNames = fileNamex <$> regular
-    yabaNoHiden = filter (not . (`elem` regularFordNames) . pickPureFordName) yabaall -- regular file must hide yabas
-    yabas = nubBy ((==) `on` pickPureFordName) yabaNoHiden
-  in yabas ++ regular
+    metaNoHiden = filter (not . (`elem` regularFordNames) . pickPureFordName) metaall -- regular file must hide metas
+    metas = nubBy ((==) `on` pickPureFordName) metaNoHiden
+  in metas ++ regular
 
 
 extractPureFordName :: FileName -> Maybe FileName
 extractPureFordName [] = Nothing
 extractPureFordName fullName
-  | not $ isExtensionOf yabaSuffix fullName = Just fullName
+  | not $ isExtensionOf metaSuffix fullName = Just fullName
 extractPureFordName ('~' : zbytek) =
    let pureName = dropWhile ('~' ==) . dropWhile ('~' /=) $ takeBaseName zbytek
    in if null pureName then Nothing
@@ -94,7 +94,7 @@ extractPureFordName ('~' : zbytek) =
 extractPureFordName _ = Nothing
 
 pickPureFordName :: DirTree a -> FileName
-pickPureFordName = fromJust . extractPureFordName . fileNamex  -- function returning name in yaba and no yaba files
+pickPureFordName = fromJust . extractPureFordName . fileNamex  -- function returning name in meta and no meta files
 
 isMetaFile :: Slicin -> Bool
 isMetaFile (File _ (MetaFile _)) = True

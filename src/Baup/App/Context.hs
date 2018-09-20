@@ -40,7 +40,7 @@ withContext backupDirRoot fce = do
   maybeForestDef <- readConfig backupDirRoot
   case maybeForestDef of
     Nothing -> do
-      putStrLn "!!! ERRORS starting yaba !!!"
+      putStrLn $ "!!! ERRORS starting " ++ pgmname ++ " !!!"
       return $ ExitFailure 1
     Just (Cfg sliceNameStrategy forest empties) -> do
       -- createDirectoryIfMissing False dataRoot
@@ -56,7 +56,7 @@ withContext backupDirRoot fce = do
       createDirectoryIfMissing True (takeSlicePath logRoot newSliceName)
       --createDirectoryIfMissing True indexDirx
       let logFileFath = takeSlicePath logRoot newSliceName ++ "/" ++ sliceLogName
-      let yabaLogFilePath = logRoot ++ "/" ++ yabaLogName
+      let mainLogFilePath = logRoot ++ "/" ++ mainLogName
       let ctx = Ctx {
            lo = \ _ _ -> return ()
          , dataRoot
@@ -71,7 +71,7 @@ withContext backupDirRoot fce = do
          , empties
         }
       createRootDirs ctx
-      withLogger yabaLogFilePath logFileFath $ \lo -> do
+      withLogger mainLogFilePath logFileFath $ \lo -> do
         lo Inf $ printf  "Detail log is: \"%s\"" logFileFath
         fce (ctx {lo})
 

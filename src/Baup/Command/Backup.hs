@@ -57,7 +57,6 @@ cmdBackup :: Ctx -> IO ExitCode
 cmdBackup ctx@Ctx{..} =  do -- gcc crashes whne versio is obtain from here
   startTime <- getCurrentTime
   exitCode <- do
-    --lo Summary $ "Start yaba " ++  yabaVersion
     tmStart <- getCurrentTime
 
     (rootLodree, failusSlices) <- scanSlices ctx

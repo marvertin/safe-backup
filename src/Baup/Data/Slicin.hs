@@ -41,11 +41,11 @@ import           System.FilePath
 import           System.IO             (hFlush, stdout)
 import           Text.Printf           (printf)
 
+import           Baup.Data.Ree
 import           Util.Dump
 import           Util.Lib
 import           Util.TurboWare
 import           Util.Types
-import           Baup.Data.Ree
 
 
 type Slicin = DirTree SliceFile
@@ -64,9 +64,9 @@ parseMetaFile :: String -> SliceCmd
 parseMetaFile fileContent = (parse . lines) fileContent
   where
     parse :: [String] -> SliceCmd
-    parse []                   = error "yaba file is empty"
+    parse []                   = error "meta file is empty"
     parse ("#yaba1" : line : _) = read line
-    parse _ = error $ "Bad version of Yaba file, probably old version of yaba tool: " ++ show fileContent
+    parse _ = error $ "Bad version of meta file, probably old version of this tool: " ++ show fileContent
 
 formatMetaFileHeader :: SliceCmd -> [String]
 formatMetaFileHeader x = ["#yaba1", show x]

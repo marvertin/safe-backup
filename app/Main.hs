@@ -23,11 +23,11 @@ import           System.IO
 import           System.TimeIt
 import           Text.Printf
 
-import           Util.Types
 import           Baup.App.Context
 import           Baup.Command.Backup
 import           Baup.Command.MarkDuplicities
 import           Baup.IO.FileNamesC
+import           Util.Types
 
 data Options =
   NormalCommand   { dir    :: String
@@ -59,7 +59,7 @@ data Command
  deriving (Show)
 
 
-yabaProgramInstallDir = "This value direct to use yaba isntall directory"
+programInstallDir = "This value direct to use " ++ pgmname ++ " install directory"
 
 backupOptions :: Parser Command
 backupOptions = pure Backup
@@ -112,7 +112,7 @@ normalCommand defaultDir = NormalCommand
           ( long "dir"
          <> short 'd'
          <> metavar "BACKUP-DIR"
-         <> help "Directory with backup, must contains \"yaba-config.yaml\" file. (default: directory where the executable of Yaba program is)"
+         <> help ("Directory with backup, must contains \"" ++ configFileName ++ "\" file. (default: directory where the executable of " ++ pgmname ++ " program is)")
          <> value defaultDir
          <> showDefault
             )
@@ -137,7 +137,7 @@ options defaultDir =
 
 main = do
   setLocaleEncoding utf8
-  putStrLn $ "yaba " ++ showVersion Paths_yaba.version ++ " - yeat another backup"
+  putStrLn $ pgmname ++ "  " ++ showVersion Paths_yaba.version ++ " - " ++ pgmshortdesc
   exitCode <- timeIt  main'
   exitWith exitCode
 
@@ -147,7 +147,7 @@ main' = do
    let opts = info ((options pathWithProgram) <**> helper)
           ( fullDesc
          <> progDesc "backing up structure without change and duplicity"
-         <> header "yaba - yeat another backup" )
+         <> header (pgmname ++ pgmshortdesc))
 
    doProcessing =<< execParser opts
 
@@ -155,7 +155,7 @@ main' = do
 doProcessing :: Options -> IO ExitCode
 
 doProcessing Version = do
-  putStrLn $ "yaba " ++ showVersion Paths_yaba.version ++ " - yeat another backup"
+  putStrLn $ pgmname ++ " " ++ showVersion Paths_yaba.version ++ " - yeat another backup"
   return ExitSuccess
 
 doProcessing NoArgs = do
@@ -175,8 +175,8 @@ doProcessing NoArgs = do
 doProcessing NormalCommand{dir = enteredBackupDir, optCommand} = do
   (pathWithProgram, _) <- SEE.splitExecutablePath
   backupDirAbs <- makeAbsolute $
-     if enteredBackupDir == yabaProgramInstallDir then pathWithProgram
-                                                  else enteredBackupDir
+     if enteredBackupDir == programInstallDir then pathWithProgram
+                                              else enteredBackupDir
   case optCommand of
     Backup -> withContext backupDirAbs cmdBackup
     (MarkDuplicities dir) -> withContext backupDirAbs (cmdMarkDuplicities dir)
