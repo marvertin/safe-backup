@@ -13,9 +13,6 @@ module Util.Types (
   ErrMsg,
   ErrList(..),
   SliceName,
-  pgmname,
-  pgmshortdesc,
-
 
   UTCTime
 ) where
@@ -28,6 +25,7 @@ import           Data.Yaml
 import           GHC.Generics
 import           System.Directory.Tree (DirTree (..), FileName)
 import           System.FilePath
+
 
 -- | size of file
 type FileSize = Integer
@@ -45,6 +43,7 @@ type ErrMsg = String
 -- | slcienamei of the form "2008-02|12|156" It contains vertical lines, not slashes.
 type SliceName = String
 
+-- | List of error messages
 newtype ErrList = ErrList { getErrList :: [String] } deriving (Show)
 
 
@@ -57,8 +56,6 @@ instance FromJSON Hash where
       parseee :: Text -> Hash
       parseee x = (read (unpack x) :: Hash)
 
-pgmname = "yaba"
-pgmshortdesc = "yeat another backup"
       {-
 
 instance ToJSON Ree where

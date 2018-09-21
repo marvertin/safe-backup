@@ -13,6 +13,7 @@ import           System.Exit
 import           Text.Printf
 
 import           Baup.App.Config
+import           Baup.App.Consts
 import           Baup.App.Log
 import           Baup.IO.FileNamesC
 import           Baup.IO.SliceNameStrategy

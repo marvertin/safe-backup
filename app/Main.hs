@@ -23,6 +23,7 @@ import           System.IO
 import           System.TimeIt
 import           Text.Printf
 
+import           Baup.App.Consts
 import           Baup.App.Context
 import           Baup.Command.Backup
 import           Baup.Command.MarkDuplicities
