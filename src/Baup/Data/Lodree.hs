@@ -22,21 +22,15 @@ module Baup.Data.Lodree (
   isFile
 ) where
 
-import           Control.Applicative
 import           Control.Arrow
 import qualified Crypto.Hash.SHA1      as Cr
-import qualified Data.ByteString       as Strict
 import qualified Data.ByteString.UTF8  as BSU
 import           Data.Function
 import           Data.List
 import qualified Data.Map              as M
-import           Data.Maybe
 import           Data.Time.Clock.POSIX
-import           Data.Tuple
 import           Data.Yaml
-import           GHC.Generics
-import           System.Directory.Tree (DirTree (Dir, File), FileName)
-import           System.FilePath
+-- import           GHC.Generics
 
 import           Baup.Data.Ree
 import           Util.Lib
