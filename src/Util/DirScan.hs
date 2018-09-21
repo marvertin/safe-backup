@@ -28,7 +28,7 @@ import           Text.Printf
 import           Util.Lib
 import           Util.Types
 
-type FlowAvar = [(UTCTime, Int, Integer, UTCTime)] -- timce, count, size, header has latest
+type FlowAvar = [(UTCTime, FilesCount, FileSize, UTCTime)] -- timce, count, size, header has latest
 data Acum a b = Acum FlowAvar [(FilePath, a)] b deriving (Show)
 
 data EventEnvelop a b = EventEnvelop RevPath Cumulative (Event a) b
@@ -60,13 +60,13 @@ data Event a
 
 
 newtype EventFile = EventFile {
-     efileSize :: Integer
+     efileSize :: FileSize
    } deriving (Show)
 data Cumulative = Cumulative {
-      etotalCount       :: Int,
-      etotalSize        :: Integer,
+      etotalCount       :: FilesCount,
+      etotalSize        :: FileSize,
       avarageCountSpeed :: Double,
-      avarageSizeSpeed  :: Integer  -- bytes per second
+      avarageSizeSpeed  :: FileSize  -- bytes per second
     } deriving (Show)
 
 flowAvarEmpty :: UTCTime -> FlowAvar
@@ -144,7 +144,7 @@ scanDirectory createDirNode predicate createFileNode (eventFce, eventStart) root
 
 
 
-updateFlowAvar :: FlowAvar -> (Int, Integer) -> UTCTime ->FlowAvar
+updateFlowAvar :: FlowAvar -> (FilesCount, FileSize) -> UTCTime ->FlowAvar
 updateFlowAvar flowavar (count', size') nowTime =
   let (lastTime, count1 , size1, latTraceTime )  = myhead flowavar
       count2 = count1 + count'
@@ -161,10 +161,10 @@ getCumulative flowAvar = let
 
 
 
-averageSpeed :: FlowAvar -> (Double, Integer)
+averageSpeed :: FlowAvar -> (Double, FileSize)
 averageSpeed flowAvar = averageSpeed' (last flowAvar) (myhead flowAvar)
 
-averageSpeed' :: (UTCTime, Int, Integer, UTCTime) -> (UTCTime, Int, Integer, UTCTime) -> (Double, Integer)
+averageSpeed' :: (UTCTime, FilesCount, FileSize, UTCTime) -> (UTCTime, FilesCount, FileSize, UTCTime) -> (Double, FileSize)
 averageSpeed' (time1, count1, size1, _) (time2, count2, size2, _) =
     let
         timeDiff :: Double = realToFrac  $ diffUTCTime time2 time1

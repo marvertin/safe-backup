@@ -21,18 +21,18 @@ import qualified Data.Map              as M
 import qualified Data.Set              as S
 import           System.FilePath.Posix
 
+import           Baup.Data.Lodree
 import           System.Directory.Tree
 import           Util.Dump
 import           Util.Lib
 import           Util.TurboWare
 import           Util.Types
-import           Baup.Data.Lodree
 
 
 
 
 data Info = Info Hash Paths Lodree  deriving (Show) -- gives information only to peaple, not processed by machine
-data Cmd = Insert Integer UTCTime | Delete Info | Link FilePath Info  deriving (Show)
+data Cmd = Insert FileSize UTCTime | Delete Info | Link FilePath Info  deriving (Show)
 data Paths = Paths { pathsNew :: [FilePath], pathsLast:: [FilePath], pathsHistory :: [FilePath] }  deriving (Show)
 
 type Slicout = DirTree Cmd
@@ -41,12 +41,12 @@ type AnchoredSlicout = AnchoredDirTree Cmd
 info (Delete i) = i
 info (Link _ i) = i
 
-sizeToBackup :: Slicout -> Integer
+sizeToBackup :: Slicout -> FileSize
 sizeToBackup bt = sum $ fmap mapa bt
    where mapa (Insert sz _) = sz
          mapa _             = 0
 
-countsToBackup :: Slicout -> Integer
+countsToBackup :: Slicout -> FilesCount
 countsToBackup bt = sum $ fmap mapa bt
   where mapa (Insert _ _) = 1
         mapa _            = 0

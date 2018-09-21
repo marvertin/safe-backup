@@ -6,6 +6,7 @@
 module Util.Types (
   RevPath,
   FileSize,
+  FilesCount,
   Hash,
   FileName,
   FilePath,
@@ -28,16 +29,20 @@ import           GHC.Generics
 import           System.Directory.Tree (DirTree (..), FileName)
 import           System.FilePath
 
-
+-- | size of file
 type FileSize = Integer
 
-type RevPath = [String] -- it is reverse list of path items: ["myfile.txt", "myaccount", "home", "opt"]
+-- | count of files
+type FilesCount = Int
+
+-- | it is reverse list of path items: ["myfile.txt", "myaccount", "home", "opt"]
+type RevPath = [String]
 
 type Hash = BS.ByteString
 
 type ErrMsg = String
 
--- slcienamei of the form "2008-02|12|156" It contains vertical lines, not slashes.
+-- | slcienamei of the form "2008-02|12|156" It contains vertical lines, not slashes.
 type SliceName = String
 
 newtype ErrList = ErrList { getErrList :: [String] } deriving (Show)

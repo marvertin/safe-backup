@@ -32,7 +32,7 @@ import           Util.TurboWare
 import           Util.Types
 
 -- | Write backu. returns (count of copies files, sizue of set files, count of metafiles)
-writeBackup :: Log -> AnchoredSlicout -> ForestDef ->  IO (AnchoredDirTree (Int, Integer, Int))
+writeBackup :: Log -> AnchoredSlicout -> ForestDef ->  IO (AnchoredDirTree (FilesCount, FileSize, FilesCount))
 writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
         let (Dir _ subdirs) = (first replaceWithSorucePath) <$> zipPaths ("" :/ bt)
         counters <- newIORef mempty
@@ -46,7 +46,7 @@ writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
              Just root -> root ++ path
 
       --writeFileToBackup :: Int -> FilePath -> FilePath -> Cmd -> IO ()
-      writeFileToBackup :: IORef (MonoidPlus3 Int Integer Int) -> FilePath -> (FilePath, Cmd) -> IO (Int, Integer, Int)
+      writeFileToBackup :: IORef (MonoidPlus3 FilesCount FileSize FilesCount) -> FilePath -> (FilePath, Cmd) -> IO (FilesCount, FileSize, FilesCount)
       writeFileToBackup  counters destPath (sourcePath, (Insert _ _))  = do
            lo Debug $ printf "copy file: \"%s\" --> \"%s\"" sourcePath destPath
            lo Progress $ printf "copy file: \"%s\" --> \"%s\"" sourcePath destPath

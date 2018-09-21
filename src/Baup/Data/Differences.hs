@@ -6,9 +6,9 @@ module Baup.Data.Differences (
   diffCountAndSizes
 ) where
 
+import           Baup.Data.Lodree
 import           Util.TurboWare
 import           Util.Types
-import           Baup.Data.Lodree
 
 data Differences = QDir [(FileName, Differences)]
  | QLeft Lodree
@@ -17,10 +17,10 @@ data Differences = QDir [(FileName, Differences)]
 
  -- | dirrenence coune and sizeSpeed
  -- | return left count, left size, right count, right size
-diffCountAndSizes :: Differences -> ((Int, Integer), (Int, Integer))
+diffCountAndSizes :: Differences -> ((FilesCount, FileSize), (FilesCount, FileSize))
 diffCountAndSizes dirCompare = let MonoidPlus2x2 result = dcas dirCompare in result
  where
-   dcas :: Differences -> MonoidPlus2x2 Int Integer Int Integer
+   dcas :: Differences -> MonoidPlus2x2 FilesCount FileSize FilesCount FileSize
    dcas (QLeft lodree) = MonoidPlus2x2 (countsize lodree, (0,0))
    dcas (QRight lodree) = MonoidPlus2x2 ((0,0), countsize lodree)
    dcas (QBoth lodreeLeft lodreeRight) = MonoidPlus2x2 (countsize lodreeLeft, countsize lodreeRight)

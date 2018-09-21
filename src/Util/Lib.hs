@@ -78,7 +78,7 @@ splitByChar z xs = let (s1, s2) = span (/=z) xs
 computeFileHash :: FilePath -> IO Strict.ByteString
 computeFileHash = (fmap Cr.hashlazy . Lazy.readFile)  >=> evaluate
 
-sizeInMb :: Integer -> Double
+sizeInMb :: FileSize -> Double
 sizeInMb x =  fromIntegral x / 1024 / 1024
 
 showSz ::  Integral a  => a -> String
