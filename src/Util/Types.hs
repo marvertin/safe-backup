@@ -4,63 +4,13 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 
 module Util.Types (
-  RevPath,
-  FileSize,
-  FilesCount,
-  Hash,
-  FileName,
-  FilePath,
-  ErrMsg,
-  ErrList(..),
-  SliceName,
 
-  UTCTime
 ) where
 
 import qualified Data.ByteString       as BS
-
-import           Data.Text
+import qualified Data.Text             as T
 import           Data.Time.Clock
 import           Data.Yaml
 import           GHC.Generics
 import           System.Directory.Tree (DirTree (..), FileName)
 import           System.FilePath
-
-
--- | size of file
-type FileSize = Integer
-
--- | count of files
-type FilesCount = Int
-
--- | it is reverse list of path items: ["myfile.txt", "myaccount", "home", "opt"]
-type RevPath = [String]
-
-type Hash = BS.ByteString
-
-type ErrMsg = String
-
--- | slcienamei of the form "2008-02|12|156" It contains vertical lines, not slashes.
-type SliceName = String
-
--- | List of error messages
-newtype ErrList = ErrList { getErrList :: [String] } deriving (Show)
-
-
-instance ToJSON Hash where
-  toJSON hash = toJSON (show hash)
-
-instance FromJSON Hash where
-  parseJSON = withText "chuj2" (return . parseee)
-    where
-      parseee :: Text -> Hash
-      parseee x = (read (unpack x) :: Hash)
-
-      {-
-
-instance ToJSON Ree where
-  -- toJSON (Finfo x y) = object ["x" .= x, "y" .= y]
-  toJSON Ree{..} = let val = show rsize ++ " " ++ toHexStr rhash
-     in toJSON val
-
--}

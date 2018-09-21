@@ -7,11 +7,10 @@ module Baup.Process.TreeComparator (
 
 
 import           Data.Maybe
-import           Util.Lib
-import           Util.TurboWare
-import           Util.Types
+
 import           Baup.Data.Differences
 import           Baup.Data.Lodree
+import           Util.Lib
 
 compareTrees :: Lodree -> Lodree -> Maybe Differences
 compareTrees l r

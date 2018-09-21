@@ -26,10 +26,7 @@ import qualified Baup.Data.Slicin      as YDSI
 import           Baup.Data.Slicout     as YDSO
 import           Baup.IO.FileNamesC
 import qualified Data.ByteString.Lazy  as BS
-import           Util.Dump
 import           Util.Lib
-import           Util.TurboWare
-import           Util.Types
 
 -- | Write backu. returns (count of copies files, sizue of set files, count of metafiles)
 writeBackup :: Log -> AnchoredSlicout -> ForestDef ->  IO (AnchoredDirTree (FilesCount, FileSize, FilesCount))

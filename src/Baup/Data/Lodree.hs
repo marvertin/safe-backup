@@ -40,8 +40,6 @@ import           System.FilePath
 
 import           Baup.Data.Ree
 import           Util.Lib
-import           Util.TurboWare
-import           Util.Types
 
 
 type MapOfHashes = M.Map Hash ([FilePath], Lodree)

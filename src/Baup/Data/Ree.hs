@@ -22,7 +22,6 @@ import           System.Directory
 import           Text.Printf
 
 import           Util.Lib
-import           Util.Types
 
 
 

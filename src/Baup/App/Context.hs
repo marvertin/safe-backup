@@ -18,8 +18,6 @@ import           Baup.App.Log
 import           Baup.IO.FileNamesC
 import           Baup.IO.SliceNameStrategy
 import           Util.Lib
-import           Util.TurboWare
-import           Util.Types
 
 data Ctx = Ctx {
      dataRoot            :: FilePath,

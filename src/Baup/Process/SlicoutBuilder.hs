@@ -20,10 +20,7 @@ import           Baup.Data.Differences
 import           Baup.Data.Lodree
 import           Baup.Data.Slicout
 import           Baup.Process.TreeComparator
-import           Util.Dump
 import           Util.Lib
-import           Util.TurboWare
-import           Util.Types
 
 mapCall :: (RevPath -> a -> Slicout ) -> RevPath -> [(FileName, a)] -> [Slicout]
 mapCall fce revpath = map (uncurry fce . (first (:revpath)))

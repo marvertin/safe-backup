@@ -43,10 +43,7 @@ import           Baup.Process.SlicinMerger
 import           Baup.Process.SlicoutBuilder
 import           Baup.Process.TreeComparator
 import           Util.DirScan
-import           Util.Dump
 import           Util.Lib
-import           Util.TurboWare
-import           Util.Types
 
 
 getEventHandler :: UTCTime -> Log -> (EventEnvelop a ErrList -> IO ErrList, ErrList)

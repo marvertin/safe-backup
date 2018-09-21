@@ -34,7 +34,7 @@ import           Text.Regex.Posix
 import           Baup.App.Ignorances
 import           Baup.IO.FileNamesC
 import           Baup.IO.SliceNameStrategy
-import           Util.Types
+import           Util.Lib
 
 data TreeDef = TreeDef { tdName :: String, tdPath :: FilePath, tdPatterns :: IgnoranceDef} deriving (Show)
 type ForestDef = [TreeDef]

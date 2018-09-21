@@ -16,12 +16,10 @@ import qualified Data.Map          as M
 import qualified Data.Set          as S
 import qualified Data.Text         as T
 import           Text.Printf
+import           Text.RawString.QQ
 
 import           Baup.Data.Lodree
-import           Text.RawString.QQ
 import           Util.Lib
-import           Util.TurboWare
-import           Util.Types
 
 
 data Cmd = MkDir | CpFile FilePath (Maybe UTCTime) deriving (Show, Eq, Ord)

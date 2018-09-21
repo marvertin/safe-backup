@@ -18,7 +18,6 @@ import           Text.Printf
 
 import           Util.DirScan
 import           Util.Lib
-import           Util.Types
 
 type Log = Level -> String -> IO ()
 

@@ -27,7 +27,7 @@ import           System.IO
 import           Text.Printf
 import           Text.Regex.Posix
 
-import           Util.TurboWare
+import           Util.Lib
 
 data SliceNameStrategy = Pattern String
    deriving (Show, Generic, FromJSON, ToJSON)

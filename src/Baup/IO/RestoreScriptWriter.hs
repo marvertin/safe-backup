@@ -18,8 +18,6 @@ import           Baup.IO.FileNamesC
 import           Baup.Process.RestoreScriptMaker
 import           Text.Printf
 import           Util.Lib
-import           Util.TurboWare
-import           Util.Types
 
 createRestoreScripts ::  Ctx -> Lodree -> IO Bool
 createRestoreScripts ctx (LDir _ list) = foldr (createOnRestoreScript ctx) (return False) list

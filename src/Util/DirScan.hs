@@ -25,8 +25,8 @@ import           System.FilePath
 import           System.IO
 import           Text.Printf
 
-import           Util.Lib
-import           Util.Types
+import           Util.Lib          (FileSize, FilesCount, RevPath, pth,
+                                    safeHead)
 
 type FlowAvar = [(UTCTime, FilesCount, FileSize, UTCTime)] -- timce, count, size, header has latest
 data Acum a b = Acum FlowAvar [(FilePath, a)] b deriving (Show)
@@ -171,9 +171,6 @@ averageSpeed' (time1, count1, size1, _) (time2, count2, size2, _) =
     in (fromIntegral (count2 - count1) / timeDiff,
          round  (fromIntegral (size2 - size1) / timeDiff))
 
-safeHead :: a -> [a] -> a
-safeHead def [] = def
-safeHead _ l    = myhead l
 
 myhead :: [a] -> a
 myhead []    = error "the list is empty DirScan"

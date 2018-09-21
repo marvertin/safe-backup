@@ -42,10 +42,7 @@ import           System.IO             (hFlush, stdout)
 import           Text.Printf           (printf)
 
 import           Baup.Data.Ree
-import           Util.Dump
 import           Util.Lib
-import           Util.TurboWare
-import           Util.Types
 
 
 type Slicin = DirTree SliceFile

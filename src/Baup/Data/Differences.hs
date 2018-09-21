@@ -7,8 +7,7 @@ module Baup.Data.Differences (
 ) where
 
 import           Baup.Data.Lodree
-import           Util.TurboWare
-import           Util.Types
+import           Util.Lib
 
 data Differences = QDir [(FileName, Differences)]
  | QLeft Lodree

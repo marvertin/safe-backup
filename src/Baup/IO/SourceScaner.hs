@@ -20,14 +20,12 @@ import           System.FilePath
 import           System.IO
 
 
-import           Util.DirScan
-import           Util.Lib
-import           Util.TurboWare
-import           Util.Types
 import           Baup.App.Ignorances
 import           Baup.App.Log
 import           Baup.Data.Lodree
 import           Baup.Data.Ree
+import           Util.DirScan
+import           Util.Lib
 
 
 import qualified Data.ByteString.Lazy as Lazy
