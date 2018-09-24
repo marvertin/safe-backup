@@ -13,6 +13,7 @@ module Baup.Data.Slicin
     (
     formatMetaFileHeader,
     parseMetaFile,
+    computeSizes,
     SliceFile(..),
     Slicin(..),
     SliceCmd(..),
@@ -85,6 +86,11 @@ printSliceFile2 :: SliceFile -> Maybe String
 printSliceFile2 (RegularFile _ originalPath) = Just originalPath
 printSliceFile2 (MetaFile _)                 = Nothing
 
+computeSizes :: Slicin -> Stat3
+computeSizes slicin = foldMap (MonoidPlus3 . sizis) slicin
+  where
+     sizis (RegularFile Ree{..} _) = (1, rsize, 0)
+     sizis MetaFile{}              = (0, 0, 1)
 --------------------------------------------------------
 
 instance Dumpable Slicin where

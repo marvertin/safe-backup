@@ -100,7 +100,7 @@ scanSlices ctx@Ctx{..} = do
         let sliceIndexPath = (replaceVerticalToSlashes (indexRoot </> name </> sliceIndexName))
         let sliceIndexTempPath = (replaceVerticalToSlashes (indexRoot </> name </> "~~" ++ sliceIndexName))
         createDirectoryIfMissing True (takeDirectory sliceIndexPath)
-        doesFileExist sliceIndexPath >>=
+        (slice, errs) <- doesFileExist sliceIndexPath >>=
           (\exists -> if exists then do
                                    slice <- (decodeFileThrow sliceIndexPath :: IO Slicin)
                                    return (slice, ErrList [])
@@ -117,8 +117,13 @@ scanSlices ctx@Ctx{..} = do
                                                lo Error $ "IMPOSSIBLE: written a read slices are not same!"
                                    return (slice, errs)
              )
+        lo Inf $ printf "        %s: %s" name (show (computeSizes slice))
+        return (slice, errs)
     )
+  let statTotal =  foldMap computeSizes slices
+  lo Inf $ printf "    total slices:    %s" (show statTotal)
   let rootLodree = mergesToLodree emptyLodree slices
+  lo Inf $ printf "    all slices merged:   %s" (showRee . ree . currentLodree $ rootLodree)
   let lodreeBackupCurrent = currentLodree rootLodree
   -- M.Map FilePath UTCTime
 
@@ -127,10 +132,9 @@ scanSlices ctx@Ctx{..} = do
   -- createDirectoryIfMissing True (takeSlicedIndexPath newSliceName)
   encodeFile (takeSlicedLogPath newSliceName </> sliceLogicalTree_suffix) lodreeBackupCurrent
 
-  lo Inf $ "    " ++ showRee (ree rootLodree)
   tmEnd <- getCurrentTime
   lo Inf $ showPhaseTime tmEnd tmStart
-  lo Summary $ printf "scaned %d slices - %s (%s)" (length sliceNames) (showRee (ree rootLodree)) (showDiffTm tmEnd tmStart)
+  lo Summary $ printf "scaned %d slices - %s (%s)" (length sliceNames) (show statTotal) (showDiffTm tmEnd tmStart)
   return (rootLodree, failusSlices)
   -- return ()
 

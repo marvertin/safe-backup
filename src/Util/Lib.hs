@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -20,6 +21,7 @@ module Util.Lib
      MonoidPlus3(..),
      RevPath,
      SliceName,
+     Stat3,
      UTCTime,
      appendToFirst,
      computeFileHash,
@@ -287,8 +289,8 @@ sizeInMb x =  fromIntegral x / 1024 / 1024
 
 showSz ::  Integral a  => a -> String
 showSz sz = let (x, m) = safeHead (0, "XiB") . dropWhile (\(q, _) ->  q > 1024.0)
-                         $ zip (qs (fromIntegral sz)) ["B", "KiB", "MiB", "GiB", "TiB", "PiB"]
-            in printf "%4.3f %s" (x :: Double) m
+                         $ zip (qs (fromIntegral sz)) ["B  ", "KiB", "MiB", "GiB", "TiB", "PiB"]
+            in printf "%7.3f %s" (x :: Double) m
   where qs size = size : qs (size / 1024.0)
 
 
@@ -310,3 +312,9 @@ dirTreeToStringList :: Show a =>  (a -> Maybe String) -> DirTree a -> [String]
 dirTreeToStringList f (File name a) = [name ++ maybe "" (": " ++) (f a) ]
 dirTreeToStringList f (Dir name contents) = ("/ " ++ name) : map ("   "++) (concat (dirTreeToStringList f <$> contents))
 dirTreeToStringList f (Failed name exc) = [name ++ "EXC " ++ show exc]
+
+
+type Stat3 = MonoidPlus3 FilesCount FileSize FilesCount
+
+instance  {-# OVERLAPS #-}  Show Stat3 where
+  show (MonoidPlus3 (files, size, metas)) = printf "%6d files, %-8s, %5d metas" files (showSz size) metas
