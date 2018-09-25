@@ -8,6 +8,7 @@ module Util.Treex (
 
 import qualified Data.Map    as M
 import           Data.Monoid
+import qualified Data.Set    as S
 
 data Tree k v = Tree v (M.Map k (Tree k v))
 
@@ -40,6 +41,15 @@ union treeA treeB = uni (fmap (\a -> (Just a, Nothing)) treeA)
 intersection :: Ord k => Tree k a -> Tree k b -> Tree k (a, b)
 intersection (Tree x xch) (Tree y ych) = Tree (x, y) (M.intersectionWith intersection xch ych)
 
+{-
+build :: ([k] -> Either [k] a) -> ([k] -> M.Map k (Tree k a) -> a) -> Tree k a
+build = bu []
+  where
+   bu :: [k] -> ([k] -> Either [k] a) -> ([k] -> M.Map k (Tree k a) -> a) -> Tree k a
+   bu path fd fn = case fd path of
+     Left keys -> fn path (M.fromList (fmap (\k -> (k, bu (k:path) fd fn) ) keys))
+     Right a -> Tree a M.empty
+-}
 {-
 lookupx :: [k] -> Tree k a -> Maybe (Tree k a)
 lookupx [] tree      = Just tree
