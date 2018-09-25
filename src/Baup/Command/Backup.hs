@@ -117,7 +117,7 @@ scanSlices ctx@Ctx{..} = do
                                                lo Error $ "IMPOSSIBLE: written a read slices are not same!"
                                    return (slice, errs)
              )
-        lo Inf $ printf "        %s: %s" name (show (computeSizes slice))
+        lo Inf $ printf "        %s: %s" (replaceVerticalToSlashes name) (show (computeSizes slice))
         return (slice, errs)
     )
   let statTotal =  foldMap computeSizes slices
@@ -190,8 +190,9 @@ compareSlicesToSources ctx@Ctx{..} rootLodree lodreeSourceAllNodes = do
          let resultSliceout = buildSlicout mapOfHashes resultDiff newSliceName
          dumpToFile (lf "slicout.log") resultSliceout
          forM_ [lo Inf, lo Summary] ($ formatDiffResult resultDiff)
+         forM_ [lo Inf, lo Summary] ($ printf "    %s+ %s" (replaceVerticalToSlashes newSliceName) (show $ computeSizes resultSliceout))
          forM_ (M.toList $ countCounters resultSliceout) (\(key, value) ->
-             forM_ [lo Inf, lo Summary] ($ printf "%8d: %s" value key)
+             forM_ [lo Inf, lo Summary] ($ printf "%8d * %s" value key)
              )
          return $ Just resultSliceout
   tmEnd <- getCurrentTime
@@ -211,14 +212,13 @@ copyFiles ctx@Ctx{..} resulta = do
        createDirectoryIfMissing True (takeSlicedDataPath newSliceName)
        encodeFile (takeSlicedDataPath newSliceName ++ "/" ++ modificationTimesFileName)  (modificationTimes backupDirTree)
        (_  :/ resultOfCopy) <- writeBackup lo (dataRoot :/ backupDirTree) forest
-       let failus :: [DirTree (Int, Integer, Int)]
+       let failus :: [DirTree Stat3]
            failus = failures resultOfCopy
        let failusStr = (show . err) <$> failus
        forM_ failusStr (\msg -> do
            lo Error $ "    !!!!! ERROR !!!!! " ++ msg
          )
-       let MonoidPlus3 (copiedFiles, copiedSize, createdMetas) = foldMap MonoidPlus3  resultOfCopy
-       let msg = printf "copied %d files of %s, created %d metafiles into \"%s\"" copiedFiles (showSz copiedSize) createdMetas (replaceVerticalToSlashes newSliceName) :: String
+       let msg = printf "%s+ %s"  (replaceVerticalToSlashes newSliceName) (show $ foldMap id resultOfCopy)  :: String
        lo Inf $ printf "    %s" msg
 
        tmEnd <- getCurrentTime

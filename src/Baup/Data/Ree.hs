@@ -36,3 +36,6 @@ showRee Ree{..} = printf "%d files, %s" rcount (showSz rsize)
 
 loadFileRee :: FilePath -> IO Ree
 loadFileRee f = Ree 1 <$> getFileSize f <*> getModificationTime f <*> computeFileHash f
+
+instance Stat3Compute Ree where
+  computeSizes ree = MonoidPlus3 (rcount ree, rsize ree, 0)

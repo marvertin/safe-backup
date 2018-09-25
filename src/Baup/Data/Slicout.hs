@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE InstanceSigs         #-}
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
@@ -12,7 +13,7 @@ module Baup.Data.Slicout (
   countsToBackup,
   modificationTimes,
   countCounters,
-  kindOfChange
+  kindOfChange,
 ) where
 
 import           Data.Counter
@@ -102,6 +103,17 @@ kindOfChange cmd =
     kardinality []  = Zero
     kardinality [_] = One
     kardinality _   = Many
+
+instance Stat3Compute Cmd where
+  computeSizes (Insert size _) = MonoidPlus3 (1, size, 0)
+  computeSizes Delete{}        = MonoidPlus3 (0, 0, 1)
+  computeSizes Link{}          = MonoidPlus3 (0, 0, 1)
+
+
+instance Stat3Compute Slicout where
+  computeSizes :: Slicout -> Stat3
+  computeSizes = foldMap computeSizes
+
 
 instance Dumpable Cmd where
     toDump x = [ "**" ++ show x ]

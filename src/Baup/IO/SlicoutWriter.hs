@@ -29,7 +29,7 @@ import qualified Data.ByteString.Lazy  as BS
 import           Util.Lib
 
 -- | Write backu. returns (count of copies files, sizue of set files, count of metafiles)
-writeBackup :: Log -> AnchoredSlicout -> ForestDef ->  IO (AnchoredDirTree (FilesCount, FileSize, FilesCount))
+writeBackup :: Log -> AnchoredSlicout -> ForestDef ->  IO (AnchoredDirTree Stat3)
 writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
         let (Dir _ subdirs) = (first replaceWithSorucePath) <$> zipPaths ("" :/ bt)
         counters <- newIORef mempty
@@ -42,8 +42,7 @@ writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
              Nothing ->  error $ "Imposible has happened! \"" ++ treeName ++ "\" not found in " ++ show forest ++ " the rest is \"" ++ path ++ "\""
              Just root -> root ++ path
 
-      --writeFileToBackup :: Int -> FilePath -> FilePath -> Cmd -> IO ()
-      writeFileToBackup :: IORef (MonoidPlus3 FilesCount FileSize FilesCount) -> FilePath -> (FilePath, Cmd) -> IO (FilesCount, FileSize, FilesCount)
+      writeFileToBackup :: IORef Stat3 -> FilePath -> (FilePath, Cmd) -> IO Stat3
       writeFileToBackup  counters destPath (sourcePath, (Insert _ _))  = do
            lo Debug $ printf "copy file: \"%s\" --> \"%s\"" sourcePath destPath
            lo Progress $ printf "copy file: \"%s\" --> \"%s\"" sourcePath destPath
@@ -53,7 +52,7 @@ writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
            modifyIORef' counters (mappend (MonoidPlus3 (1, fsize, 0)))
            show <$> readIORef counters >>= lo Debug
 
-           return (1, fsize, 0)
+           return $ MonoidPlus3 (1, fsize, 0)
 
       writeFileToBackup counters path (_, cmd) = do
            let (dir, file) = splitFileName path
@@ -62,7 +61,7 @@ writeBackup lo abt@(base :/ bt@(Dir newSliceName _)) forest = do
            writeFile cesta (formatCmd cmd)
            modifyIORef' counters (mappend (MonoidPlus3 (0, 0, 1)))
            show <$> readIORef counters >>= lo Debug
-           return (0,0,1)
+           return $ MonoidPlus3 (0,0,1)
 
 showCmd :: Cmd ->  String
 showCmd (YDSO.Insert {}) = "<insert>"

@@ -22,6 +22,7 @@ module Util.Lib
      RevPath,
      SliceName,
      Stat3,
+     Stat3Compute(..),
      UTCTime,
      appendToFirst,
      computeFileHash,
@@ -288,7 +289,7 @@ sizeInMb :: FileSize -> Double
 sizeInMb x =  fromIntegral x / 1024 / 1024
 
 showSz ::  Integral a  => a -> String
-showSz sz = let (x, m) = safeHead (0, "XiB") . dropWhile (\(q, _) ->  q > 1024.0)
+showSz sz = let (x, m) = safeHead (0, "XiB") . dropWhile (\(q, _) ->  abs q > 1024.0)
                          $ zip (qs (fromIntegral sz)) ["B  ", "KiB", "MiB", "GiB", "TiB", "PiB"]
             in printf "%7.3f %s" (x :: Double) m
   where qs size = size : qs (size / 1024.0)
@@ -318,3 +319,6 @@ type Stat3 = MonoidPlus3 FilesCount FileSize FilesCount
 
 instance  {-# OVERLAPS #-}  Show Stat3 where
   show (MonoidPlus3 (files, size, metas)) = printf "%6d files, %-8s, %5d metas" files (showSz size) metas
+
+class Stat3Compute a where
+  computeSizes :: a -> Stat3
