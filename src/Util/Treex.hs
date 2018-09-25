@@ -24,3 +24,7 @@ instance Foldable (Tree k) where
 
 instance Traversable (Tree k) where
   traverse fce (Tree x ch) = Tree <$> fce x <*> traverse (traverse fce) ch
+
+
+union :: Tree k a -> Tree k b -> Tree k (Maybe a, Maybe b)
+union (Tree x xch) (Tree y ych) = Tree (Just x, Just y) M.empty
