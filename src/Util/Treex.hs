@@ -4,6 +4,9 @@ module Util.Treex (
  zipPath,
  union,
  intersection,
+ buildDownM,
+ fillNodes
+
 ) where
 
 import           Data.Functor.Identity
@@ -11,7 +14,7 @@ import qualified Data.Map              as M
 import           Data.Monoid
 import qualified Data.Set              as S
 
-data Tree k v = Tree v (M.Map k (Tree k v))
+data Tree k v = Tree v (M.Map k (Tree k v)) deriving Show
 
 instance Functor (Tree k) where
   fmap fce (Tree x ch) = Tree (fce x) (M.map (fmap fce) ch)
@@ -42,6 +45,7 @@ union treeA treeB = uni (fmap (\a -> (Just a, Nothing)) treeA)
 intersection :: Ord k => Tree k a -> Tree k b -> Tree k (a, b)
 intersection (Tree x xch) (Tree y ych) = Tree (x, y) (M.intersectionWith intersection xch ych)
 
+
 buildx :: Ord k => ([k] -> Either [k] a) -> ([k] -> M.Map k (Tree k a) -> a) -> Tree k a
 buildx = bu []
   where
@@ -63,6 +67,20 @@ build = bu []
 build2 :: Ord k => ([k] -> Either (S.Set k) a) -> ([k] -> M.Map k (Tree k a) -> a) -> Tree k a
 build2 fd fn = runIdentity $ buildM (return . fd) (\x y -> return (fn x y))
 
+buildDownM :: (Monad m, Ord k) => ([k] -> m (Either (S.Set k) a)) -> m (Tree k (Maybe a))
+buildDownM = bu []
+ where
+  bu ::   (Monad m, Ord k) => [k] -> ([k] -> m (Either (S.Set k) a)) -> m (Tree k (Maybe a))
+  bu path fd = fd path >>= (\node -> case node of
+    Left keys -> let ch = M.fromList <$> (traverse (\k -> sequence (k, bu (k:path) fd) ) (S.elems keys))
+                  in Tree Nothing <$> ch
+    Right a ->  return $ Tree (Just a) M.empty)
+
+fillNodes :: Ord k =>  (M.Map k (Tree k a) -> a) -> Tree k (Maybe a) -> Tree k a
+fillNodes fce (Tree may ch) = let newCh = (M.map (fillNodes fce) ch)
+                              in case may of
+                                 Just x  -> Tree x newCh
+                                 Nothing -> Tree (fce newCh) newCh
 
 buildM :: (Monad m, Ord k) => ([k] -> m (Either (S.Set k) a)) -> ([k] -> M.Map k (Tree k a) -> m a) -> m (Tree k a)
 buildM = bu []
@@ -76,3 +94,14 @@ buildM = bu []
 lookupx :: Ord k => [k] -> Tree k a -> Maybe (Tree k a)
 lookupx [] tree             = Just tree
 lookupx (k: ks) (Tree _ ch) = lookupx ks =<< M.lookup k ch
+
+{-
+toDump :: Tree String Integer -> [String]
+--toDump (LFile ree _) = [printRee ree]
+toDump (Tree _ items) = ("    " ++) <$> (M.toList items >>= todump)
+   where
+      todump :: (String, Tree String Integer) -> [String]
+      todump (filename, q@(LFile _ _)) = prependToFirst (filename ++ ": ") (toDump q)
+      todump (filename, q@(LDir ree _)) =   ("/" ++ filename ++ " " ++ printRee ree) : toDump q
+
+-}

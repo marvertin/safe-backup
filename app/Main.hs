@@ -29,6 +29,7 @@ import           Baup.Command.Backup
 import           Baup.Command.MarkDuplicities
 import           Baup.IO.FileNamesC
 import           Util.Treex
+import           Util.Treex.Dir
 import           Util.Types
 
 data Options =
