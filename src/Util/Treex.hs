@@ -6,9 +6,10 @@ module Util.Treex (
  intersection,
 ) where
 
-import qualified Data.Map    as M
+import           Data.Functor.Identity
+import qualified Data.Map              as M
 import           Data.Monoid
-import qualified Data.Set    as S
+import qualified Data.Set              as S
 
 data Tree k v = Tree v (M.Map k (Tree k v))
 
@@ -41,19 +42,37 @@ union treeA treeB = uni (fmap (\a -> (Just a, Nothing)) treeA)
 intersection :: Ord k => Tree k a -> Tree k b -> Tree k (a, b)
 intersection (Tree x xch) (Tree y ych) = Tree (x, y) (M.intersectionWith intersection xch ych)
 
-{-
-build :: ([k] -> Either [k] a) -> ([k] -> M.Map k (Tree k a) -> a) -> Tree k a
-build = bu []
+buildx :: Ord k => ([k] -> Either [k] a) -> ([k] -> M.Map k (Tree k a) -> a) -> Tree k a
+buildx = bu []
   where
-   bu :: [k] -> ([k] -> Either [k] a) -> ([k] -> M.Map k (Tree k a) -> a) -> Tree k a
+   bu ::  Ord k => [k] -> ([k] -> Either [k] a) -> ([k] -> M.Map k (Tree k a) -> a) -> Tree k a
    bu path fd fn = case fd path of
-     Left keys -> fn path (M.fromList (fmap (\k -> (k, bu (k:path) fd fn) ) keys))
+     Left keys -> let ch = M.fromList (fmap (\k -> (k, bu (k:path) fd fn) ) keys)
+                   in Tree (fn path ch) ch
      Right a -> Tree a M.empty
--}
-{-
-lookupx :: [k] -> Tree k a -> Maybe (Tree k a)
-lookupx [] tree      = Just tree
-lookupx (k: ks) (Tree _ ch) = case M.lookup ch of
-  Nothing      -> Nothing
-  (Just tree2) -> lookupx tree2
--}
+
+build :: Ord k => ([k] -> Either (S.Set k) a) -> ([k] -> M.Map k (Tree k a) -> a) -> Tree k a
+build = bu []
+ where
+  bu ::  Ord k => [k] -> ([k] -> Either (S.Set k) a) -> ([k] -> M.Map k (Tree k a) -> a) -> Tree k a
+  bu path fd fn = case fd path of
+    Left keys -> let ch = M.fromList (fmap (\k -> (k, bu (k:path) fd fn) ) (S.elems keys))
+                  in Tree (fn path ch) ch
+    Right a -> Tree a M.empty
+
+build2 :: Ord k => ([k] -> Either (S.Set k) a) -> ([k] -> M.Map k (Tree k a) -> a) -> Tree k a
+build2 fd fn = runIdentity $ buildM (return . fd) (\x y -> return (fn x y))
+
+
+buildM :: (Monad m, Ord k) => ([k] -> m (Either (S.Set k) a)) -> ([k] -> M.Map k (Tree k a) -> m a) -> m (Tree k a)
+buildM = bu []
+ where
+  bu ::   (Monad m, Ord k) => [k] -> ([k] -> m (Either (S.Set k) a)) -> ([k] -> M.Map k (Tree k a) -> m a) -> m (Tree k a)
+  bu path fd fn = fd path >>= (\node -> case node of
+    Left keys -> let ch = M.fromList <$> (traverse (\k -> sequence (k, bu (k:path) fd fn) ) (S.elems keys))
+                  in Tree <$> (fn path =<< ch) <*> ch
+    Right a ->  return $ Tree a M.empty)
+
+lookupx :: Ord k => [k] -> Tree k a -> Maybe (Tree k a)
+lookupx [] tree             = Just tree
+lookupx (k: ks) (Tree _ ch) = lookupx ks =<< M.lookup k ch
