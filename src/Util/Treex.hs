@@ -33,6 +33,10 @@ instance Foldable (Tree k) where
 instance Traversable (Tree k) where
   traverse fce (Tree x ch) = Tree <$> fce x <*> traverse (traverse fce) ch
 
+instance (Monoid a, Ord k) => Monoid (Tree k a) where
+  mempty = Tree mempty M.empty
+  (Tree x xch) `mappend` (Tree y ych) = Tree (mappend x y) (M.unionWith mappend xch ych)
+
 
 union :: Ord k => Tree k a -> Tree k b -> Tree k (Maybe a, Maybe b)
 union treeA treeB = uni (fmap (\a -> (Just a, Nothing)) treeA)
@@ -94,6 +98,47 @@ buildM = bu []
 lookupx :: Ord k => [k] -> Tree k a -> Maybe (Tree k a)
 lookupx [] tree             = Just tree
 lookupx (k: ks) (Tree _ ch) = lookupx ks =<< M.lookup k ch
+
+empty :: Tree k (Maybe a)
+empty = Tree Nothing M.empty
+
+singleton :: [k] -> a -> Tree k (Maybe a)
+singleton [] x      = Tree (Just x) M.empty
+singleton (p: ps) x = Tree Nothing $ M.singleton p (singleton ps x)
+
+insert :: Ord k => [k] -> a -> Tree k (Maybe a) -> Tree k (Maybe a)
+insert [] xx (Tree _ ch) = Tree (Just xx) ch
+insert (p : ps) xx (Tree x ch) =
+  case M.lookup p ch of
+    Just tree -> Tree x (M.insert p (insert ps xx tree) ch)
+    Nothing   -> singleton (p : ps) xx
+
+fromList :: Ord k => [([k], a)] -> Tree k (Maybe a)
+fromList = foldr (uncurry insert) empty
+
+adjust :: Ord k => (a -> a) -> [k] -> Tree k a -> Tree k a
+adjust fce [] (Tree x ch)       = Tree (fce x) ch
+adjust fce (p : ps) (Tree x ch) = Tree x (M.adjust (adjust fce ps) p ch)
+
+delete :: Ord k => [k] -> Tree k a -> Tree k a
+delete [] tree              = tree
+delete [p] (Tree x ch)      = Tree x $ M.delete p ch
+delete (p : ps) (Tree x ch) = Tree x (M.adjust (delete ps) p ch)
+
+delete' :: Ord k => [k] -> Tree k a -> Tree k a
+delete' [] tree              = tree
+delete' (p : ps) (Tree x ch) = Tree x (if null ps then M.delete p ch
+                                                  else M.adjust (delete' ps) p ch)
+
+adjustWithKey :: Ord k => ([k] -> a -> a) -> [k] -> Tree k a -> Tree k a
+adjustWithKey f key = adj (f key) key
+  where
+    adj fce [] (Tree x ch)       = Tree (fce x) ch
+    adj fce (p : ps) (Tree x ch) = Tree x (M.adjust (adj fce ps) p ch)
+
+
+--update fce (p : ps) (Tree x ch) = Tree x (M.update (update fce ps) p ch)
+
 
 {-
 toDump :: Tree String Integer -> [String]
