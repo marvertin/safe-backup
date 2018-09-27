@@ -31,6 +31,7 @@ import           System.Directory.Tree
 import           System.FilePath
 import           System.IO             (hFlush, stdout)
 import           Text.Printf           (printf)
+import           Text.Regex.Posix
 
 import           Baup.Data.Ree
 import           Baup.Data.Slicin
@@ -66,8 +67,17 @@ loadSliceFile rootPath rp = do
   time <- getModificationTime realPath
   hash <- computeFileHash realPath
   let originalPath = "/" ++ takeFileName rootPath ++ "/" ++ path
-  if not $ metaSuffix `isSuffixOf` path then return (RegularFile  (Ree 1 size time hash) originalPath )
+  if not $ isMetaFileName path then return (RegularFile  (Ree 1 size time hash) originalPath )
           else (MetaFile . parseMetaFile . T.unpack) <$> TIO.readFile realPath
+
+isMetaFileName :: FilePath -> Bool
+isMetaFileName path =
+  (metaSuffix `isSuffixOf` path || ".yaba" `isSuffixOf` path)
+  && (takeFileName path =~ ("^~.+~" :: String))
+
+
+
+
 
 isEmptyDir :: Slicin -> Bool
 isEmptyDir (Dir _ []) = True

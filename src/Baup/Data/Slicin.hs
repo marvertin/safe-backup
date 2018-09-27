@@ -62,11 +62,12 @@ parseMetaFile fileContent = (parse . lines) fileContent
   where
     parse :: [String] -> SliceCmd
     parse []                   = error "meta file is empty"
-    parse ("#yaba1" : line : _) = read line
+    parse ("#version1" : line : _) = read line
+    parse ("#yaba1" : line : _) = read line -- compatibility with old version
     parse _ = error $ "Bad version of meta file, probably old version of this tool: " ++ show fileContent
 
 formatMetaFileHeader :: SliceCmd -> [String]
-formatMetaFileHeader x = ["#yaba1", show x]
+formatMetaFileHeader x = ["#version1", show x]
 
 isSliceRegularFile :: Slicin -> Bool
 isSliceRegularFile (File _ (RegularFile _ _)) = True
