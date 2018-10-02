@@ -35,7 +35,7 @@ instance Traversable (Tree k) where
 
 instance (Monoid a, Ord k) => Monoid (Tree k a) where
   mempty = Tree mempty M.empty
-  (Tree x xch) `mappend` (Tree y ych) = Tree (mappend x y) (M.unionWith mappend xch ych)
+  (Tree x xch) `mappend` (Tree y ych) = Tree (x <> y) (M.unionWith mappend xch ych)
 
 
 union :: Ord k => Tree k a -> Tree k b -> Tree k (Maybe a, Maybe b)
@@ -45,6 +45,8 @@ union treeA treeB = uni (fmap (\a -> (Just a, Nothing)) treeA)
     uni :: Ord k => Tree k (Maybe a, Maybe b) -> Tree k (Maybe a, Maybe b) -> Tree k (Maybe a, Maybe b)
     uni (Tree (x, _) xch) (Tree (_, y) ych) = Tree (x, y) (M.unionWith uni xch ych)
 
+unionMap :: (Ord k, Monoid m) => (a -> m) -> (b -> m) -> Tree k a -> Tree k b -> Tree k m
+unionMap fa fb treeA treeB = fmap fa treeA <> fmap fb treeB
 
 intersection :: Ord k => Tree k a -> Tree k b -> Tree k (a, b)
 intersection (Tree x xch) (Tree y ych) = Tree (x, y) (M.intersectionWith intersection xch ych)
@@ -102,9 +104,22 @@ lookupx (k: ks) (Tree _ ch) = lookupx ks =<< M.lookup k ch
 empty :: Tree k (Maybe a)
 empty = Tree Nothing M.empty
 
+emptyMonoid :: (Ord k, Monoid a) => Tree k a
+emptyMonoid = Tree mempty M.empty
+
 singleton :: [k] -> a -> Tree k (Maybe a)
 singleton [] x      = Tree (Just x) M.empty
 singleton (p: ps) x = Tree Nothing $ M.singleton p (singleton ps x)
+
+singletonMonoid :: Monoid m => [k] -> m -> Tree k m
+singletonMonoid [] x      = Tree x M.empty
+singletonMonoid (p: ps) x = Tree mempty $ M.singleton p (singletonMonoid ps x)
+
+insertMonoid :: (Ord k, Monoid a) => [k] -> a -> Tree k a -> Tree k a
+insertMonoid path xx tree = singletonMonoid path xx <> tree
+
+appendMonoid :: (Ord k, Monoid a) => [k] -> Tree k a -> a -> Tree k a
+appendMonoid path tree xx = tree <> singletonMonoid path xx
 
 insert :: Ord k => [k] -> a -> Tree k (Maybe a) -> Tree k (Maybe a)
 insert [] xx (Tree _ ch) = Tree (Just xx) ch
@@ -115,6 +130,9 @@ insert (p : ps) xx (Tree x ch) =
 
 fromList :: Ord k => [([k], a)] -> Tree k (Maybe a)
 fromList = foldr (uncurry insert) empty
+
+fromListMonoid :: (Ord k, Monoid a) => [([k], a)] -> Tree k a
+fromListMonoid = foldr (uncurry insertMonoid) emptyMonoid
 
 adjust :: Ord k => (a -> a) -> [k] -> Tree k a -> Tree k a
 adjust fce [] (Tree x ch)       = Tree (fce x) ch
