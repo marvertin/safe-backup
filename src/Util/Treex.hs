@@ -77,12 +77,12 @@ buildDownM = bu []
  where
   bu ::   (Monad m, Ord k) => [k] -> ([k] -> m (Either (S.Set k) a)) -> m (Tree k (Maybe a))
   bu path fd = fd path >>= (\node -> case node of
-    Left keys -> let ch = M.fromList <$> (traverse (\k -> sequence (k, bu (k:path) fd) ) (S.elems keys))
+    Left keys -> let ch = M.fromList <$> traverse (\k -> sequence (k, bu (k:path) fd) ) (S.elems keys)
                   in Tree Nothing <$> ch
     Right a ->  return $ Tree (Just a) M.empty)
 
 fillNodes :: Ord k =>  (M.Map k (Tree k a) -> a) -> Tree k (Maybe a) -> Tree k a
-fillNodes fce (Tree may ch) = let newCh = (M.map (fillNodes fce) ch)
+fillNodes fce (Tree may ch) = let newCh = M.map (fillNodes fce) ch
                               in case may of
                                  Just x  -> Tree x newCh
                                  Nothing -> Tree (fce newCh) newCh
