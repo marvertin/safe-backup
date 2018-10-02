@@ -2,7 +2,6 @@ module Util.Treex (
 
  Tree(..),
  zipPath,
- union,
  intersection,
  buildDownM,
  fillNodes
@@ -38,8 +37,8 @@ instance (Monoid a, Ord k) => Monoid (Tree k a) where
   (Tree x xch) `mappend` (Tree y ych) = Tree (x <> y) (M.unionWith mappend xch ych)
 
 
-union :: Ord k => Tree k a -> Tree k b -> Tree k (Maybe a, Maybe b)
-union treeA treeB = uni (fmap (\a -> (Just a, Nothing)) treeA)
+unionTuples :: Ord k => Tree k a -> Tree k b -> Tree k (Maybe a, Maybe b)
+unionTuples treeA treeB = uni (fmap (\a -> (Just a, Nothing)) treeA)
                         (fmap (\b -> (Nothing, Just b)) treeB)
   where
     uni :: Ord k => Tree k (Maybe a, Maybe b) -> Tree k (Maybe a, Maybe b) -> Tree k (Maybe a, Maybe b)
@@ -101,38 +100,24 @@ lookupx :: Ord k => [k] -> Tree k a -> Maybe (Tree k a)
 lookupx [] tree             = Just tree
 lookupx (k: ks) (Tree _ ch) = lookupx ks =<< M.lookup k ch
 
-empty :: Tree k (Maybe a)
-empty = Tree Nothing M.empty
 
-emptyMonoid :: (Ord k, Monoid a) => Tree k a
-emptyMonoid = Tree mempty M.empty
+empty :: (Ord k, Monoid a) => Tree k a
+empty = Tree mempty M.empty
 
-singleton :: [k] -> a -> Tree k (Maybe a)
-singleton [] x      = Tree (Just x) M.empty
-singleton (p: ps) x = Tree Nothing $ M.singleton p (singleton ps x)
 
-singletonMonoid :: Monoid m => [k] -> m -> Tree k m
-singletonMonoid [] x      = Tree x M.empty
-singletonMonoid (p: ps) x = Tree mempty $ M.singleton p (singletonMonoid ps x)
+singleton :: Monoid m => [k] -> m -> Tree k m
+singleton [] x      = Tree x M.empty
+singleton (p: ps) x = Tree mempty $ M.singleton p (singleton ps x)
 
-insertMonoid :: (Ord k, Monoid a) => [k] -> a -> Tree k a -> Tree k a
-insertMonoid path xx tree = singletonMonoid path xx <> tree
+insert :: (Ord k, Monoid a) => [k] -> a -> Tree k a -> Tree k a
+insert path xx tree = singleton path xx <> tree
 
-appendMonoid :: (Ord k, Monoid a) => [k] -> Tree k a -> a -> Tree k a
-appendMonoid path tree xx = tree <> singletonMonoid path xx
+append :: (Ord k, Monoid a) => [k] -> Tree k a -> a -> Tree k a
+append path tree xx = tree <> singleton path xx
 
-insert :: Ord k => [k] -> a -> Tree k (Maybe a) -> Tree k (Maybe a)
-insert [] xx (Tree _ ch) = Tree (Just xx) ch
-insert (p : ps) xx (Tree x ch) =
-  case M.lookup p ch of
-    Just tree -> Tree x (M.insert p (insert ps xx tree) ch)
-    Nothing   -> singleton (p : ps) xx
 
-fromList :: Ord k => [([k], a)] -> Tree k (Maybe a)
+fromList :: (Ord k, Monoid a) => [([k], a)] -> Tree k a
 fromList = foldr (uncurry insert) empty
-
-fromListMonoid :: (Ord k, Monoid a) => [([k], a)] -> Tree k a
-fromListMonoid = foldr (uncurry insertMonoid) emptyMonoid
 
 adjust :: Ord k => (a -> a) -> [k] -> Tree k a -> Tree k a
 adjust fce [] (Tree x ch)       = Tree (fce x) ch
