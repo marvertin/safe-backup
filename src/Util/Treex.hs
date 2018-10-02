@@ -1,3 +1,12 @@
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{- LANGUAGE OverlappingInstances  #-}
+{-# LANGUAGE Rank2Types            #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
+
 module Util.Treex (
 
  Tree(..),
@@ -9,9 +18,11 @@ module Util.Treex (
 ) where
 
 import           Data.Functor.Identity
+import           Data.Kind
 import qualified Data.Map              as M
 import           Data.Monoid
 import qualified Data.Set              as S
+
 
 data Tree k v = Tree v (M.Map k (Tree k v)) deriving Show
 
@@ -36,6 +47,22 @@ instance (Monoid a, Ord k) => Monoid (Tree k a) where
   mempty = Tree mempty M.empty
   (Tree x xch) `mappend` (Tree y ych) = Tree (x <> y) (M.unionWith mappend xch ych)
 
+class RMonad m where
+  type RMonadCtxt m a :: Constraint
+  type RMonadCtxt m a = ()
+
+  returnx :: RMonadCtxt m a => a -> m a
+  (>>==) :: (RMonadCtxt m a, RMonadCtxt m b) => m a -> (a -> m b) -> m b
+
+instance Ord k => RMonad (Tree k) where
+  type RMonadCtxt (Tree k) a = Monoid a
+  returnx = singleton []
+  Tree x ch >>== f = f x <> Tree mempty (M.map (>>== f) ch)
+{-
+instance (Ord k) => MonadPlus (Tree k) where
+  returnx x = Tree x M.empty
+  Tree x ch >>== f = f x <> M.map (>>= f) ch
+-}
 
 unionTuples :: Ord k => Tree k a -> Tree k b -> Tree k (Maybe a, Maybe b)
 unionTuples treeA treeB = uni (fmap (\a -> (Just a, Nothing)) treeA)
