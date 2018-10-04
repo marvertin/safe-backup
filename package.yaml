@@ -1,5 +1,5 @@
-name:                yaba
-version:             0.4.4.0
+name:                syfil
+version:             0.5.0.1
 github:              "marvertin/safe-backup"
 license:             BSD3
 author:              "Martin Veverka"
@@ -55,7 +55,7 @@ library:
   source-dirs: src
 
 executables:
-  yaba:
+  syfil:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -63,10 +63,10 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - yaba
+    - syfil
 
 tests:
-  yaba-test:
+  syfil-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -74,4 +74,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - yaba
+    - syfil

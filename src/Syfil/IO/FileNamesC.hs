@@ -17,9 +17,9 @@ where
 import           System.Directory.Tree (FileName)
 --import           System.FilePath (FileName)
 
-metaSuffix = ".yaba"
+metaSuffix = ".syfil"
 
-configFileName = "yaba-config.yaml" :: FileName
+configFileName = "syfil-config.yaml" :: FileName
 
 sliceIndexName = indexVersion ++ "_sliceIndex.yaml"
 sliceLogicalTree_suffix = "_logical-tree.yaml"

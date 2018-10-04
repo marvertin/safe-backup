@@ -1,3 +1,3 @@
-# Changelog for Yaba
+# Changelog for Syfil
 
 ## Unreleased changes

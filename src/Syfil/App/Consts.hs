@@ -4,5 +4,5 @@ module Syfil.App.Consts (
   pgmshortdesc,
 ) where
 
-pgmname = "yaba"
-pgmshortdesc = "yeat another backup"
+pgmname = "syfil"
+pgmshortdesc = "safe your files"

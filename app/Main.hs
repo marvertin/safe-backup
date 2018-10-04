@@ -12,7 +12,7 @@ import           Data.Time.Clock
 import           Data.Version                  (showVersion)
 import           GHC.IO.Encoding
 import           Options.Applicative
-import qualified Paths_yaba                    (version)
+import qualified Paths_syfil                   (version)
 import           System.Directory
 import           System.Directory.Tree
 import           System.Environment
@@ -140,7 +140,7 @@ options defaultDir =
 
 main = do
   setLocaleEncoding utf8
-  putStrLn $ pgmname ++ "  " ++ showVersion Paths_yaba.version ++ " - " ++ pgmshortdesc
+  putStrLn $ pgmname ++ "  " ++ showVersion Paths_syfil.version ++ " - " ++ pgmshortdesc
   exitCode <- timeIt  main'
   exitWith exitCode
 
@@ -158,7 +158,7 @@ main' = do
 doProcessing :: Options -> IO ExitCode
 
 doProcessing Version = do
-  putStrLn $ pgmname ++ " " ++ showVersion Paths_yaba.version ++ " - yeat another backup"
+  putStrLn $ pgmname ++ " " ++ showVersion Paths_syfil.version ++ " - safe your files"
   return ExitSuccess
 
 doProcessing NoArgs = do
