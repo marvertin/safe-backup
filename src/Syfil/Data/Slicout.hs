@@ -3,7 +3,7 @@
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
-module Baup.Data.Slicout (
+module Syfil.Data.Slicout (
   Slicout,
   AnchoredSlicout,
   Cmd(..),
@@ -22,7 +22,7 @@ import qualified Data.Map              as M
 import qualified Data.Set              as S
 import           System.FilePath.Posix
 
-import           Baup.Data.Lodree
+import           Syfil.Data.Lodree
 import           System.Directory.Tree
 import           Util.Lib
 

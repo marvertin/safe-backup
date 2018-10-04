@@ -1,4 +1,4 @@
-module Baup.App.Consts (
+module Syfil.App.Consts (
 
   pgmname,
   pgmshortdesc,

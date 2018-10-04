@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections   #-}
 
-module Baup.Command.MarkDuplicities (
+module Syfil.Command.MarkDuplicities (
   cmdMarkDuplicities
 ) where
 
@@ -13,11 +13,11 @@ import           System.Exit
 import           System.FilePath
 
 
-import           Baup.App.Context
-import           Baup.App.Log
-import           Baup.Command.Backup
-import           Baup.Data.Lodree
-import           Baup.Data.Ree
+import           Syfil.App.Context
+import           Syfil.App.Log
+import           Syfil.Command.Backup
+import           Syfil.Data.Lodree
+import           Syfil.Data.Ree
 import           Util.DirScan
 import           Util.Lib
 

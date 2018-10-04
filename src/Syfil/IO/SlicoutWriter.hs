@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections   #-}
 
-module Baup.IO.SlicoutWriter (
+module Syfil.IO.SlicoutWriter (
   writeBackup,
 )  where
 
@@ -20,11 +20,11 @@ import           System.IO
 import           Text.Printf
 
 
-import           Baup.App.Config
-import           Baup.App.Log
-import qualified Baup.Data.Slicin      as YDSI
-import           Baup.Data.Slicout     as YDSO
-import           Baup.IO.FileNamesC
+import           Syfil.App.Config
+import           Syfil.App.Log
+import qualified Syfil.Data.Slicin      as YDSI
+import           Syfil.Data.Slicout     as YDSO
+import           Syfil.IO.FileNamesC
 import qualified Data.ByteString.Lazy  as BS
 import           Util.Lib
 

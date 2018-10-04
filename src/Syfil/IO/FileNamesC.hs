@@ -1,4 +1,4 @@
-module Baup.IO.FileNamesC (
+module Syfil.IO.FileNamesC (
   metaSuffix,
   configFileName,
   sliceIndexName,

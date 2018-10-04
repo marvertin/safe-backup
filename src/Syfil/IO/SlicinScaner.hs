@@ -7,7 +7,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RecordWildCards            #-}
 
-module Baup.IO.SlicinScaner
+module Syfil.IO.SlicinScaner
     (
     readSlice,
     ) where
@@ -33,9 +33,9 @@ import           System.IO             (hFlush, stdout)
 import           Text.Printf           (printf)
 import           Text.Regex.Posix
 
-import           Baup.Data.Ree
-import           Baup.Data.Slicin
-import           Baup.IO.FileNamesC
+import           Syfil.Data.Ree
+import           Syfil.Data.Slicin
+import           Syfil.IO.FileNamesC
 import           Util.DirScan
 import           Util.Lib
 

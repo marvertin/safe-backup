@@ -1,15 +1,15 @@
 {-# LANGUAGE InstanceSigs    #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Baup.Process.TreeComparator (
+module Syfil.Process.TreeComparator (
   compareTrees,
 ) where
 
 
 import           Data.Maybe
 
-import           Baup.Data.Differences
-import           Baup.Data.Lodree
+import           Syfil.Data.Differences
+import           Syfil.Data.Lodree
 import           Util.Lib
 
 compareTrees :: Lodree -> Lodree -> Maybe Differences

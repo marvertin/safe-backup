@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
 
-module Baup.Process.RestoreScriptMaker (
+module Syfil.Process.RestoreScriptMaker (
   makeRestoreScript,
   bashDefinition,
   cmdDefinition
@@ -18,7 +18,7 @@ import qualified Data.Text         as T
 import           Text.Printf
 import           Text.RawString.QQ
 
-import           Baup.Data.Lodree
+import           Syfil.Data.Lodree
 import           Util.Lib
 
 

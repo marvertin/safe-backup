@@ -1,7 +1,7 @@
 {-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Baup.App.Context (
+module Syfil.App.Context (
   withContext,
   Ctx(..),
 
@@ -12,11 +12,11 @@ import           System.Directory
 import           System.Exit
 import           Text.Printf
 
-import           Baup.App.Config
-import           Baup.App.Consts
-import           Baup.App.Log
-import           Baup.IO.FileNamesC
-import           Baup.IO.SliceNameStrategy
+import           Syfil.App.Config
+import           Syfil.App.Consts
+import           Syfil.App.Log
+import           Syfil.IO.FileNamesC
+import           Syfil.IO.SliceNameStrategy
 import           Util.Lib
 
 data Ctx = Ctx {

@@ -1,5 +1,5 @@
 {-# LANGUAGE NamedFieldPuns #-}
-module Baup.App.Log (
+module Syfil.App.Log (
   withLogger,
   Level(..),
   Log,

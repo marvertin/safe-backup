@@ -4,7 +4,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 
 
-module Baup.Data.Ree (
+module Syfil.Data.Ree (
   Ree(..),
   CacheHash,
   loadFileRee,

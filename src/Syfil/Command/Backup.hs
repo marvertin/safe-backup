@@ -3,7 +3,7 @@
 {-# LANGUAGE TupleSections   #-}
 
 
-module Baup.Command.Backup (
+module Syfil.Command.Backup (
   cmdBackup,
   scanSlices
 ) where
@@ -24,24 +24,24 @@ import           System.IO
 import           Text.Printf
 import           Text.RawString.QQ
 
-import           Baup.App.Config
-import           Baup.App.Context
-import           Baup.App.Ignorances
-import           Baup.App.Log
-import           Baup.Data.Differences
-import           Baup.Data.Lodree
-import           Baup.Data.Ree
-import           Baup.Data.Slicin
-import           Baup.Data.Slicout
-import           Baup.IO.FileNamesC
-import           Baup.IO.RestoreScriptWriter
-import           Baup.IO.SliceNameStrategy
-import           Baup.IO.SlicinScaner
-import           Baup.IO.SlicoutWriter
-import           Baup.IO.SourceScaner
-import           Baup.Process.SlicinMerger
-import           Baup.Process.SlicoutBuilder
-import           Baup.Process.TreeComparator
+import           Syfil.App.Config
+import           Syfil.App.Context
+import           Syfil.App.Ignorances
+import           Syfil.App.Log
+import           Syfil.Data.Differences
+import           Syfil.Data.Lodree
+import           Syfil.Data.Ree
+import           Syfil.Data.Slicin
+import           Syfil.Data.Slicout
+import           Syfil.IO.FileNamesC
+import           Syfil.IO.RestoreScriptWriter
+import           Syfil.IO.SliceNameStrategy
+import           Syfil.IO.SlicinScaner
+import           Syfil.IO.SlicoutWriter
+import           Syfil.IO.SourceScaner
+import           Syfil.Process.SlicinMerger
+import           Syfil.Process.SlicoutBuilder
+import           Syfil.Process.TreeComparator
 import           Util.DirScan
 import           Util.Lib
 

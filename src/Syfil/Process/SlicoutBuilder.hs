@@ -2,7 +2,7 @@
 {-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
-module Baup.Process.SlicoutBuilder (
+module Syfil.Process.SlicoutBuilder (
   buildSlicout,
   createMapOfHashes3,
 ) where
@@ -16,10 +16,10 @@ import           Debug.Trace
 import           Debug.Trace
 import           System.Directory.Tree
 
-import           Baup.Data.Differences
-import           Baup.Data.Lodree
-import           Baup.Data.Slicout
-import           Baup.Process.TreeComparator
+import           Syfil.Data.Differences
+import           Syfil.Data.Lodree
+import           Syfil.Data.Slicout
+import           Syfil.Process.TreeComparator
 import           Util.Lib
 
 mapCall :: (RevPath -> a -> Slicout ) -> RevPath -> [(FileName, a)] -> [Slicout]

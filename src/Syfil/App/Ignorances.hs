@@ -1,4 +1,4 @@
-module Baup.App.Ignorances (
+module Syfil.App.Ignorances (
 
   makeFilterFce,
   IgnoranceDef,

@@ -7,7 +7,7 @@
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TupleSections         #-}
 
-module Baup.App.Config
+module Syfil.App.Config
     (
       readConfig,
       ForestDef,
@@ -31,9 +31,9 @@ import           System.IO
 import           Text.Printf
 import           Text.Regex.Posix
 
-import           Baup.App.Ignorances
-import           Baup.IO.FileNamesC
-import           Baup.IO.SliceNameStrategy
+import           Syfil.App.Ignorances
+import           Syfil.IO.FileNamesC
+import           Syfil.IO.SliceNameStrategy
 import           Util.Lib
 
 data TreeDef = TreeDef { tdName :: String, tdPath :: FilePath, tdPatterns :: IgnoranceDef} deriving (Show)

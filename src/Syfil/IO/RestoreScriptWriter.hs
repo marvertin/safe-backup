@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Baup.IO.RestoreScriptWriter (
+module Syfil.IO.RestoreScriptWriter (
   createRestoreScripts
 ) where
 
@@ -12,10 +12,10 @@ import qualified Data.Set                        as S
 import           Data.Yaml
 import           System.Directory
 
-import           Baup.App.Context
-import           Baup.Data.Lodree
-import           Baup.IO.FileNamesC
-import           Baup.Process.RestoreScriptMaker
+import           Syfil.App.Context
+import           Syfil.Data.Lodree
+import           Syfil.IO.FileNamesC
+import           Syfil.Process.RestoreScriptMaker
 import           Text.Printf
 import           Util.Lib
 

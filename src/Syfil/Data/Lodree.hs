@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 
 
-module Baup.Data.Lodree (
+module Syfil.Data.Lodree (
   Lodree(..),
   Ree(..),
   MapOfHashes,
@@ -32,7 +32,7 @@ import           Data.Time.Clock.POSIX
 import           Data.Yaml
 -- import           GHC.Generics
 
-import           Baup.Data.Ree
+import           Syfil.Data.Ree
 import           Util.Lib
 
 

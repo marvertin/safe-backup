@@ -2,16 +2,16 @@
 {-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Baup.Process.SlicinMerger (
+module Syfil.Process.SlicinMerger (
   mergeToLodree,
   mergesToLodree,
 ) where
 
 import qualified Crypto.Hash.SHA1      as Cr
 
-import           Baup.Data.Lodree
-import           Baup.Data.Slicin
-import           Baup.IO.FileNamesC
+import           Syfil.Data.Lodree
+import           Syfil.Data.Slicin
+import           Syfil.IO.FileNamesC
 import           Control.Applicative
 import qualified Data.ByteString       as Strict
 import qualified Data.ByteString.UTF8  as BSU

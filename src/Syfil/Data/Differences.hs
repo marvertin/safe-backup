@@ -1,12 +1,12 @@
 {-# LANGUAGE InstanceSigs    #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Baup.Data.Differences (
+module Syfil.Data.Differences (
   Differences(..),
   diffCountAndSizes
 ) where
 
-import           Baup.Data.Lodree
+import           Syfil.Data.Lodree
 import           Util.Lib
 
 data Differences = QDir [(FileName, Differences)]

@@ -23,11 +23,11 @@ import           System.IO
 import           System.TimeIt
 import           Text.Printf
 
-import           Baup.App.Consts
-import           Baup.App.Context
-import           Baup.Command.Backup
-import           Baup.Command.MarkDuplicities
-import           Baup.IO.FileNamesC
+import           Syfil.App.Consts
+import           Syfil.App.Context
+import           Syfil.Command.Backup
+import           Syfil.Command.MarkDuplicities
+import           Syfil.IO.FileNamesC
 import           Util.Treex
 import           Util.Treex.Dir
 import           Util.Types

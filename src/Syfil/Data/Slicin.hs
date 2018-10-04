@@ -9,7 +9,7 @@
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE StandaloneDeriving         #-}
 
-module Baup.Data.Slicin
+module Syfil.Data.Slicin
     (
     formatMetaFileHeader,
     parseMetaFile,
@@ -41,7 +41,7 @@ import           System.FilePath
 import           System.IO             (hFlush, stdout)
 import           Text.Printf           (printf)
 
-import           Baup.Data.Ree
+import           Syfil.Data.Ree
 import           Util.Lib
 
 

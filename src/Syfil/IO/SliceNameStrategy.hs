@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
 
-module Baup.IO.SliceNameStrategy (
+module Syfil.IO.SliceNameStrategy (
   SliceNameStrategy(),
   defaultSliceNameStrategy,
 

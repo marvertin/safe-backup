@@ -2,7 +2,7 @@
 {-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Baup.IO.SourceScaner (
+module Syfil.IO.SourceScaner (
  readSourceTree,
 ) where
 
@@ -20,10 +20,10 @@ import           System.FilePath
 import           System.IO
 
 
-import           Baup.App.Ignorances
-import           Baup.App.Log
-import           Baup.Data.Lodree
-import           Baup.Data.Ree
+import           Syfil.App.Ignorances
+import           Syfil.App.Log
+import           Syfil.Data.Lodree
+import           Syfil.Data.Ree
 import           Util.DirScan
 import           Util.Lib
 
